@@ -1,3 +1,26 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *  Copyright 2020 (C) by Loris Onori                                          *
+ *                                                                             *
+ *    This program is free software; you can redistribute it and/or modify     *
+ *    it under the terms of the GNU Library General Public License as          *
+ *    published by the Free Software Foundation; either version 2 of the       *
+ *    License, or (at your option) any later version.                          *
+ *                                                                             *
+ *    This program is distributed in the hope that it will be useful,          *
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            *
+ *    GNU General Public License for more details.                             *
+ *                                                                             *
+ *    You should have received a copy of the GNU Library General Public        *
+ *    License along with this program; if not, write to the                    *
+ *    Free Software Foundation, Inc.,                                          *
+ *    59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                *
+ *                                                                             *
+ *    For details about the authors of this software, see the AUTHORS file.    *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+package org.prototype;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -9,6 +32,24 @@ import java.nio.channels.FileChannel;
 
 public class FloodingConCopie {
 
+	//figlio creato per sottocartelle
+	static private class FloodingChild implements Runnable{
+
+		private File dir;
+
+		public FloodingChild(File dir) {
+			this.dir = dir;
+		}
+
+		@Override
+		public void run() {
+			System.out.println("Figlio run in " + dir.getName());
+			FloodingConCopie.startingFunction(dir);
+		}
+
+	}
+
+
 	public static void main(String[] args) {
 		
 		//Il primo parametro è il path della cartella che è stata attaccata
@@ -17,9 +58,7 @@ public class FloodingConCopie {
 		FloodingConCopie.startingFunction(dir);
 
 	}
-	
 
-	
 	//Inondo la cartella di file
 	public static void floodDirectory(File dir) {
 		int i = 0;
@@ -170,36 +209,3 @@ public class FloodingConCopie {
 	}
 
 }
-
-//figlio creato per sottocartelle
-class FloodingChild implements Runnable{
-	
-	private File dir;
-	
-	public FloodingChild(File dir) {
-		this.dir = dir;
-	}
-	
-	@Override
-	public void run() {
-		System.out.println("Figlio run in " + dir.getName());
-		FloodingConCopie.startingFunction(dir);
-	}
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//sdfg

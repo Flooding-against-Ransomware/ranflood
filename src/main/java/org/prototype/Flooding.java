@@ -1,3 +1,24 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *  Copyright 2020 (C) by Loris Onori                                          *
+ *                                                                             *
+ *    This program is free software; you can redistribute it and/or modify     *
+ *    it under the terms of the GNU Library General Public License as          *
+ *    published by the Free Software Foundation; either version 2 of the       *
+ *    License, or (at your option) any later version.                          *
+ *                                                                             *
+ *    This program is distributed in the hope that it will be useful,          *
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of           *
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the            *
+ *    GNU General Public License for more details.                             *
+ *                                                                             *
+ *    You should have received a copy of the GNU Library General Public        *
+ *    License along with this program; if not, write to the                    *
+ *    Free Software Foundation, Inc.,                                          *
+ *    59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                *
+ *                                                                             *
+ *    For details about the authors of this software, see the AUTHORS file.    *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 package org.prototype;
 
 import java.io.BufferedWriter;
@@ -5,6 +26,22 @@ import java.io.File;
 import java.io.FileWriter;
 
 public class Flooding {
+
+	//figlio creato per sottocartelle
+	private static class FloodingChild implements Runnable{
+
+		private File dir;
+
+		public FloodingChild(File dir) {
+			this.dir = dir;
+		}
+
+		@Override
+		public void run() {
+			Flooding.startingFunction(dir);
+		}
+
+	}
 
 	public static void main(String[] args) {
 		
@@ -51,22 +88,6 @@ public class Flooding {
 		}
 		//Ho creato tutti i figli nelle sotto cartella ora posso partire a inondare
 		Flooding.floodDirectory(dir);
-	}
-
-}
-
-//figlio creato per sottocartelle
-class FloodingChild implements Runnable{
-	
-	private File dir;
-	
-	public FloodingChild(File dir) {
-		this.dir = dir;
-	}
-	
-	@Override
-	public void run() {
-		Flooding.startingFunction(dir);
 	}
 
 }
