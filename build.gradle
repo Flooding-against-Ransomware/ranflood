@@ -32,6 +32,6 @@ test {
 }
 
 graal {
-    mainClass 'org.tests.TestWrites'
-    outputName 'testWrites'
+    mainClass 'org.ranflood.RanFlood'
+    outputName 'ranflood'
 }
