@@ -19,7 +19,7 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.flooders;
+package org.daemon.flooders.random;
 
-public interface Flooder {
+public class RandomFileGenerator {
 }

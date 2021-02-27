@@ -19,12 +19,36 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood;
+package org.client;
 
-public class RanFlood {
+import org.client.subcommands.Flood;
+import org.client.subcommands.Monitor;
+import picocli.CommandLine;
+
+import java.util.concurrent.Callable;
+
+@CommandLine.Command(
+				name = "ranflood",
+				mixinStandardHelpOptions = true,
+				version = { "ranflood client 0.1" },
+				description = { "The RanFlood client" },
+				subcommands = {
+								Monitor.class,
+								Flood.class
+				}
+)
+public class RanFlood implements Callable< Integer > {
 
 	public static void main( String[] args ) {
-		System.out.println( "Hello, RanFlood!" );
+		CommandLine c = new CommandLine( new RanFlood() );
+		c.setCaseInsensitiveEnumValuesAllowed( true );
+		System.exit( c.execute( args ) );
+	}
+
+	@Override
+	public Integer call() throws Exception {
+		new CommandLine( this ).usage( System.err );
+		return 1;
 	}
 
 }

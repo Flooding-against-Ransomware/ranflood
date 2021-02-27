@@ -19,70 +19,9 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-plugins {
-    id 'java'
-    id 'com.palantir.graal' version "0.7.2"
-}
+package org.daemon.monitors.onTheFly;
 
-//sourceCompatibility = 11
-//targetCompatibility = 11
+import org.daemon.monitors.Monitor;
 
-group 'org.ranflood'
-version '0.1-ALPHA'
-
-repositories {
-    mavenCentral()
-}
-
-configurations {
-    ranflood
-    compile.extendsFrom ranflood
-    implementation.extendsFrom ranflood
-    runtime.extendsFrom ranflood
-    tests
-    testCompile.extendsFrom tests
-    testImplementation.extendsFrom tests
-    testRuntime.extendsFrom tests
-}
-
-
-dependencies {
-    ranflood "info.picocli:picocli:4.6.1"
-    annotationProcessor 'info.picocli:picocli-codegen:4.6.1'
-    tests "org.junit.jupiter:junit-jupiter-api:5.6.0"
-    tests "net.jqwik:jqwik:1.3.10"
-}
-
-sourceSets {
-    ranflood {
-        java.srcDir 'src/main/java'
-    }
-    tests {
-        java.srcDir 'src/test/java'
-    }
-}
-
-gradle.startParameter.showStacktrace = ShowStacktrace.ALWAYS
-
-compileTestJava {
-    // To enable argument names in reporting and debugging
-    options.compilerArgs += '-parameters'
-    // To enable picocli's annotation processor for GraalVM configurations
-    options.compilerArgs += '-Aproject=${project.group}/${project.name}'
-}
-
-test {
-    useJUnitPlatform{
-        includeEngines 'jqwik'
-    }
-//    include '**/*Properties*'
-//    include '**/*Test*'
-//    include '**/*Tests*'
-}
-
-graal {
-//    mainClass 'org.ranflood.RanFlood'
-//    outputName 'ranflood'
-    mainClass 'org.client.RanFlood'
-    outputName 'ranflood'
+public class OnTheFlyMonitor implements Monitor {
 }

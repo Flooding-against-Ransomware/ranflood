@@ -19,7 +19,9 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.flooders;
+package org.daemon.flooders.shadowCopy;
 
-public class RandomFlooder {
+import org.daemon.flooders.Flooder;
+
+public class ShadowCopyFlooder implements Flooder {
 }
