@@ -19,12 +19,7 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood;
+package org.ranflood.flooders;
 
-public class RanFlood {
-
-	public static void main( String[] args ) {
-		System.out.println( "Hello, RanFlood!" );
-	}
-
+public class RandomFlooder {
 }
