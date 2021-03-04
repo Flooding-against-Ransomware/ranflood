@@ -22,7 +22,7 @@
 package org.client;
 
 import org.client.subcommands.Flood;
-import org.client.subcommands.Monitor;
+import org.client.subcommands.Snapshot;
 import picocli.CommandLine;
 
 import java.util.concurrent.Callable;
@@ -33,7 +33,7 @@ import java.util.concurrent.Callable;
 				version = { "ranflood client 0.1" },
 				description = { "The RanFlood client" },
 				subcommands = {
-								Monitor.class,
+								Snapshot.class,
 								Flood.class
 				}
 )

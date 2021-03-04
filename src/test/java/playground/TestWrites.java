@@ -29,7 +29,7 @@ import java.util.stream.IntStream;
 public class TestWrites {
 
 	public static void main( String[] args ) {
-		String root =  "/Users/thesave/Desktop/testQuickCheck/test_folder/files/";
+		String root =  "/Users/thesave/Desktop/test_folder";
 		long start = System.currentTimeMillis();
 		int file_number = 1000;
 		IntStream.range( 0, file_number )

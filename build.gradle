@@ -46,13 +46,6 @@ configurations {
 }
 
 
-dependencies {
-    ranflood "info.picocli:picocli:4.6.1"
-    annotationProcessor 'info.picocli:picocli-codegen:4.6.1'
-    tests "org.junit.jupiter:junit-jupiter-api:5.6.0"
-    tests "net.jqwik:jqwik:1.3.10"
-}
-
 sourceSets {
     ranflood {
         java.srcDir 'src/main/java'
@@ -61,6 +54,14 @@ sourceSets {
         java.srcDir 'src/test/java'
     }
 }
+
+dependencies {
+    ranflood "info.picocli:picocli:4.6.1"
+    annotationProcessor 'info.picocli:picocli-codegen:4.6.1'
+    tests "org.junit.jupiter:junit-jupiter-api:5.6.0"
+    tests "net.jqwik:jqwik:1.3.10"
+}
+
 
 gradle.startParameter.showStacktrace = ShowStacktrace.ALWAYS
 

@@ -29,16 +29,16 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 @CommandLine.Command(
-				name = "monitor",
+				name = "snapshot",
 				mixinStandardHelpOptions = true,
-				description = { "management of monitored folders" },
+				description = { "management of folder/file snapshots" },
 				subcommands = {
-								Monitor.Add.class,
-								Monitor.Remove.class,
-								Monitor.List.class
+								Snapshot.Take.class,
+								Snapshot.Remove.class,
+								Snapshot.List.class
 				}
 )
-public class Monitor implements Callable< Integer > {
+public class Snapshot implements Callable< Integer > {
 
 	@Override
 	public Integer call() throws Exception {
@@ -47,11 +47,11 @@ public class Monitor implements Callable< Integer > {
 	}
 
 	@CommandLine.Command(
-					name = "add",
+					name = "take",
 					mixinStandardHelpOptions = true,
-					description = { "adds a new monitored folders" }
+					description = { "take a new snapshot" }
 	)
-	static class Add implements Callable< Integer > {
+	static class Take implements Callable< Integer > {
 
 		@CommandLine.Parameters( index = "0", arity = "1" )
 		String method;
@@ -61,28 +61,13 @@ public class Monitor implements Callable< Integer > {
 
 		@Override
 		public Integer call() throws Exception {
-			System.out.println( "Requested inclusion of new folders." );
+			System.out.println( "Requested snapshot of a new folder." );
 			System.out.println( "Selected method: " + method );
 			System.out.println( "Target folders: " + targetFolders.stream()
 							.map( t -> t.toPath().toAbsolutePath().toString() )
 							.collect( Collectors.joining( ",\n"
 											+ String.format( "%" + "Target folders: ".length() + "s", "" )
 							) ) );
-			return 0;
-		}
-	}
-
-	@CommandLine.Command(
-					name = "--list",
-					aliases = "-l",
-					mixinStandardHelpOptions = true,
-					description = { "list the folders currently monitored" }
-	)
-	static class List implements Callable< Integer > {
-
-		@Override
-		public Integer call() throws Exception {
-			System.out.println( "Requested the list of the monitored folders." );
 			return 0;
 		}
 	}
@@ -111,4 +96,21 @@ public class Monitor implements Callable< Integer > {
 			return 0;
 		}
 	}
+
+
+	@CommandLine.Command(
+					name = "--list",
+					aliases = "-l",
+					mixinStandardHelpOptions = true,
+					description = { "list the snapshots currently saved" }
+	)
+	static class List implements Callable< Integer > {
+
+		@Override
+		public Integer call() throws Exception {
+			System.out.println( "Requested the list of snapshots." );
+			return 0;
+		}
+	}
+
 }
