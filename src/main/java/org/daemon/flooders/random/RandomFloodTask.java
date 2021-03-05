@@ -19,57 +19,31 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package playground;
+package org.daemon.flooders.random;
 
 import org.daemon.RanFloodDaemon;
-import org.daemon.flooders.TaskNotFoundException;
-import org.daemon.flooders.random.RandomFlooder;
+import org.daemon.flooders.FloodMethod;
+import org.daemon.flooders.tasks.DummyFileTask;
+import org.daemon.flooders.tasks.FloodTask;
 
 import java.nio.file.Path;
-import java.util.UUID;
+import java.util.Random;
 
-public class TestTaskExecutor {
+public class RandomFloodTask extends FloodTask {
 
-	public static void main( String[] args ) {
-//		FileTaskExecutor te = FileTaskExecutor.getInstance();
-//		WriteFileTask w = new WriteFileTask(
-//						Path.of( "'/users/thesave/Desktop/attackedFolder'"),
-//						new byte[1024],
-//						FloodMethod.RANDOM,
-//						UUID.randomUUID()
-//		);
-//		IntStream.range( 0, 2 ).forEach( ( i ) -> {
-//			System.out.println( "Adding the task in 2 seconds and stopping after 100ms" );
-//			try {
-//				Thread.sleep( 2000 );
-//			} catch ( InterruptedException e ) {
-//				e.printStackTrace();
-//			}
-//			te.addTask( w );
-//			try {
-//				Thread.sleep( 100 );
-//			} catch ( InterruptedException e ) {
-//				e.printStackTrace();
-//			}
-//		} );
-//		te.shutdown();
-		UUID id = RandomFlooder.flood( Path.of( "/users/thesave/Desktop/attackedFolder" ) );
-		try {
-			Thread.sleep( 100 );
-		} catch ( InterruptedException e ) {
-			e.printStackTrace();
-		}
-//		System.out.println("Running flood");
-//		try {
-//			RandomFlooder.stopFlood( id );
-//		} catch ( TaskNotFoundException e ) {
-//			e.printStackTrace();
-//		}
-		RanFloodDaemon.shutdown();
+	public RandomFloodTask( Path filePath, FloodMethod floodMethod ) {
+		super( filePath, floodMethod );
 	}
 
-
+	@Override
+	public Runnable getRunnableTask() {
+		return () -> {
+			byte[] content = new byte[ new Random().nextInt( Double.valueOf( Math.pow( 2, 22 ) ).intValue() ) + Double.valueOf( Math.pow( 2, 7 ) ).intValue() ];
+			new Random().nextBytes( content );
+			// TODO: change to WriteFileTask after debugging
+			DummyFileTask d = new DummyFileTask( this.filePath(), content, this.floodMethod() );
+			RanFloodDaemon.fileTaskExecutor().addTask( d );
+		};
+	}
 
 }
-
-

@@ -40,6 +40,7 @@ configurations {
     implementation.extendsFrom ranflood
     runtime.extendsFrom ranflood
     tests
+    tests.extendsFrom ranflood
     testCompile.extendsFrom tests
     testImplementation.extendsFrom tests
     testRuntime.extendsFrom tests

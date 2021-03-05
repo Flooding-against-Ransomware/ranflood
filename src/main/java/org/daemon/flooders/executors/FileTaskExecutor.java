@@ -19,70 +19,52 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.daemon.flooders;
+package org.daemon.flooders.executors;
 
-import org.daemon.flooders.tasks.Task;
+import org.daemon.RanFloodDaemon;
+import org.daemon.flooders.tasks.FileTask;
+import org.daemon.flooders.tasks.FloodTask;
 
-import java.util.ArrayList;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class TasksExecutor {
+public class FileTaskExecutor {
 
-	private final CopyOnWriteArrayList< Task > taskList;
-	private final ExecutorService executors;
+	private final ConcurrentLinkedQueue< FileTask > fileTaskList;
 	private final ExecutorService scheduler;
 	private final AtomicBoolean POISON_PILL;
+	static private final FileTaskExecutor INSTANCE = new FileTaskExecutor();
 
-	private TasksExecutor() {
-		this.taskList = new CopyOnWriteArrayList<>();
-		this.executors = Executors.newFixedThreadPool( Runtime.getRuntime().availableProcessors() );
-		final Random rgn = new Random();
+	private FileTaskExecutor() {
+		this.fileTaskList = new ConcurrentLinkedQueue<>();
 		POISON_PILL = new AtomicBoolean( true );
 		scheduler = Executors.newSingleThreadExecutor();
 		scheduler.submit( () -> {
 			while ( POISON_PILL.get() ) {
-				if ( taskList.size() > 0 ) {
-					Task wt = taskList.get( rgn.nextInt( taskList.size() ) );
-					executors.submit( wt.getCallableTask() );
+				if ( fileTaskList.size() > 0 ) {
+					FileTask ft = fileTaskList.remove();
+					RanFloodDaemon.execute( ft.getRunnableTask() );
 				}
 			}
 		});
 	}
 
-	public static TasksExecutor getInstance(){
-		return new TasksExecutor();
+	public static FileTaskExecutor getInstance(){
+		return INSTANCE;
 	}
 
-	// TODO: this can be optimised to batch-collect multiple tasks within a given time window
-	// and use taskBin.addAll( collectedTasks ) for batch stop-the-world load
-	public void addTask( Task t ) {
-		taskList.add( t );
-	}
-
-	// TODO: this can be optimised to batch-collect multiple tasks within a given time window
-	// and use taskBin.removeAll( collectedTasks ) for batch stop-the-world removal
-	public void removeTask( UUID id ){
-		for( int i = 0; i < taskList.size(); i++ ){
-			if( id.equals( taskList.get( i ).id() ) ){
-				taskList.remove( i );
-				return;
-			}
-		}
-	}
-
-	public ArrayList< Task > getTaskList() {
-		return new ArrayList<>( taskList );
+	public void addTask( FileTask t ) {
+		fileTaskList.add( t );
 	}
 
 	public void shutdown() {
-		POISON_PILL.set( false );
-		scheduler.shutdown();
-		executors.shutdown();
+		this.POISON_PILL.set( false );
+		this.scheduler.shutdown();
 	}
 
 }

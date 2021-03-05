@@ -19,57 +19,54 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package playground;
+package org.daemon.flooders.executors;
 
 import org.daemon.RanFloodDaemon;
-import org.daemon.flooders.TaskNotFoundException;
-import org.daemon.flooders.random.RandomFlooder;
+import org.daemon.flooders.tasks.FloodTask;
 
-import java.nio.file.Path;
-import java.util.UUID;
+import java.util.Random;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-public class TestTaskExecutor {
+public class FloodTaskExecutor {
 
-	public static void main( String[] args ) {
-//		FileTaskExecutor te = FileTaskExecutor.getInstance();
-//		WriteFileTask w = new WriteFileTask(
-//						Path.of( "'/users/thesave/Desktop/attackedFolder'"),
-//						new byte[1024],
-//						FloodMethod.RANDOM,
-//						UUID.randomUUID()
-//		);
-//		IntStream.range( 0, 2 ).forEach( ( i ) -> {
-//			System.out.println( "Adding the task in 2 seconds and stopping after 100ms" );
-//			try {
-//				Thread.sleep( 2000 );
-//			} catch ( InterruptedException e ) {
-//				e.printStackTrace();
-//			}
-//			te.addTask( w );
-//			try {
-//				Thread.sleep( 100 );
-//			} catch ( InterruptedException e ) {
-//				e.printStackTrace();
-//			}
-//		} );
-//		te.shutdown();
-		UUID id = RandomFlooder.flood( Path.of( "/users/thesave/Desktop/attackedFolder" ) );
-		try {
-			Thread.sleep( 100 );
-		} catch ( InterruptedException e ) {
-			e.printStackTrace();
-		}
-//		System.out.println("Running flood");
-//		try {
-//			RandomFlooder.stopFlood( id );
-//		} catch ( TaskNotFoundException e ) {
-//			e.printStackTrace();
-//		}
-		RanFloodDaemon.shutdown();
+	private final CopyOnWriteArrayList< FloodTask > floodTaskList;
+	private final ExecutorService scheduler;
+	private final AtomicBoolean POISON_PILL;
+	static private final FloodTaskExecutor INSTANCE = new FloodTaskExecutor();
+
+	private FloodTaskExecutor() {
+		this.floodTaskList = new CopyOnWriteArrayList<>();
+		POISON_PILL = new AtomicBoolean( true );
+		scheduler = Executors.newSingleThreadExecutor();
+		scheduler.submit( () -> {
+			Random rng = new Random();
+			while ( POISON_PILL.get() ) {
+				if ( floodTaskList.size() > 0 ) {
+					FloodTask ft = floodTaskList.get( rng.nextInt( floodTaskList.size() ) );
+					RanFloodDaemon.execute( ft.getRunnableTask() );
+				}
+			}
+		});
 	}
 
+	public static FloodTaskExecutor getInstance(){
+		return INSTANCE;
+	}
 
+	public void addTask( FloodTask t ) {
+		floodTaskList.add( t );
+	}
+
+	public void removeTask( FloodTask t ){
+		floodTaskList.remove( t );
+	}
+
+	public void shutdown() {
+		POISON_PILL.set( false );
+		scheduler.shutdown();
+	}
 
 }
-
-

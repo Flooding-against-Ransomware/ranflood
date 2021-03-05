@@ -19,7 +19,48 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.daemon.flooders.random;
+package org.daemon.flooders.tasks;
 
-public class RandomFileGenerator {
+import org.daemon.flooders.FloodMethod;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.UUID;
+
+public class WriteFileTask implements FileTask {
+	private final Path filePath;
+	private final byte[] content;
+	private final FloodMethod floodMethod;
+
+	public WriteFileTask( Path filePath, byte[] content, FloodMethod floodMethod, UUID id ) {
+		this.filePath = filePath;
+		this.content = content;
+		this.floodMethod = floodMethod;
+	}
+
+	public Path filePath() {
+		return filePath;
+	}
+
+	public byte[] content() {
+		return content;
+	}
+
+	public FloodMethod floodMethod() {
+		return floodMethod;
+	}
+
+	public Runnable getRunnableTask() {
+		return () -> {
+			try {
+				FileOutputStream f = new FileOutputStream( filePath.toAbsolutePath().toString() );
+				f.write( content );
+				f.close();
+			} catch ( IOException e ) {
+				e.printStackTrace();
+			}
+		};
+	}
+
 }

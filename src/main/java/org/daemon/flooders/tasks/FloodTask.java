@@ -24,12 +24,23 @@ package org.daemon.flooders.tasks;
 import org.daemon.flooders.FloodMethod;
 
 import java.nio.file.Path;
-import java.util.UUID;
 
-public interface Task {
-	Path filePath();
-	byte[] content();
-	FloodMethod floodMethod();
-	UUID id();
-	Runnable getCallableTask();
+public abstract class FloodTask {
+	private final Path filePath;
+	private final FloodMethod floodMethod;
+
+	public FloodTask( Path filePath, FloodMethod floodMethod ) {
+		this.filePath = filePath;
+		this.floodMethod = floodMethod;
+	}
+
+	public Path filePath(){
+		return filePath;
+	};
+
+	public FloodMethod floodMethod(){
+		return floodMethod;
+	};
+
+	public abstract Runnable getRunnableTask();
 }

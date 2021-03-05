@@ -21,7 +21,61 @@
 
 package org.daemon.flooders.random;
 
+import org.daemon.RanFloodDaemon;
+import org.daemon.flooders.FloodMethod;
 import org.daemon.flooders.Flooder;
+import org.daemon.flooders.TaskNotFoundException;
+import org.daemon.flooders.tasks.LabeledFloodTask;
+
+import java.nio.file.Path;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 
 public class RandomFlooder implements Flooder {
+
+	private final static FloodMethod METHOD = FloodMethod.RANDOM;
+	private final LinkedList< LabeledFloodTask > runningTasksList;
+	private final static RandomFlooder INSTANCE = new RandomFlooder();
+
+	private RandomFlooder(){
+		runningTasksList = new LinkedList<>();
+	}
+
+	private List< String > getRunningTasks(){
+		return runningTasksList.stream()
+						.map( t ->
+										METHOD
+														+ ", " + t.floodTask().filePath().toAbsolutePath().toString()
+														+ ", " + t.label().toString() )
+						.collect( Collectors.toList() );
+	}
+
+	public static UUID flood( Path targetFolder ){
+		RandomFloodTask t = new RandomFloodTask( targetFolder, METHOD );
+		UUID id = UUID.randomUUID();
+		INSTANCE.runningTasksList.add( new LabeledFloodTask( id, t ) );
+		RanFloodDaemon.floodTaskExecutor().addTask( t );
+		return id;
+	}
+
+	public static void stopFlood( UUID id ) throws TaskNotFoundException {
+		Optional< LabeledFloodTask > task = INSTANCE.runningTasksList.stream()
+						.filter( t -> t.label().equals( id ) ).findAny();
+		if( task.isPresent() ){
+			INSTANCE.runningTasksList.remove( task.get() );
+			RanFloodDaemon.floodTaskExecutor().removeTask( task.get().floodTask() );
+		} else {
+			// TODO: add descriptive message
+			throw new TaskNotFoundException();
+		}
+	}
+
+
+
+
+
 }

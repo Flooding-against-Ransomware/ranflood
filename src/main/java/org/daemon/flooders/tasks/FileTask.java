@@ -19,57 +19,15 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package playground;
+package org.daemon.flooders.tasks;
 
-import org.daemon.RanFloodDaemon;
-import org.daemon.flooders.TaskNotFoundException;
-import org.daemon.flooders.random.RandomFlooder;
+import org.daemon.flooders.FloodMethod;
 
 import java.nio.file.Path;
-import java.util.UUID;
 
-public class TestTaskExecutor {
-
-	public static void main( String[] args ) {
-//		FileTaskExecutor te = FileTaskExecutor.getInstance();
-//		WriteFileTask w = new WriteFileTask(
-//						Path.of( "'/users/thesave/Desktop/attackedFolder'"),
-//						new byte[1024],
-//						FloodMethod.RANDOM,
-//						UUID.randomUUID()
-//		);
-//		IntStream.range( 0, 2 ).forEach( ( i ) -> {
-//			System.out.println( "Adding the task in 2 seconds and stopping after 100ms" );
-//			try {
-//				Thread.sleep( 2000 );
-//			} catch ( InterruptedException e ) {
-//				e.printStackTrace();
-//			}
-//			te.addTask( w );
-//			try {
-//				Thread.sleep( 100 );
-//			} catch ( InterruptedException e ) {
-//				e.printStackTrace();
-//			}
-//		} );
-//		te.shutdown();
-		UUID id = RandomFlooder.flood( Path.of( "/users/thesave/Desktop/attackedFolder" ) );
-		try {
-			Thread.sleep( 100 );
-		} catch ( InterruptedException e ) {
-			e.printStackTrace();
-		}
-//		System.out.println("Running flood");
-//		try {
-//			RandomFlooder.stopFlood( id );
-//		} catch ( TaskNotFoundException e ) {
-//			e.printStackTrace();
-//		}
-		RanFloodDaemon.shutdown();
-	}
-
-
-
+public interface FileTask {
+	Path filePath();
+	byte[] content();
+	FloodMethod floodMethod();
+	Runnable getRunnableTask();
 }
-
-

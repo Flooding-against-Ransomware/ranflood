@@ -21,5 +21,4 @@
 
 package org.daemon.flooders;
 
-public interface Flooder {
-}
+public interface Flooder {}

@@ -23,22 +23,18 @@ package org.daemon.flooders.tasks;
 
 import org.daemon.flooders.FloodMethod;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.UUID;
 
-public class WriteTask implements Task {
+public class DummyFileTask implements FileTask {
 	private final Path filePath;
 	private final byte[] content;
 	private final FloodMethod floodMethod;
-	private final UUID id;
 
-	public WriteTask( Path filePath, byte[] content, FloodMethod floodMethod, UUID id ) {
+	public DummyFileTask( Path filePath, byte[] content, FloodMethod floodMethod ) {
 		this.filePath = filePath;
 		this.content = content;
 		this.floodMethod = floodMethod;
-		this.id = id;
 	}
 
 	public Path filePath() {
@@ -53,19 +49,11 @@ public class WriteTask implements Task {
 		return floodMethod;
 	}
 
-	public UUID id() {
-		return id;
-	}
-
-	public Runnable getCallableTask() {
-		return () -> {
-			try {
-				FileOutputStream f = new FileOutputStream( filePath.toAbsolutePath().toString() );
-				f.write( content );
-				f.close();
-			} catch ( IOException e ) {
-				e.printStackTrace();
-			}
+	public Runnable getRunnableTask() {
+		return () -> { System.out.println( "DummyTask "
+						+ "filePath: " + filePath
+						+ "content size: " + content.length
+						+ "flood method: " + floodMethod.name() );
 		};
 	}
 
