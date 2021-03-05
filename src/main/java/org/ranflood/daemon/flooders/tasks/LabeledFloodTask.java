@@ -19,34 +19,24 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package playground;
+package org.ranflood.daemon.flooders.tasks;
 
-import org.ranflood.daemon.RanFloodDaemon;
-import org.ranflood.daemon.flooders.TaskNotFoundException;
-import org.ranflood.daemon.flooders.random.RandomFlooder;
-
-import java.nio.file.Path;
 import java.util.UUID;
 
-public class TestTaskExecutor {
+public class LabeledFloodTask {
+	private final UUID label;
+	private final FloodTask floodTask;
 
-	public static void main( String[] args ) {
-		UUID id = RandomFlooder.flood( Path.of( "/users/thesave/Desktop/attackedFolder" ) );
-		try {
-			Thread.sleep( 4000 );
-		} catch ( InterruptedException e ) {
-			e.printStackTrace();
-		}
-		try {
-			RandomFlooder.stopFlood( id );
-		} catch ( TaskNotFoundException e ) {
-			e.printStackTrace();
-		}
-		RanFloodDaemon.shutdown();
+	public LabeledFloodTask( UUID label, FloodTask floodTask ) {
+		this.label = label;
+		this.floodTask = floodTask;
 	}
 
+	public UUID label() {
+		return label;
+	}
 
-
+	public FloodTask floodTask() {
+		return floodTask;
+	}
 }
-
-

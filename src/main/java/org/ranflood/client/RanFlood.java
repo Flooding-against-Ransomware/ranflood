@@ -19,34 +19,36 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package playground;
+package org.ranflood.client;
 
-import org.ranflood.daemon.RanFloodDaemon;
-import org.ranflood.daemon.flooders.TaskNotFoundException;
-import org.ranflood.daemon.flooders.random.RandomFlooder;
+import org.ranflood.client.subcommands.Flood;
+import org.ranflood.client.subcommands.Snapshot;
+import picocli.CommandLine;
 
-import java.nio.file.Path;
-import java.util.UUID;
+import java.util.concurrent.Callable;
 
-public class TestTaskExecutor {
+@CommandLine.Command(
+				name = "ranflood",
+				mixinStandardHelpOptions = true,
+				version = { "ranflood client 0.1" },
+				description = { "The RanFlood client" },
+				subcommands = {
+								Snapshot.class,
+								Flood.class
+				}
+)
+public class RanFlood implements Callable< Integer > {
 
 	public static void main( String[] args ) {
-		UUID id = RandomFlooder.flood( Path.of( "/users/thesave/Desktop/attackedFolder" ) );
-		try {
-			Thread.sleep( 4000 );
-		} catch ( InterruptedException e ) {
-			e.printStackTrace();
-		}
-		try {
-			RandomFlooder.stopFlood( id );
-		} catch ( TaskNotFoundException e ) {
-			e.printStackTrace();
-		}
-		RanFloodDaemon.shutdown();
+		CommandLine c = new CommandLine( new RanFlood() );
+		c.setCaseInsensitiveEnumValuesAllowed( true );
+		System.exit( c.execute( args ) );
 	}
 
-
+	@Override
+	public Integer call() throws Exception {
+		new CommandLine( this ).usage( System.err );
+		return 1;
+	}
 
 }
-
-

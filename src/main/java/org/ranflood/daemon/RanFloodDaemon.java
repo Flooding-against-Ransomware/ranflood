@@ -19,34 +19,43 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package playground;
+package org.ranflood.daemon;
 
-import org.ranflood.daemon.RanFloodDaemon;
-import org.ranflood.daemon.flooders.TaskNotFoundException;
-import org.ranflood.daemon.flooders.random.RandomFlooder;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
+import org.ranflood.daemon.flooders.FloodTaskExecutor;
 
-import java.nio.file.Path;
-import java.util.UUID;
+public class RanFloodDaemon {
 
-public class TestTaskExecutor {
+	static final private FloodTaskExecutor floodTaskExecutor = FloodTaskExecutor.getInstance();
+	static final private Logger log = LogManager.getLogger( RanFloodDaemon.class );
 
-	public static void main( String[] args ) {
-		UUID id = RandomFlooder.flood( Path.of( "/users/thesave/Desktop/attackedFolder" ) );
-		try {
-			Thread.sleep( 4000 );
-		} catch ( InterruptedException e ) {
-			e.printStackTrace();
-		}
-		try {
-			RandomFlooder.stopFlood( id );
-		} catch ( TaskNotFoundException e ) {
-			e.printStackTrace();
-		}
-		RanFloodDaemon.shutdown();
+	static {
+		PropertyConfigurator.configure( "src/main/resources/log4j.properties" );
 	}
 
+	// TODO: check the Flowable API whether there's a more efficient way to feed runnables to the subscribers
+	public static void execute( Runnable r ){
+		Flowable.fromRunnable( r )
+						.subscribeOn( Schedulers.io() )
+						.subscribe();
+	}
 
+	public static FloodTaskExecutor floodTaskExecutor() {
+		return floodTaskExecutor;
+	}
+
+	public static void shutdown(){
+		log( "Shutting down the flood task executor");
+		floodTaskExecutor.shutdown();
+	}
+
+	public static void log( String s ){
+		log.info( s );
+//		System.out.println( s );
+	}
 
 }
-
-

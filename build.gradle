@@ -58,6 +58,11 @@ sourceSets {
 
 dependencies {
     ranflood "info.picocli:picocli:4.6.1"
+    ranflood group: 'log4j', name: 'log4j', version: '1.2.17'
+    ranflood 'io.reactivex.rxjava3:rxjava:3.0.10'
+    ranflood 'com.oblac:nomen-est-omen:2.0.0'
+
+
     annotationProcessor 'info.picocli:picocli-codegen:4.6.1'
     tests "org.junit.jupiter:junit-jupiter-api:5.6.0"
     tests "net.jqwik:jqwik:1.3.10"
@@ -83,8 +88,10 @@ test {
 }
 
 graal {
-//    mainClass 'org.ranflood.RanFlood'
-//    outputName 'ranflood'
-    mainClass 'org.client.RanFlood'
+    graalVersion "21.0.0.2"
+    javaVersion "11"
+    mainClass 'org.ranflood.daemon.RanFlood'
     outputName 'ranflood'
+//    mainClass 'org.ranflood.client.RanFlood'
+//    outputName 'ranflood'
 }
