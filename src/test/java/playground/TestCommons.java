@@ -19,7 +19,17 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon.snapshooters;
+package playground;
 
-public interface Snapshooter {
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+public class TestCommons {
+
+	public static final String settings_file = Paths.get( "src/test/java/playground/settings.ini" ).toAbsolutePath().toString();
+
+	public static String[] getArgs(){
+		return new String[]{ settings_file };
+	}
+
 }

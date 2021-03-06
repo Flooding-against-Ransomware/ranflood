@@ -21,4 +21,14 @@
 
 package org.ranflood.daemon.flooders;
 
-public interface Flooder {}
+import java.nio.file.Path;
+
+public class AbstractSnapshotFlooder extends AbstractFlooder {
+
+	public void takeSnapshot( Path filepath ){
+		throw new UnsupportedOperationException( "Flooders should override this method" );
+	}
+
+	public void removeSnapshot( Path filepath ){ throw new UnsupportedOperationException( "Flooders should override this method" ); }
+
+}

@@ -19,12 +19,47 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon.flooders.shadowCopy;
+package org.ranflood.daemon.flooders.tasks;
 
-import org.ranflood.daemon.flooders.AbstractFlooder;
+import com.oblac.nomen.Nomen;
+import org.ranflood.daemon.flooders.FloodMethod;
 
-public class ShadowCopyFlooder extends AbstractFlooder {
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Path;
 
+import static org.ranflood.daemon.RanFloodDaemon.error;
 
+public class WriteCopyFileTask extends WriteFileTask {
+	public WriteCopyFileTask( Path filePath, byte[] content, FloodMethod floodMethod ) {
+		super( filePath, content, floodMethod );
+	}
 
+	@Override
+	public Runnable getRunnableTask() {
+		return () -> {
+			try {
+				File parentFolder = filePath().getParent().toFile();
+				if( !parentFolder.exists() ){
+					synchronized ( filePath() ){
+						parentFolder.mkdirs();
+					}
+				}
+				String originalFileName = filePath().getFileName().toString();
+				String fileName = originalFileName.substring( 0, originalFileName.lastIndexOf( "." ) );
+				String extension = originalFileName.substring( originalFileName.lastIndexOf( "." ) );
+				String copyFilePath = filePath().getParent().toAbsolutePath()
+								+ File.separator
+								+ fileName
+								+ Nomen.est().literal( "" ).adjective().get()
+								+ extension;
+				FileOutputStream f = new FileOutputStream( copyFilePath );
+				f.write( content() );
+				f.close();
+			} catch ( IOException e ) {
+				error( e.getMessage() );
+			}
+		};
+	}
 }

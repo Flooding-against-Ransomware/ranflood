@@ -21,10 +21,18 @@
 
 package org.ranflood.daemon;
 
+import java.nio.file.Path;
+
 public class RanFlood {
 
+	private static RanFloodDaemon daemon;
+
 	public static void main( String[] args ) {
-		System.out.println( "Hello, RanFlood!" );
+		daemon = new RanFloodDaemon( Path.of( args[ 0 ] ) );
+	}
+
+	public static RanFloodDaemon getDaemon(){
+		return daemon;
 	}
 
 }

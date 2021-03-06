@@ -19,12 +19,58 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon.flooders.shadowCopy;
+package org.ranflood.daemon.flooders;
 
-import org.ranflood.daemon.flooders.AbstractFlooder;
+import org.ranflood.daemon.RanFlood;
+import org.ranflood.daemon.RanFloodDaemon;
+import org.ranflood.daemon.flooders.tasks.LabeledFloodTask;
 
-public class ShadowCopyFlooder extends AbstractFlooder {
+import java.nio.file.Path;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
+import static org.ranflood.daemon.RanFloodDaemon.error;
+import static org.ranflood.daemon.RanFloodDaemon.log;
 
+public class AbstractFlooder {
+
+	private final LinkedList< LabeledFloodTask > runningTasksList;
+
+	public AbstractFlooder(){
+		runningTasksList = new LinkedList<>();
+	}
+
+	protected List< LabeledFloodTask > getRunningTasksList(){
+		return runningTasksList;
+	}
+
+	public List< String > getRunningTasks(){
+		return runningTasksList.stream()
+						.map( t ->
+										t.floodTask().filePath().toAbsolutePath().toString()
+										+ ", " + t.label().toString() )
+						.collect( Collectors.toList() );
+	}
+
+	public UUID flood( Path targetFolder ){
+		throw new UnsupportedOperationException( "Flooders should override this method" );
+	};
+
+	public void stopFlood( UUID id ) {
+		Optional< LabeledFloodTask > task = getRunningTasksList().stream()
+						.filter( t -> t.label().equals( id ) ).findAny();
+		if( task.isPresent() ){
+			log( "Removing task: " + id );
+			getRunningTasksList().remove( task.get() );
+			RanFlood.getDaemon().floodTaskExecutor().removeTask( task.get().floodTask() );
+		} else {
+			error( "Could not find and remove '" + this.getClass().getName() + "' task: " + id );
+		}
+	}
+
+	public void shutdown(){}
 
 }

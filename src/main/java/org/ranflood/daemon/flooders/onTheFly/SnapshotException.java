@@ -19,12 +19,10 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon.flooders.shadowCopy;
+package org.ranflood.daemon.flooders.onTheFly;
 
-import org.ranflood.daemon.flooders.AbstractFlooder;
-
-public class ShadowCopyFlooder extends AbstractFlooder {
-
-
-
+public class SnapshotException extends Exception {
+	public SnapshotException( String s ) {
+		super( s );
+	}
 }

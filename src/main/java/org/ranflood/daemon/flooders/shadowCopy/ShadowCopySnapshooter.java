@@ -19,10 +19,9 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon.snapshooters.onTheFly;
+package org.ranflood.daemon.flooders.shadowCopy;
 
-import org.ranflood.daemon.snapshooters.Snapshooter;
+import org.ranflood.daemon.flooders.Snapshooter;
 
-public class OnTheFlySnapshooter implements Snapshooter {
-
+public class ShadowCopySnapshooter implements Snapshooter {
 }
