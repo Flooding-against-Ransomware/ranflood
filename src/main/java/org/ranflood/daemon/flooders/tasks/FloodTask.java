@@ -43,4 +43,5 @@ public abstract class FloodTask {
 	};
 
 	public abstract Runnable getRunnableTask();
+
 }

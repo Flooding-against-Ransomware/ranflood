@@ -19,46 +19,46 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon.flooders.random;
+package playground;
 
-import com.oblac.nomen.Nomen;
+import io.reactivex.rxjava3.annotations.NonNull;
+import io.reactivex.rxjava3.core.*;
+import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.ranflood.daemon.RanFloodDaemon;
-import org.ranflood.daemon.flooders.FloodMethod;
-import org.ranflood.daemon.flooders.tasks.FloodTask;
-import org.ranflood.daemon.flooders.tasks.WriteFileTask;
 
-import java.io.File;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Random;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public class RandomFloodTask extends FloodTask {
+public class TestFlower {
 
-	public RandomFloodTask( Path filePath, FloodMethod floodMethod ) {
-		super( filePath, floodMethod );
+	private static final ExecutorService t = Executors.newSingleThreadExecutor();
+	private static final AtomicInteger c = new AtomicInteger( 0 );
+
+	public static void main( String[] args ) throws InterruptedException {
+
+
+		Observable.< Integer >create( TestFlower::startEmitter )
+						.toFlowable( BackpressureStrategy.BUFFER )
+						.subscribeOn( Schedulers.computation() )
+						.map( Object::toString )
+						.subscribe( RanFloodDaemon::log );
+
+		Thread.sleep( 5000 );
+		System.out.println( "10 time units passed, shutting down" );
+		t.shutdownNow();
 	}
 
-	private static final ArrayList< String > FILE_EXTESIONS = new ArrayList<>(
-			Arrays.asList( ".doc", ".docx", ".odt", ".txt", ".pdf", ".xls", ".xlsx", ".ods",
-			".ppt", ".pptx", ".jpeg", ".jps", ".gif", ".png", ".mov", ".avi",
-			".mp4", ".mpeg", ".mp3", ".wav", ".ogg" )
-	);
-	private static final Random rng = new Random();
-
-	@Override
-	public Runnable getRunnableTask() {
-		return () -> {
-			byte[] content = new byte[ new Random().nextInt( Double.valueOf( Math.pow( 2, 22 ) ).intValue() ) + Double.valueOf( Math.pow( 2, 7 ) ).intValue() ];
-			new Random().nextBytes( content );
-			Path filePath = Path.of(
-							this.filePath().toAbsolutePath() + File.separator
-											+ Nomen.randomName()
-											+ FILE_EXTESIONS.get( rng.nextInt( FILE_EXTESIONS.size() ) )
-			);
-			WriteFileTask d = new WriteFileTask( filePath, content, this.floodMethod() );
-			RanFloodDaemon.executeIORunnable( d.getRunnableTask() );
-		};
+	public static void startEmitter( @NonNull ObservableEmitter< Integer > e ){
+		t.execute( () -> {
+				while( !t.isShutdown() ){
+					e.onNext( c.incrementAndGet() );
+				}
+				e.onComplete();
+		});
 	}
+
+
 
 }

@@ -19,7 +19,9 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon.monitors;
+package org.ranflood.daemon.snapshooters.shadowCopy;
 
-public interface Monitor {
+import org.ranflood.daemon.snapshooters.Snapshooter;
+
+public class ShadowCopySnapshooter implements Snapshooter {
 }

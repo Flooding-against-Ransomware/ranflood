@@ -26,31 +26,28 @@ import static org.ranflood.daemon.RanFloodDaemon.log;
 import org.ranflood.daemon.RanFloodDaemon;
 import org.ranflood.daemon.flooders.tasks.FloodTask;
 
-import java.util.Random;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class FloodTaskExecutor {
 
-	private final CopyOnWriteArrayList< FloodTask > floodTaskList;
+	private final LinkedBlockingQueue< FloodTask > floodTaskList;
 	private final ExecutorService scheduler;
 	private final AtomicBoolean POISON_PILL;
 	static private final FloodTaskExecutor INSTANCE = new FloodTaskExecutor();
 
 	private FloodTaskExecutor() {
-		this.floodTaskList = new CopyOnWriteArrayList<>();
+		this.floodTaskList = new LinkedBlockingQueue<>();
 		POISON_PILL = new AtomicBoolean( true );
 		scheduler = Executors.newSingleThreadExecutor();
 		scheduler.submit( () -> {
-			Random rng = new Random();
 			while ( POISON_PILL.get() ) {
-				if ( floodTaskList.size() > 0 ) {
-					FloodTask ft = floodTaskList.get( rng.nextInt( floodTaskList.size() ) );
-					log( "Selected FloodTask " + ft.toString() );
-					RanFloodDaemon.execute( ft.getRunnableTask() );
-				}
+				floodTaskList.forEach( t -> {
+					log( "Issuing execution of FloodTask " + t.hashCode() );
+					RanFloodDaemon.executeIORunnable( t.getRunnableTask() );
+				});
 			}
 		});
 	}

@@ -19,9 +19,46 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon.monitors.shadowCopy;
+package playground;
 
-import org.ranflood.daemon.monitors.Monitor;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Objects;
 
-public class ShadowCopyMonitor implements Monitor {
+public class TestSnapshot {
+
+	public static void main( String[] args ) {
+
+		Path filePath = Path.of( "/Users/thesave/Desktop/attackedFolder/folder1" );
+
+
+		Arrays.stream( Objects.requireNonNull( filePath.toFile().listFiles() ) )
+						.parallel().forEach( ( f ) -> {
+							try ( InputStream input = new FileInputStream( f ) ) {
+								byte[] bytes = input.readAllBytes();
+								input.close();
+
+								MessageDigest digest = MessageDigest.getInstance( "MD5" );
+								digest.update( bytes );
+								System.out.println(
+												f.getAbsolutePath()
+																+ ": " + Base64.getEncoder().encodeToString( digest.digest() )
+								);
+							} catch ( FileNotFoundException e ) {
+								e.printStackTrace();
+							} catch ( IOException e ) {
+								e.printStackTrace();
+							} catch ( NoSuchAlgorithmException e ) {
+								e.printStackTrace();
+							}
+						});
+	}
+
 }

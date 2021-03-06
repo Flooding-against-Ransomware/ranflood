@@ -19,9 +19,10 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon.monitors.onTheFly;
+package org.ranflood.daemon.snapshooters.onTheFly;
 
-import org.ranflood.daemon.monitors.Monitor;
+import org.ranflood.daemon.snapshooters.Snapshooter;
 
-public class OnTheFlyMonitor implements Monitor {
+public class OnTheFlySnapshooter implements Snapshooter {
+
 }

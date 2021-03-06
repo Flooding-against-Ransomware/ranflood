@@ -23,10 +23,11 @@ package org.ranflood.daemon.flooders.tasks;
 
 import org.ranflood.daemon.flooders.FloodMethod;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.UUID;
+import static org.ranflood.daemon.RanFloodDaemon.error;
 
 public class WriteFileTask implements FileTask {
 	private final Path filePath;
@@ -54,11 +55,17 @@ public class WriteFileTask implements FileTask {
 	public Runnable getRunnableTask() {
 		return () -> {
 			try {
+				File parentFolder = filePath.getParent().toFile();
+				if( !parentFolder.exists() ){
+					synchronized ( filePath ){
+						parentFolder.mkdirs();
+					}
+				}
 				FileOutputStream f = new FileOutputStream( filePath.toAbsolutePath().toString() );
 				f.write( content );
 				f.close();
 			} catch ( IOException e ) {
-				e.printStackTrace();
+					error( e.getMessage() );
 			}
 		};
 	}

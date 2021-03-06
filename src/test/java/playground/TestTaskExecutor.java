@@ -22,7 +22,6 @@
 package playground;
 
 import org.ranflood.daemon.RanFloodDaemon;
-import org.ranflood.daemon.flooders.TaskNotFoundException;
 import org.ranflood.daemon.flooders.random.RandomFlooder;
 
 import java.nio.file.Path;
@@ -31,17 +30,21 @@ import java.util.UUID;
 public class TestTaskExecutor {
 
 	public static void main( String[] args ) {
-		UUID id = RandomFlooder.flood( Path.of( "/users/thesave/Desktop/attackedFolder" ) );
+		UUID id1 = RandomFlooder.flood( Path.of( "/users/thesave/Desktop/attackedFolder/folder1" ) );
 		try {
-			Thread.sleep( 4000 );
+			Thread.sleep( 1000 );
 		} catch ( InterruptedException e ) {
 			e.printStackTrace();
 		}
+		UUID id2 = RandomFlooder.flood( Path.of( "/users/thesave/Desktop/attackedFolder/folder2" ) );
 		try {
-			RandomFlooder.stopFlood( id );
-		} catch ( TaskNotFoundException e ) {
+			Thread.sleep( 1000 );
+		} catch ( InterruptedException e ) {
 			e.printStackTrace();
 		}
+		RandomFlooder.stopFlood( UUID.randomUUID() );
+		RandomFlooder.stopFlood( id1 );
+		RandomFlooder.stopFlood( id2 );
 		RanFloodDaemon.shutdown();
 	}
 

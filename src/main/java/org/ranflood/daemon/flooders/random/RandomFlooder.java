@@ -34,6 +34,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import static org.ranflood.daemon.RanFloodDaemon.log;
+import static org.ranflood.daemon.RanFloodDaemon.error;
 
 public class RandomFlooder implements Flooder {
 
@@ -63,7 +64,7 @@ public class RandomFlooder implements Flooder {
 		return id;
 	}
 
-	public static void stopFlood( UUID id ) throws TaskNotFoundException {
+	public static void stopFlood( UUID id ) {
 		Optional< LabeledFloodTask > task = INSTANCE.runningTasksList.stream()
 						.filter( t -> t.label().equals( id ) ).findAny();
 		if( task.isPresent() ){
@@ -71,13 +72,8 @@ public class RandomFlooder implements Flooder {
 			INSTANCE.runningTasksList.remove( task.get() );
 			RanFloodDaemon.floodTaskExecutor().removeTask( task.get().floodTask() );
 		} else {
-			// TODO: add descriptive message
-			throw new TaskNotFoundException();
+			error( "Could not find and remove '" + METHOD + "' task: " + id );
 		}
 	}
-
-
-
-
 
 }

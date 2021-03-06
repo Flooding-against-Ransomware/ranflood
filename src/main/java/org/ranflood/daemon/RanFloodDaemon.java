@@ -21,7 +21,7 @@
 
 package org.ranflood.daemon;
 
-import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.*;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -38,7 +38,7 @@ public class RanFloodDaemon {
 	}
 
 	// TODO: check the Flowable API whether there's a more efficient way to feed runnables to the subscribers
-	public static void execute( Runnable r ){
+	public static void executeIORunnable( Runnable r ){
 		Flowable.fromRunnable( r )
 						.subscribeOn( Schedulers.io() )
 						.subscribe();
@@ -55,7 +55,10 @@ public class RanFloodDaemon {
 
 	public static void log( String s ){
 		log.info( s );
-//		System.out.println( s );
+	}
+
+	public static void error( String s ){
+		log.error( s );
 	}
 
 }
