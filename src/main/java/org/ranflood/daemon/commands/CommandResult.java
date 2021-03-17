@@ -19,44 +19,32 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package playground;
+package org.ranflood.daemon.commands;
 
-import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.RanFloodDaemon;
+public class CommandResult {
 
-import java.nio.file.Path;
-import java.util.UUID;
+	private final String message;
 
-public class TestOnTheFlyFlooder {
+	private CommandResult( String message ) {
+		this.message = message;
+	}
 
-	public static void main( String[] args ) {
-		RanFlood.main( TestCommons.getArgs() );
-		RanFloodDaemon daemon = RanFlood.getDaemon();
-		Path filePath = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder1" );
-		// WE CREATE SOME FILES
-		UUID idRandom = daemon.getRandomFlooder().flood( filePath );
-		try {
-			Thread.sleep( 500 );
-		} catch ( InterruptedException e ) {
-			e.printStackTrace();
+	public String message() {
+		return message;
+	}
+
+	public static class Successful extends CommandResult {
+
+		public Successful( String message ) {
+			super( message );
 		}
-		daemon.getRandomFlooder().stopFlood( idRandom );
+	}
 
-		// WE TAKE THE SIGNATURES OF THE FILES SIGNATURES
-		daemon.getOnTheFlyFlooder().takeSnapshot( filePath );
+	public static class Failed extends CommandResult {
 
-		// WE LAUNCH THE ON_THE_FLY FLOODER
-		UUID id1 = daemon.getOnTheFlyFlooder().flood( filePath );
-		try {
-			Thread.sleep( 1000 );
-		} catch ( InterruptedException e ) {
-			e.printStackTrace();
+		public Failed( String message ) {
+			super( message );
 		}
-		daemon.getOnTheFlyFlooder().stopFlood( id1 );
-		daemon.getOnTheFlyFlooder().removeSnapshot( filePath );
-		daemon.shutdown();
 	}
 
 }
-
-

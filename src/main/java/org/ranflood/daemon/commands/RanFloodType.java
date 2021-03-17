@@ -19,44 +19,42 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package playground;
+package org.ranflood.daemon.commands;
 
-import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.RanFloodDaemon;
+import org.ranflood.daemon.flooders.FloodMethod;
 
 import java.nio.file.Path;
-import java.util.UUID;
 
-public class TestOnTheFlyFlooder {
+public class RanFloodType {
 
-	public static void main( String[] args ) {
-		RanFlood.main( TestCommons.getArgs() );
-		RanFloodDaemon daemon = RanFlood.getDaemon();
-		Path filePath = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder1" );
-		// WE CREATE SOME FILES
-		UUID idRandom = daemon.getRandomFlooder().flood( filePath );
-		try {
-			Thread.sleep( 500 );
-		} catch ( InterruptedException e ) {
-			e.printStackTrace();
+	final private FloodMethod method;
+	final private Path path;
+
+	public RanFloodType( FloodMethod method, Path path ) {
+		this.method = method;
+		this.path = path;
+	}
+
+	public FloodMethod method() {
+		return method;
+	}
+
+	public Path path() {
+		return path;
+	}
+
+	public static class Tagged extends RanFloodType {
+
+		private final String id;
+
+		public Tagged( FloodMethod method, Path path, String id ) {
+			super( method, path );
+			this.id = id;
 		}
-		daemon.getRandomFlooder().stopFlood( idRandom );
 
-		// WE TAKE THE SIGNATURES OF THE FILES SIGNATURES
-		daemon.getOnTheFlyFlooder().takeSnapshot( filePath );
-
-		// WE LAUNCH THE ON_THE_FLY FLOODER
-		UUID id1 = daemon.getOnTheFlyFlooder().flood( filePath );
-		try {
-			Thread.sleep( 1000 );
-		} catch ( InterruptedException e ) {
-			e.printStackTrace();
+		public String id() {
+			return id;
 		}
-		daemon.getOnTheFlyFlooder().stopFlood( id1 );
-		daemon.getOnTheFlyFlooder().removeSnapshot( filePath );
-		daemon.shutdown();
 	}
 
 }
-
-

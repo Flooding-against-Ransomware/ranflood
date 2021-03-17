@@ -19,44 +19,55 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package playground;
+package org.ranflood.daemon.commands;
 
-import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.RanFloodDaemon;
+public class FloodCommand {
 
-import java.nio.file.Path;
-import java.util.UUID;
+	private FloodCommand(){}
 
-public class TestOnTheFlyFlooder {
+	public static class Start extends AbstractCommand< CommandResult >{
 
-	public static void main( String[] args ) {
-		RanFlood.main( TestCommons.getArgs() );
-		RanFloodDaemon daemon = RanFlood.getDaemon();
-		Path filePath = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder1" );
-		// WE CREATE SOME FILES
-		UUID idRandom = daemon.getRandomFlooder().flood( filePath );
-		try {
-			Thread.sleep( 500 );
-		} catch ( InterruptedException e ) {
-			e.printStackTrace();
+		public Start( RanFloodType type ) {
+			super( type );
 		}
-		daemon.getRandomFlooder().stopFlood( idRandom );
 
-		// WE TAKE THE SIGNATURES OF THE FILES SIGNATURES
-		daemon.getOnTheFlyFlooder().takeSnapshot( filePath );
-
-		// WE LAUNCH THE ON_THE_FLY FLOODER
-		UUID id1 = daemon.getOnTheFlyFlooder().flood( filePath );
-		try {
-			Thread.sleep( 1000 );
-		} catch ( InterruptedException e ) {
-			e.printStackTrace();
+		// todo: implement this
+		@Override
+		public CommandResult execute() {
+			return null;
 		}
-		daemon.getOnTheFlyFlooder().stopFlood( id1 );
-		daemon.getOnTheFlyFlooder().removeSnapshot( filePath );
-		daemon.shutdown();
 	}
 
+	public static class Stop implements Command< CommandResult > {
+
+		private final String id;
+
+		public Stop( String id ) {
+			this.id = id;
+		}
+
+		public String id() {
+			return id;
+		}
+
+		// todo: implement this
+		@Override
+		public CommandResult execute() {
+			return null;
+		}
+	}
+
+	public static class List implements Command< java.util.List< RanFloodType.Tagged > >{
+
+		// todo: implement this
+		@Override
+		public java.util.List< RanFloodType.Tagged > execute() {
+			return null;
+		}
+	}
+
+
+
+
+
 }
-
-

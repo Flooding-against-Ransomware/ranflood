@@ -19,44 +19,45 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package playground;
+package org.ranflood.daemon.commands;
 
-import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.RanFloodDaemon;
+public class SnapshotCommand {
 
-import java.nio.file.Path;
-import java.util.UUID;
+	private SnapshotCommand(){}
 
-public class TestOnTheFlyFlooder {
+	public static class Add extends AbstractCommand< CommandResult > {
 
-	public static void main( String[] args ) {
-		RanFlood.main( TestCommons.getArgs() );
-		RanFloodDaemon daemon = RanFlood.getDaemon();
-		Path filePath = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder1" );
-		// WE CREATE SOME FILES
-		UUID idRandom = daemon.getRandomFlooder().flood( filePath );
-		try {
-			Thread.sleep( 500 );
-		} catch ( InterruptedException e ) {
-			e.printStackTrace();
+		public Add( RanFloodType type ) {
+			super( type );
 		}
-		daemon.getRandomFlooder().stopFlood( idRandom );
 
-		// WE TAKE THE SIGNATURES OF THE FILES SIGNATURES
-		daemon.getOnTheFlyFlooder().takeSnapshot( filePath );
-
-		// WE LAUNCH THE ON_THE_FLY FLOODER
-		UUID id1 = daemon.getOnTheFlyFlooder().flood( filePath );
-		try {
-			Thread.sleep( 1000 );
-		} catch ( InterruptedException e ) {
-			e.printStackTrace();
+		// TODO: implement this
+		@Override
+		public CommandResult execute() {
+			return null;
 		}
-		daemon.getOnTheFlyFlooder().stopFlood( id1 );
-		daemon.getOnTheFlyFlooder().removeSnapshot( filePath );
-		daemon.shutdown();
+	}
+
+	public static class Remove extends AbstractCommand< CommandResult > {
+
+		public Remove( RanFloodType type ) {
+			super( type );
+		}
+
+		// TODO: implement this
+		@Override
+		public CommandResult execute() {
+			return null;
+		}
+	}
+
+	public static class List implements Command< java.util.List< RanFloodType > > {
+
+		// TODO: implement this
+		@Override
+		public java.util.List< RanFloodType > execute() {
+			return null;
+		}
 	}
 
 }
-
-
