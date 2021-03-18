@@ -23,14 +23,13 @@ package org.ranflood.daemon;
 
 import io.reactivex.rxjava3.core.*;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
 import org.ranflood.daemon.binders.ZMQ_JSON_Server;
 import org.ranflood.daemon.flooders.FloodTaskExecutor;
 import org.ranflood.daemon.flooders.onTheFly.OnTheFlyFlooder;
 import org.ranflood.daemon.flooders.random.RandomFlooder;
 import org.ranflood.daemon.utils.IniParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,16 +41,21 @@ import java.util.concurrent.Executors;
 
 public class RanFloodDaemon {
 
-	final static private Logger log = LogManager.getLogger( RanFloodDaemon.class );
-
-	static {
-		PropertyConfigurator.configure( "src/main/resources/log4j.properties" );
-	}
-
 	private final FloodTaskExecutor floodTaskExecutor = FloodTaskExecutor.getInstance();
 	private final ExecutorService commandExecutor = Executors.newFixedThreadPool( Runtime.getRuntime().availableProcessors() );
 	private final RandomFlooder RANDOM_FLOODER = new RandomFlooder();
 	private final OnTheFlyFlooder ON_THE_FLY_FLOODER;
+	static private final Logger logger = LoggerFactory.getLogger( "RanFlood" );
+	static private Emitter< Runnable > emitter;
+
+	static {
+		Observable.< Runnable >create( e -> emitter = e )
+						.toFlowable( BackpressureStrategy.BUFFER )
+						.subscribeOn( Schedulers.io() )
+						.subscribe( Runnable::run );
+	}
+
+
 	IniParser settings = null;
 
 	public RanFloodDaemon( Path settingsFilePath ) {
@@ -75,9 +79,10 @@ public class RanFloodDaemon {
 
 	// TODO: check the Flowable API whether there's a more efficient way to feed runnables to the subscribers
 	public static void executeIORunnable( Runnable r ) {
-		Flowable.fromRunnable( r )
-						.subscribeOn( Schedulers.io() )
-						.subscribe();
+		emitter.onNext( r );
+//		Flowable.fromRunnable( r )
+//						.subscribeOn( Schedulers.io() )
+//						.subscribe();
 	}
 
 	public void executeCommand( Runnable r ) {
@@ -85,11 +90,11 @@ public class RanFloodDaemon {
 	}
 
 	public static void log( String s ) {
-		log.info( s );
+		logger.info( s );
 	}
 
 	public static void error( String s ) {
-		log.error( s );
+		logger.error( s );
 	}
 
 	public FloodTaskExecutor floodTaskExecutor() {
@@ -105,11 +110,11 @@ public class RanFloodDaemon {
 	}
 
 	public void shutdown() {
-		log( "Shutting down the flood task executor" );
-		ZMQ_JSON_Server.stop();
+		ZMQ_JSON_Server.shutdown();
 		floodTaskExecutor.shutdown();
 		commandExecutor.shutdown();
 		ON_THE_FLY_FLOODER.shutdown();
+		emitter.onComplete();
 	}
 
 	public void start() {

@@ -28,6 +28,10 @@ public class RanFlood {
 	private static RanFloodDaemon daemon;
 
 	public static void main( String[] args ) {
+		if( args.length < 1 ){
+			System.err.println( "Expected 1 argument, path to the settings ini file." );
+			System.exit( 1 );
+		}
 		daemon = new RanFloodDaemon( Path.of( args[ 0 ] ) );
 		daemon.start();
 	}

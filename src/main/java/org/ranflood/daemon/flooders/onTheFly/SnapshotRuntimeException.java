@@ -19,43 +19,9 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package playground;
+package org.ranflood.daemon.flooders.onTheFly;
 
-import org.mapdb.DB;
-import org.mapdb.DBMaker;
-import org.mapdb.Serializer;
-
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Map;
-
-public class TestDB {
-
-	public static void main( String[] args ) {
-
-		Path filePath = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder1" );
-
-		DB db = DBMaker
-						.fileDB( "/Users/thesave/Desktop/ranflood_testsite/signature.db" )
-						.checksumHeaderBypass()
-						.make();
-
-		db.getAll().keySet().forEach( System.out::println );
-
-		Map< String, String > signatures = db
-						.hashMap( "signatures" )
-						.keySerializer( Serializer.STRING )
-						.valueSerializer( Serializer.STRING )
-						.createOrOpen();
-
-//		signatures.putAll( TestSnapshot.getReadSignatures( filePath ) );
-
-		String key = new ArrayList<>( signatures.keySet() ).get( 150 );
-
-		System.out.println( "Key of " + key + " is " + signatures.get( key ) );
-
-		db.close();
-
+public class SnapshotRuntimeException extends RuntimeException {
+	public SnapshotRuntimeException( String message ) {
 	}
-
 }

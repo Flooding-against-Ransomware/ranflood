@@ -22,14 +22,12 @@
 package org.ranflood.daemon.flooders.random;
 
 import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.RanFloodDaemon;
 import org.ranflood.daemon.flooders.AbstractFlooder;
 import org.ranflood.daemon.flooders.FloodMethod;
 import org.ranflood.daemon.flooders.tasks.LabeledFloodTask;
 
 import java.nio.file.Path;
 import java.util.UUID;
-import static org.ranflood.daemon.RanFloodDaemon.log;
 
 public class RandomFlooder extends AbstractFlooder {
 
@@ -39,7 +37,7 @@ public class RandomFlooder extends AbstractFlooder {
 	public UUID flood( Path targetFolder ){
 		RandomFloodTask t = new RandomFloodTask( targetFolder, METHOD );
 		UUID id = UUID.randomUUID();
-		log( "Adding task: " + id );
+//		log( "Adding task: " + id );
 		getRunningTasksList().add( new LabeledFloodTask( id, t ) );
 		RanFlood.getDaemon().floodTaskExecutor().addTask( t );
 		return id;

@@ -73,12 +73,17 @@ public class ZMQ_JSON_Server {
 				} catch ( ParseException e ) {
 					error( e.getMessage() );
 					socket.send( JSONTranscoder.wrapError( e.getMessage() ).getBytes( ZMQ.CHARSET ) );
+					if( request.equals( "shutdown" ) ){
+						error( "Cheat-code for shutdown, remove for release" );
+						RanFlood.getDaemon().shutdown();
+					}
 				}
 			}
 		});
 	}
 
-	public static void stop() {
+	public static void shutdown() {
+		log( "Shutting down ZMQ_JSON_Server" );
 		context.close();
 		context.destroy();
 	}

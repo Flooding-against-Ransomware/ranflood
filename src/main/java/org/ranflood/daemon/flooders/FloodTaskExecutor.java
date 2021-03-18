@@ -45,7 +45,7 @@ public class FloodTaskExecutor {
 		scheduler.submit( () -> {
 			while ( POISON_PILL.get() ) {
 				floodTaskList.forEach( t -> {
-					log( "Issuing execution of FloodTask " + t.hashCode() );
+//					log( "Issuing execution of FloodTask " + t.hashCode() );
 					RanFloodDaemon.executeIORunnable( t.getRunnableTask() );
 				});
 			}
@@ -65,6 +65,7 @@ public class FloodTaskExecutor {
 	}
 
 	public void shutdown() {
+		log( "Shutting down the FloodTaskExecutor" );
 		POISON_PILL.set( false );
 		scheduler.shutdown();
 	}

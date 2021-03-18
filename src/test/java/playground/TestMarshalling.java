@@ -72,7 +72,8 @@ public class TestMarshalling {
 				}
 				context.destroy();
 				serverThread.shutdown();
-			} catch ( ParseException e ) {
+			}
+			catch ( ParseException e ) {
 				e.printStackTrace();
 			}
 		} );

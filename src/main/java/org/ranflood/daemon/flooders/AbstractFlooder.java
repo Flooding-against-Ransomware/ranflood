@@ -22,7 +22,6 @@
 package org.ranflood.daemon.flooders;
 
 import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.RanFloodDaemon;
 import org.ranflood.daemon.flooders.tasks.LabeledFloodTask;
 
 import java.nio.file.Path;

@@ -36,19 +36,19 @@ public class TestOnTheFlyFlooder {
 		// WE CREATE SOME FILES
 		UUID idRandom = daemon.getRandomFlooder().flood( filePath );
 		try {
-			Thread.sleep( 500 );
+			Thread.sleep( 2000 );
 		} catch ( InterruptedException e ) {
 			e.printStackTrace();
 		}
 		daemon.getRandomFlooder().stopFlood( idRandom );
 
-		// WE TAKE THE SIGNATURES OF THE FILES SIGNATURES
+		// WE TAKE THE SIGNATURES OF THE FILES
 		daemon.getOnTheFlyFlooder().takeSnapshot( filePath );
 
 		// WE LAUNCH THE ON_THE_FLY FLOODER
 		UUID id1 = daemon.getOnTheFlyFlooder().flood( filePath );
 		try {
-			Thread.sleep( 1000 );
+			Thread.sleep( 2000 );
 		} catch ( InterruptedException e ) {
 			e.printStackTrace();
 		}

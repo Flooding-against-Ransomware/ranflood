@@ -21,9 +21,10 @@
 
 package org.ranflood.daemon.flooders.onTheFly;
 
-import org.mapdb.DB;
-import org.mapdb.DBMaker;
-import org.mapdb.Serializer;
+import jetbrains.exodus.ByteIterable;
+import jetbrains.exodus.bindings.StringBinding;
+import jetbrains.exodus.env.*;
+import jetbrains.exodus.log.Log;
 import org.ranflood.daemon.RanFlood;
 import org.ranflood.daemon.flooders.FloodMethod;
 import org.ranflood.daemon.flooders.Snapshooter;
@@ -33,7 +34,6 @@ import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.ranflood.daemon.RanFloodDaemon.error;
 import static org.ranflood.daemon.RanFloodDaemon.log;
@@ -42,25 +42,23 @@ public class OnTheFlySnapshooter implements Snapshooter {
 
 	private static final FloodMethod METHOD = FloodMethod.ON_THE_FLY;
 	private static final OnTheFlySnapshooter INSTANCE = new OnTheFlySnapshooter();
-	private final DB signaturesDatabase;
+	private final Environment signaturesDatabase;
 
 	private OnTheFlySnapshooter() {
-		signaturesDatabase = DBMaker
-						// TODO: take the DB path from the daemon's settings
-						.fileDB( RanFlood.getDaemon().getOnTheFlyFlooder().snapshotDBPath().toFile() )
-						.make();
+		Log.Companion.getLogger().info( "Test" );
+		signaturesDatabase = Environments
+						.newInstance( RanFlood.getDaemon().getOnTheFlyFlooder().snapshotDBPath().toFile() );
 	}
 
 	static void takeSnapshot( Path filePath ) {
 		log( "Taking snapshopt " + filePath );
 		File file = filePath.toFile();
 		if ( file.isDirectory() && file.exists() ) {
-			Map< String, String > targetDB = INSTANCE.signaturesDatabase.hashMap( file.getAbsolutePath() )
-							.keySerializer( Serializer.STRING )
-							.valueSerializer( Serializer.STRING )
-							.createOrOpen();
-			recordSignatures( filePath, targetDB );
-			INSTANCE.signaturesDatabase.commit();
+			INSTANCE.signaturesDatabase.executeInTransaction( t -> {
+				final Store targetDB = INSTANCE.signaturesDatabase
+								.openStore( file.getAbsolutePath(), StoreConfig.WITHOUT_DUPLICATES, t );
+				recordSignatures( filePath, targetDB, t );
+			} );
 		} else {
 			error( "Could not take " + METHOD + " snapshot of non-existent or single files, filepath " + filePath.toAbsolutePath() );
 		}
@@ -68,21 +66,28 @@ public class OnTheFlySnapshooter implements Snapshooter {
 
 	static void removeSnapshot( Path filePath ) {
 		String key = filePath.toAbsolutePath().toString();
-		INSTANCE.signaturesDatabase.getAll().remove( key );
+		INSTANCE.signaturesDatabase.executeInTransaction( t -> {
+			INSTANCE.signaturesDatabase.removeStore( key, t );
+		} );
 	}
 
-	static List< Path > listSnapshots(){
-		return INSTANCE.signaturesDatabase.getAll().keySet().stream()
-						.map( Path::of ).collect( Collectors.toList());
+	static List< Path > listSnapshots() {
+		final LinkedList< Path > l = new LinkedList<>();
+		INSTANCE.signaturesDatabase.executeInTransaction( t ->
+						INSTANCE.signaturesDatabase.getAllStoreNames( t ).forEach( s -> l.add( Path.of( s ) ) )
+		);
+		return l;
 	}
 
-	static private void recordSignatures( Path filepath, Map< String, String > db ) {
+	static private void recordSignatures( Path filepath, Store db, Transaction transaction ) {
 		File folder = filepath.toFile();
 		Arrays.stream( Objects.requireNonNull( folder.listFiles() ) )
-						.parallel()
 						.forEach( f -> {
 							try {
-								db.put( f.getAbsolutePath(), getFileSignature( f.toPath() ) );
+								db.put( transaction,
+												StringBinding.stringToEntry( f.getAbsolutePath() ),
+												StringBinding.stringToEntry( getFileSignature( f.toPath() ) )
+								);
 							} catch ( IOException | NoSuchAlgorithmException e ) {
 								error( "An error occurred when taking the signature for "
 												+ METHOD + " of " + f.getAbsolutePath()
@@ -98,18 +103,19 @@ public class OnTheFlySnapshooter implements Snapshooter {
 		} else {
 			String dbKey = snapshotParent.toAbsolutePath().toString();
 			String key = filepath.toAbsolutePath().toString();
-			if( INSTANCE.signaturesDatabase.get( dbKey ) != null ){
-				Map< String, String > db = INSTANCE.signaturesDatabase.hashMap( dbKey )
-								.keySerializer( Serializer.STRING )
-								.valueSerializer( Serializer.STRING )
-								.open();
-				if( db.containsKey( key ) ){
-					return db.get( key );
+			Transaction transaction = INSTANCE.signaturesDatabase.beginExclusiveTransaction();
+			if ( INSTANCE.signaturesDatabase.storeExists( dbKey, transaction ) ) {
+				Store db = INSTANCE.signaturesDatabase.openStore( dbKey, StoreConfig.WITHOUT_DUPLICATES, transaction );
+				ByteIterable snapshot = db.get( transaction, StringBinding.stringToEntry( key ) );
+				transaction.commit();
+				if ( snapshot != null ) {
+					return StringBinding.entryToString( snapshot );
 				} else {
 					throw new SnapshotException( "Could not find a signature corresponding to file: "
 									+ filepath.toAbsolutePath().toString() );
 				}
 			} else {
+				transaction.commit();
 				throw new SnapshotException( "Could not find a snapshot corresponding to the parent folder: "
 								+ snapshotParent.toAbsolutePath().toString() );
 			}
@@ -126,7 +132,8 @@ public class OnTheFlySnapshooter implements Snapshooter {
 		}
 	}
 
-	public static void shutdown(){
+	public static void shutdown() {
+		log( "Closing the OnTheFlySnapshooter DB" );
 		INSTANCE.signaturesDatabase.close();
 	}
 

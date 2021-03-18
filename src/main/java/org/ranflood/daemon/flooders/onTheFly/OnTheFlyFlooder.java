@@ -31,8 +31,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
 
-import static org.ranflood.daemon.RanFloodDaemon.log;
-
 public class OnTheFlyFlooder extends AbstractSnapshotFlooder {
 
 	private final FloodMethod METHOD = FloodMethod.ON_THE_FLY;
@@ -46,7 +44,7 @@ public class OnTheFlyFlooder extends AbstractSnapshotFlooder {
 	public UUID flood( Path targetFolder ) {
 		OnTheFlyFloodTask t = new OnTheFlyFloodTask( targetFolder, METHOD );
 		UUID id = UUID.randomUUID();
-		log( "Adding task: " + id );
+//		log( "Adding task: " + id );
 		getRunningTasksList().add( new LabeledFloodTask( id, t ) );
 		RanFlood.getDaemon().floodTaskExecutor().addTask( t );
 		return id;
