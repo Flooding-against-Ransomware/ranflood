@@ -24,13 +24,19 @@ package org.ranflood.daemon.commands;
 public abstract class AbstractCommand< T > implements Command< T >{
 
 	private final RanFloodType type;
+	private final String name;
+
+	public AbstractCommand( RanFloodType type, String name ) {
+		this.type = type;
+		this.name = name;
+	}
 
 	public RanFloodType type() {
 		return type;
 	}
 
-	public AbstractCommand( RanFloodType type ) {
-		this.type = type;
+	@Override
+	public String name() {
+		return name;
 	}
-
 }

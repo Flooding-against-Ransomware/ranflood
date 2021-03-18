@@ -21,7 +21,6 @@
 
 package playground;
 
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class TestCommons {

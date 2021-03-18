@@ -26,6 +26,7 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+import org.ranflood.daemon.binders.ZMQ_JSON_Server;
 import org.ranflood.daemon.flooders.FloodTaskExecutor;
 import org.ranflood.daemon.flooders.onTheFly.OnTheFlyFlooder;
 import org.ranflood.daemon.flooders.random.RandomFlooder;
@@ -35,8 +36,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class RanFloodDaemon {
 
@@ -46,28 +48,28 @@ public class RanFloodDaemon {
 		PropertyConfigurator.configure( "src/main/resources/log4j.properties" );
 	}
 
-	final private FloodTaskExecutor floodTaskExecutor = FloodTaskExecutor.getInstance();
-	final private RandomFlooder RANDOM_FLOODER = new RandomFlooder();
-	private OnTheFlyFlooder ON_THE_FLY_FLOODER;
+	private final FloodTaskExecutor floodTaskExecutor = FloodTaskExecutor.getInstance();
+	private final ExecutorService commandExecutor = Executors.newFixedThreadPool( Runtime.getRuntime().availableProcessors() );
+	private final RandomFlooder RANDOM_FLOODER = new RandomFlooder();
+	private final OnTheFlyFlooder ON_THE_FLY_FLOODER;
+	IniParser settings = null;
 
 	public RanFloodDaemon( Path settingsFilePath ) {
-		IniParser settings = null;
 		try {
 			settings = new IniParser( settingsFilePath.toAbsolutePath().toString() );
 		} catch ( IOException e ) {
 			error( "Cloud not find setting file at: " + settingsFilePath.toAbsolutePath() );
 		}
-
 		Optional< String > opt = ( ( settings != null )
 						? settings.getValue( "OnTheFlyFlooder", "Signature_DB" )
 						: Optional.empty()
 		);
 		ON_THE_FLY_FLOODER = new OnTheFlyFlooder( Path.of( opt.orElseGet( () -> {
-							String signaturesDBpath = Paths.get( "" ).toAbsolutePath().toString() + File.separator + "signatures.db";
-							error( "OnTheFlyFlooder -> Signature_DB not found in the settings file. Using " + signaturesDBpath );
-							return signaturesDBpath;
-						} )
-		)
+					String signaturesDBpath = Paths.get( "" ).toAbsolutePath().toString() + File.separator + "signatures.db";
+					error( "OnTheFlyFlooder -> Signature_DB not found in the settings file. Using " + signaturesDBpath );
+					return signaturesDBpath;
+				} )
+			)
 		);
 	}
 
@@ -76,6 +78,10 @@ public class RanFloodDaemon {
 		Flowable.fromRunnable( r )
 						.subscribeOn( Schedulers.io() )
 						.subscribe();
+	}
+
+	public void executeCommand( Runnable r ) {
+		commandExecutor.submit( r );
 	}
 
 	public static void log( String s ) {
@@ -100,8 +106,13 @@ public class RanFloodDaemon {
 
 	public void shutdown() {
 		log( "Shutting down the flood task executor" );
+		ZMQ_JSON_Server.stop();
 		floodTaskExecutor.shutdown();
+		commandExecutor.shutdown();
 		ON_THE_FLY_FLOODER.shutdown();
 	}
 
+	public void start() {
+		ZMQ_JSON_Server.start( settings.getValue( "ZMQ_JSON_Server", "address" ).orElse( "" ) );
+	}
 }

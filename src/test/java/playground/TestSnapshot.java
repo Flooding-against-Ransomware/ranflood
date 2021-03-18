@@ -31,10 +31,8 @@ import java.util.stream.Collectors;
 public class TestSnapshot {
 
 	public static void main( String[] args ) {
-
 		Path filePath = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder1" );
 		Arrays.stream( Objects.requireNonNull( filePath.toFile().listFiles() ) );
-
 	}
 
 	public static Map< String, String > getReadSignatures( Path filePath ){

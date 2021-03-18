@@ -19,8 +19,9 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon.commands.encodings;
+package org.ranflood.daemon.commands.transcoders;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.ranflood.daemon.commands.Command;
@@ -30,10 +31,30 @@ import org.ranflood.daemon.commands.SnapshotCommand;
 import org.ranflood.daemon.flooders.FloodMethod;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 
-public class JSONConverter {
+public class JSONTranscoder {
 
+	public static String wrapListRanFloodType( List< ? extends RanFloodType > l ){
+		JSONObject o = new JSONObject();
+		JSONArray a = new JSONArray();
+		l.forEach( i -> a.add( ranFloodTypeToJson( i ) ) );
+		o.put( "list", a );
+		return o.toJSONString();
+	}
+
+	public static String wrapError( String m ){
+		JSONObject o = new JSONObject();
+		o.put( "error", m );
+		return o.toJSONString();
+	}
+
+	public static String wrapSuccess( String m ){
+		JSONObject o = new JSONObject();
+		o.put( "success", m );
+		return o.toJSONString();
+	}
 
 	public static String toJson( Command< ? > c ) throws ParseException {
 		JSONObject o = commandToJson( c );
@@ -79,10 +100,13 @@ public class JSONConverter {
 		return obj;
 	}
 
-	private static JSONObject ranFloodTypeToJson( RanFloodType t ){
+	private static < T extends RanFloodType > JSONObject ranFloodTypeToJson( T t ){
 		JSONObject parameters = new JSONObject();
 		parameters.put( "method", t.method().name() );
 		parameters.put( "path", t.path().toAbsolutePath().toString() );
+		if( t instanceof RanFloodType.Tagged ){
+			parameters.put( "id", ( ( RanFloodType.Tagged ) t ).id() );
+		}
 		return parameters;
 	}
 
@@ -98,18 +122,18 @@ public class JSONConverter {
 
 	private final String m;
 
-	private JSONConverter( String m ){
+	private JSONTranscoder( String m ){
 		this.m = m;
 	}
 
 	public static Command< ? > fromJson( String m ) throws ParseException {
-		return new JSONConverter( m ).fromJson();
+		return new JSONTranscoder( m ).fromJson();
 	}
 
 	private Command< ? > fromJson() throws ParseException {
 		JSONParser parser = new JSONParser();
 		try {
-			JSONObject jsonObject = ( JSONObject ) parser.parse( m.toLowerCase() );
+			JSONObject jsonObject = ( JSONObject ) parser.parse( m );
 			String command = getString( jsonObject, "command" );
 			String subcommand = getString( jsonObject, "subcommand" );
 			switch ( command ) {
@@ -179,11 +203,11 @@ public class JSONConverter {
 
 	private FloodMethod getMethod( String method ) throws ParseException {
 		switch ( method ){
-			case "random":
+			case "RANDOM":
 				return FloodMethod.RANDOM;
-			case "on-the-fly":
+			case "ON_THE_FLY":
 				return FloodMethod.ON_THE_FLY;
-			case "shadow-copy":
+			case "SHADOW_COPY":
 				return FloodMethod.SHADOW_COPY;
 			default:
 				throw new ParseException( "Unrecognized method " + method );

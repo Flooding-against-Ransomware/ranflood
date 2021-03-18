@@ -21,6 +21,8 @@
 
 package org.ranflood.daemon.commands;
 
+import static org.ranflood.daemon.RanFloodDaemon.log;
+
 public class FloodCommand {
 
 	private FloodCommand(){}
@@ -28,14 +30,16 @@ public class FloodCommand {
 	public static class Start extends AbstractCommand< CommandResult >{
 
 		public Start( RanFloodType type ) {
-			super( type );
+			super( type, "Flood start" );
 		}
 
 		// todo: implement this
 		@Override
 		public CommandResult execute() {
+			log( "Executing " + this.toString() );
 			return null;
 		}
+
 	}
 
 	public static class Stop implements Command< CommandResult > {
@@ -53,7 +57,13 @@ public class FloodCommand {
 		// todo: implement this
 		@Override
 		public CommandResult execute() {
+			log( "Executing " + this.toString() );
 			return null;
+		}
+
+		@Override
+		public String name() {
+			return "Flood stop";
 		}
 	}
 
@@ -62,12 +72,19 @@ public class FloodCommand {
 		// todo: implement this
 		@Override
 		public java.util.List< RanFloodType.Tagged > execute() {
+			log( "Executing " + this.toString() );
 			return null;
 		}
+
+		@Override
+		public String name() {
+			return "Flood list";
+		}
+
+		@Override
+		public boolean isAsync() {
+			return false;
+		}
 	}
-
-
-
-
 
 }

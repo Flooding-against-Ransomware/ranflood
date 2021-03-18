@@ -21,6 +21,12 @@
 
 package org.ranflood.daemon.commands;
 
+import org.ranflood.daemon.RanFlood;
+import org.ranflood.daemon.flooders.FloodMethod;
+import java.util.LinkedList;
+
+import static org.ranflood.daemon.RanFloodDaemon.log;
+
 public class SnapshotCommand {
 
 	private SnapshotCommand(){}
@@ -28,36 +34,73 @@ public class SnapshotCommand {
 	public static class Add extends AbstractCommand< CommandResult > {
 
 		public Add( RanFloodType type ) {
-			super( type );
+			super( type, "Snapshot add" );
 		}
 
-		// TODO: implement this
+		// TODO: finish implementing this
 		@Override
 		public CommandResult execute() {
-			return null;
+			switch ( this.type().method() ){
+				case RANDOM:
+					return new CommandResult.Failed( "Cannot create a snapshot for the random flooder" );
+				case ON_THE_FLY:
+					RanFlood.getDaemon().getOnTheFlyFlooder().takeSnapshot( this.type().path() );
+					return new CommandResult.Successful( "Issued the creation of a snapshot for the on-the-fly flooder" );
+				case SHADOW_COPY:
+					throw new UnsupportedOperationException( "This method is not implemented." );
+				default:
+					throw new UnsupportedOperationException( "Unrecognized method." );
+			}
 		}
+
 	}
 
 	public static class Remove extends AbstractCommand< CommandResult > {
 
 		public Remove( RanFloodType type ) {
-			super( type );
+			super( type, "Snapshot remove" );
 		}
 
-		// TODO: implement this
+		// TODO: finish implementing this
 		@Override
 		public CommandResult execute() {
-			return null;
+			switch ( this.type().method() ){
+				case RANDOM:
+					return new CommandResult.Failed( "Cannot delete a snapshot for the random flooder (there are none)" );
+				case ON_THE_FLY:
+					RanFlood.getDaemon().getOnTheFlyFlooder().removeSnapshot( this.type().path() );
+					return new CommandResult.Successful( "Issued the removal of the snapshot of the on-the-fly flooder" );
+				case SHADOW_COPY:
+					throw new UnsupportedOperationException( "This method is not implemented." );
+				default:
+					throw new UnsupportedOperationException( "Unrecognized method." );
+			}
 		}
+
 	}
 
 	public static class List implements Command< java.util.List< RanFloodType > > {
 
-		// TODO: implement this
+		// TODO: finish implementing this
 		@Override
 		public java.util.List< RanFloodType > execute() {
-			return null;
+			LinkedList< RanFloodType > l = new LinkedList<>();
+			RanFlood.getDaemon().getOnTheFlyFlooder().listSnapshots()
+							.forEach( p -> l.add( new RanFloodType( FloodMethod.ON_THE_FLY, p ) ) );
+			// TODO: include also ShadowCopy
+			return l;
 		}
+
+		@Override
+		public String name() {
+			return "Snapshot list";
+		}
+
+		@Override
+		public boolean isAsync() {
+			return false;
+		}
+
 	}
 
 }

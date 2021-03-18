@@ -23,6 +23,12 @@ package org.ranflood.daemon.commands;
 
 public interface Command< T > {
 
-	public T execute();
+	T execute();
+
+	String name();
+
+	default boolean isAsync(){
+		return true;
+	}
 
 }

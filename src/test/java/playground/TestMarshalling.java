@@ -25,8 +25,8 @@ import org.ranflood.daemon.commands.Command;
 import org.ranflood.daemon.commands.FloodCommand;
 import org.ranflood.daemon.commands.RanFloodType;
 import org.ranflood.daemon.commands.SnapshotCommand;
-import org.ranflood.daemon.commands.encodings.JSONConverter;
-import org.ranflood.daemon.commands.encodings.ParseException;
+import org.ranflood.daemon.commands.transcoders.JSONTranscoder;
+import org.ranflood.daemon.commands.transcoders.ParseException;
 import org.ranflood.daemon.flooders.FloodMethod;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
@@ -65,7 +65,7 @@ public class TestMarshalling {
 						context.close();
 					} else {
 						System.out.println( "Received \n" + request );
-						System.out.println( JSONConverter.fromJson( request ) );
+						System.out.println( JSONTranscoder.fromJson( request ) );
 						String response = "OK";
 						socket.send( response.getBytes( ZMQ.CHARSET ), 0 );
 					}
@@ -85,7 +85,7 @@ public class TestMarshalling {
 				System.out.println( "Client started, sending request to server" );
 				l.forEach( c -> {
 					try {
-						socket.send( JSONConverter.toJson( c ).getBytes( ZMQ.CHARSET ) );
+						socket.send( JSONTranscoder.toJson( c ).getBytes( ZMQ.CHARSET ) );
 					} catch ( ParseException e ) {
 						e.printStackTrace();
 					}

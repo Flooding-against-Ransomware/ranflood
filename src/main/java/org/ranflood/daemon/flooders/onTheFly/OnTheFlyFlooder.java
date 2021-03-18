@@ -23,19 +23,19 @@ package org.ranflood.daemon.flooders.onTheFly;
 
 
 import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.RanFloodDaemon;
 import org.ranflood.daemon.flooders.AbstractSnapshotFlooder;
 import org.ranflood.daemon.flooders.FloodMethod;
 import org.ranflood.daemon.flooders.tasks.LabeledFloodTask;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.UUID;
 
 import static org.ranflood.daemon.RanFloodDaemon.log;
 
 public class OnTheFlyFlooder extends AbstractSnapshotFlooder {
 
-	private FloodMethod METHOD = FloodMethod.ON_THE_FLY;
+	private final FloodMethod METHOD = FloodMethod.ON_THE_FLY;
 	private final Path snapshotDBPath;
 
 	public OnTheFlyFlooder( Path snapshotDBPath ){
@@ -60,6 +60,11 @@ public class OnTheFlyFlooder extends AbstractSnapshotFlooder {
 	@Override
 	public void removeSnapshot( Path filepath ) {
 		OnTheFlySnapshooter.removeSnapshot( filepath );
+	}
+
+	@Override
+	public List< Path > listSnapshots() {
+		return OnTheFlySnapshooter.listSnapshots();
 	}
 
 	@Override

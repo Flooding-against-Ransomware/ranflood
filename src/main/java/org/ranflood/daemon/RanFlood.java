@@ -29,6 +29,7 @@ public class RanFlood {
 
 	public static void main( String[] args ) {
 		daemon = new RanFloodDaemon( Path.of( args[ 0 ] ) );
+		daemon.start();
 	}
 
 	public static RanFloodDaemon getDaemon(){

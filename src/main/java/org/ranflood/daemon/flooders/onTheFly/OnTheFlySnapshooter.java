@@ -25,7 +25,6 @@ import org.mapdb.DB;
 import org.mapdb.DBMaker;
 import org.mapdb.Serializer;
 import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.RanFloodDaemon;
 import org.ranflood.daemon.flooders.FloodMethod;
 import org.ranflood.daemon.flooders.Snapshooter;
 
@@ -34,8 +33,10 @@ import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.ranflood.daemon.RanFloodDaemon.error;
+import static org.ranflood.daemon.RanFloodDaemon.log;
 
 public class OnTheFlySnapshooter implements Snapshooter {
 
@@ -51,6 +52,7 @@ public class OnTheFlySnapshooter implements Snapshooter {
 	}
 
 	static void takeSnapshot( Path filePath ) {
+		log( "Taking snapshopt " + filePath );
 		File file = filePath.toFile();
 		if ( file.isDirectory() && file.exists() ) {
 			Map< String, String > targetDB = INSTANCE.signaturesDatabase.hashMap( file.getAbsolutePath() )
@@ -67,6 +69,11 @@ public class OnTheFlySnapshooter implements Snapshooter {
 	static void removeSnapshot( Path filePath ) {
 		String key = filePath.toAbsolutePath().toString();
 		INSTANCE.signaturesDatabase.getAll().remove( key );
+	}
+
+	static List< Path > listSnapshots(){
+		return INSTANCE.signaturesDatabase.getAll().keySet().stream()
+						.map( Path::of ).collect( Collectors.toList());
 	}
 
 	static private void recordSignatures( Path filepath, Map< String, String > db ) {
