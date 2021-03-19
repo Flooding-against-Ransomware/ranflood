@@ -37,7 +37,7 @@ jobs:
     - name: Package executables
       id: package-executables
       run: |
-        zip --junk-paths ranflood-ALPHA.zip ./build/graal/ranflood/*
+        zip --junk-paths ranflood-ALPHA.zip ./build/graal/*
     - name: Upload Client
       id: upload-release-client
       uses: actions/upload-release-asset@v1
