@@ -21,6 +21,8 @@
 
 package org.ranflood.daemon.commands;
 
+import org.ranflood.daemon.commands.types.RanFloodType;
+
 public abstract class AbstractCommand< T > implements Command< T >{
 
 	private final RanFloodType type;

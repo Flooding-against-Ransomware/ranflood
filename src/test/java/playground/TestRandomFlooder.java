@@ -23,30 +23,31 @@ package playground;
 
 import org.ranflood.daemon.RanFlood;
 import org.ranflood.daemon.RanFloodDaemon;
+import org.ranflood.daemon.flooders.FlooderException;
 
 import java.nio.file.Path;
 import java.util.UUID;
 
 public class TestRandomFlooder {
 
-	public static void main( String[] args ) {
+	public static void main( String[] args ) throws FlooderException {
 		RanFlood.main( TestCommons.getArgs() );
-		RanFloodDaemon daemon = RanFlood.getDaemon();
-		UUID id1 = daemon.getRandomFlooder().flood( Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder1" ) );
+		RanFloodDaemon daemon = RanFlood.daemon();
+		UUID id1 = daemon.randomFlooder().flood( Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder1" ) );
 		try {
 			Thread.sleep( 1000 );
 		} catch ( InterruptedException e ) {
 			e.printStackTrace();
 		}
-		UUID id2 = daemon.getRandomFlooder().flood( Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder2" ) );
+		UUID id2 = daemon.randomFlooder().flood( Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder2" ) );
 		try {
 			Thread.sleep( 1000 );
 		} catch ( InterruptedException e ) {
 			e.printStackTrace();
 		}
-		daemon.getRandomFlooder().stopFlood( UUID.randomUUID() );
-		daemon.getRandomFlooder().stopFlood( id1 );
-		daemon.getRandomFlooder().stopFlood( id2 );
+		daemon.randomFlooder().stopFlood( UUID.randomUUID() );
+		daemon.randomFlooder().stopFlood( id1 );
+		daemon.randomFlooder().stopFlood( id2 );
 		daemon.shutdown();
 	}
 

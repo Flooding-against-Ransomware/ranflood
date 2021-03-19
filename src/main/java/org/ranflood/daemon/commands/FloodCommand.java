@@ -21,13 +21,23 @@
 
 package org.ranflood.daemon.commands;
 
-import static org.ranflood.daemon.RanFloodDaemon.log;
+import org.ranflood.daemon.RanFlood;
+import org.ranflood.daemon.commands.types.CommandResult;
+import org.ranflood.daemon.commands.types.RanFloodType;
+import org.ranflood.daemon.flooders.FloodMethod;
+import org.ranflood.daemon.flooders.FlooderException;
+import org.ranflood.daemon.flooders.onTheFly.OnTheFlyFlooderException;
+
+import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class FloodCommand {
 
-	private FloodCommand(){}
+	private FloodCommand() {
+	}
 
-	public static class Start extends AbstractCommand< CommandResult >{
+	public static class Start extends AbstractCommand< CommandResult > {
 
 		public Start( RanFloodType type ) {
 			super( type, "Flood start" );
@@ -36,8 +46,23 @@ public class FloodCommand {
 		// todo: implement this
 		@Override
 		public CommandResult execute() {
-			log( "Executing " + this.toString() );
-			return null;
+			String id;
+			switch ( this.type().method() ) {
+				case RANDOM:
+					id = RanFlood.daemon().randomFlooder().flood( this.type().path() ).toString();
+					return new CommandResult.Successful( "Launched " + this.type().method() + " flood, ID: " + id );
+				case ON_THE_FLY:
+					try {
+						id = RanFlood.daemon().onTheFlyFlooder().flood( this.type().path() ).toString();
+						return new CommandResult.Successful( "Launched " + this.type().method() + " flood, ID: " + id );
+					} catch ( OnTheFlyFlooderException e ) {
+						return new CommandResult.Failed( "Error in launching " + this.type().method() + " flood: " + e.getMessage() );
+					}
+				case SHADOW_COPY:
+					return new CommandResult.Failed( "Method 'SHADOW_COPY' not implemented" );
+				default:
+					return new CommandResult.Failed( "Unrecognized method: " + this.type().method().name() );
+			}
 		}
 
 	}
@@ -45,20 +70,44 @@ public class FloodCommand {
 	public static class Stop implements Command< CommandResult > {
 
 		private final String id;
+		private final FloodMethod method;
 
-		public Stop( String id ) {
+		public Stop( FloodMethod method, String id ) {
 			this.id = id;
+			this.method = method;
 		}
 
 		public String id() {
 			return id;
 		}
 
+		public FloodMethod method() {
+			return method;
+		}
+
 		// todo: implement this
 		@Override
 		public CommandResult execute() {
-			log( "Executing " + this.toString() );
-			return null;
+			switch ( this.method() ) {
+				case RANDOM:
+					try {
+						RanFlood.daemon().randomFlooder().stopFlood( UUID.fromString( this.id ) );
+						return new CommandResult.Successful( "Stopped " + this.method() + " flood, ID: " + id );
+					} catch ( FlooderException e ) {
+						return new CommandResult.Failed( "Error trying to stop " + this.method() + " flood, ID: " + id );
+					}
+				case ON_THE_FLY:
+					try {
+						RanFlood.daemon().onTheFlyFlooder().stopFlood( UUID.fromString( this.id ) );
+						return new CommandResult.Successful( "Stopped " + this.method() + " flood, ID: " + id );
+					} catch ( FlooderException e ) {
+						return new CommandResult.Failed( "Error trying to stop " + this.method() + " flood, ID: " + id );
+					}
+				case SHADOW_COPY:
+					return new CommandResult.Failed( "Method 'SHADOW_COPY' not implemented" );
+				default:
+					return new CommandResult.Failed( "Unrecognized method: " + this.method().name() );
+			}
 		}
 
 		@Override
@@ -67,13 +116,22 @@ public class FloodCommand {
 		}
 	}
 
-	public static class List implements Command< java.util.List< RanFloodType.Tagged > >{
+	public static class List implements Command< java.util.List< RanFloodType.Tagged > > {
 
 		// todo: implement this
 		@Override
 		public java.util.List< RanFloodType.Tagged > execute() {
-			log( "Executing " + this.toString() );
-			return null;
+			return Stream.concat(
+							RanFlood.daemon().randomFlooder()
+											.currentRunningTasksSnapshotList().stream(),
+							RanFlood.daemon().onTheFlyFlooder()
+											.currentRunningTasksSnapshotList().stream()
+			).map( t -> new RanFloodType.Tagged(
+											t.floodTask().floodMethod(),
+											t.floodTask().filePath().toAbsolutePath(),
+											t.label().toString()
+							)
+			).collect( Collectors.toList() );
 		}
 
 		@Override

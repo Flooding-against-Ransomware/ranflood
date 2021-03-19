@@ -19,31 +19,41 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon.commands;
+package org.ranflood.daemon.commands.types;
 
-public class CommandResult {
+import org.ranflood.daemon.flooders.FloodMethod;
 
-	private final String message;
+import java.nio.file.Path;
 
-	private CommandResult( String message ) {
-		this.message = message;
+public class RanFloodType {
+
+	final private FloodMethod method;
+	final private Path path;
+
+	public RanFloodType( FloodMethod method, Path path ) {
+		this.method = method;
+		this.path = path;
 	}
 
-	public String message() {
-		return message;
+	public FloodMethod method() {
+		return method;
 	}
 
-	public static class Successful extends CommandResult {
+	public Path path() {
+		return path;
+	}
 
-		public Successful( String message ) {
-			super( message );
+	public static class Tagged extends RanFloodType {
+
+		private final String id;
+
+		public Tagged( FloodMethod method, Path path, String id ) {
+			super( method, path );
+			this.id = id;
 		}
-	}
 
-	public static class Failed extends CommandResult {
-
-		public Failed( String message ) {
-			super( message );
+		public String id() {
+			return id;
 		}
 	}
 

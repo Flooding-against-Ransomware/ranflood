@@ -28,8 +28,6 @@ import org.ranflood.daemon.flooders.FloodTaskExecutor;
 import org.ranflood.daemon.flooders.onTheFly.OnTheFlyFlooder;
 import org.ranflood.daemon.flooders.random.RandomFlooder;
 import org.ranflood.daemon.utils.IniParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,7 +43,6 @@ public class RanFloodDaemon {
 	private final ExecutorService commandExecutor = Executors.newFixedThreadPool( Runtime.getRuntime().availableProcessors() );
 	private final RandomFlooder RANDOM_FLOODER = new RandomFlooder();
 	private final OnTheFlyFlooder ON_THE_FLY_FLOODER;
-	static private final Logger logger = LoggerFactory.getLogger( "RanFlood" );
 	static private Emitter< Runnable > emitter;
 
 	static {
@@ -54,7 +51,6 @@ public class RanFloodDaemon {
 						.subscribeOn( Schedulers.io() )
 						.subscribe( Runnable::run );
 	}
-
 
 	IniParser settings = null;
 
@@ -69,15 +65,14 @@ public class RanFloodDaemon {
 						: Optional.empty()
 		);
 		ON_THE_FLY_FLOODER = new OnTheFlyFlooder( Path.of( opt.orElseGet( () -> {
-					String signaturesDBpath = Paths.get( "" ).toAbsolutePath().toString() + File.separator + "signatures.db";
-					error( "OnTheFlyFlooder -> Signature_DB not found in the settings file. Using " + signaturesDBpath );
-					return signaturesDBpath;
-				} )
-			)
+							String signaturesDBpath = Paths.get( "" ).toAbsolutePath().toString() + File.separator + "signatures.db";
+							error( "OnTheFlyFlooder -> Signature_DB not found in the settings file. Using " + signaturesDBpath );
+							return signaturesDBpath;
+						} )
+		)
 		);
 	}
 
-	// TODO: check the Flowable API whether there's a more efficient way to feed runnables to the subscribers
 	public static void executeIORunnable( Runnable r ) {
 		emitter.onNext( r );
 //		Flowable.fromRunnable( r )
@@ -90,22 +85,23 @@ public class RanFloodDaemon {
 	}
 
 	public static void log( String s ) {
-		logger.info( s );
+		RanFloodLogger.log( s );
 	}
 
 	public static void error( String s ) {
-		logger.error( s );
+		RanFloodLogger.error( s );
 	}
+
 
 	public FloodTaskExecutor floodTaskExecutor() {
 		return floodTaskExecutor;
 	}
 
-	public RandomFlooder getRandomFlooder() {
+	public RandomFlooder randomFlooder() {
 		return RANDOM_FLOODER;
 	}
 
-	public OnTheFlyFlooder getOnTheFlyFlooder() {
+	public OnTheFlyFlooder onTheFlyFlooder() {
 		return ON_THE_FLY_FLOODER;
 	}
 

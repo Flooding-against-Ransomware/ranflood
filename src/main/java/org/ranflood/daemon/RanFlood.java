@@ -36,7 +36,7 @@ public class RanFlood {
 		daemon.start();
 	}
 
-	public static RanFloodDaemon getDaemon(){
+	public static RanFloodDaemon daemon(){
 		return daemon;
 	}
 

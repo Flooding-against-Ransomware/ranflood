@@ -21,10 +21,25 @@
 
 package org.ranflood.daemon.flooders;
 
+import org.ranflood.daemon.commands.transcoders.ParseException;
+
 public enum FloodMethod {
 
 	RANDOM,
 	ON_THE_FLY,
-	SHADOW_COPY
+	SHADOW_COPY;
+
+	public static FloodMethod getMethod( String method ) throws ParseException {
+		switch ( method ){
+			case "RANDOM":
+				return FloodMethod.RANDOM;
+			case "ON_THE_FLY":
+				return FloodMethod.ON_THE_FLY;
+			case "SHADOW_COPY":
+				return FloodMethod.SHADOW_COPY;
+			default:
+				throw new ParseException( "Unrecognized method " + method );
+		}
+	}
 
 }

@@ -22,6 +22,7 @@
 package org.ranflood.daemon.flooders;
 
 import org.ranflood.daemon.RanFlood;
+import org.ranflood.daemon.flooders.onTheFly.OnTheFlyFlooderException;
 import org.ranflood.daemon.flooders.tasks.LabeledFloodTask;
 
 import java.nio.file.Path;
@@ -29,9 +30,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-import static org.ranflood.daemon.RanFloodDaemon.error;
 import static org.ranflood.daemon.RanFloodDaemon.log;
 
 public class AbstractFlooder {
@@ -42,31 +41,27 @@ public class AbstractFlooder {
 		runningTasksList = new LinkedList<>();
 	}
 
-	protected List< LabeledFloodTask > getRunningTasksList(){
+	protected List< LabeledFloodTask > runningTasksList(){
 		return runningTasksList;
 	}
 
-	public List< String > getRunningTasks(){
-		return runningTasksList.stream()
-						.map( t ->
-										t.floodTask().filePath().toAbsolutePath().toString()
-										+ ", " + t.label().toString() )
-						.collect( Collectors.toList() );
+	public UUID flood( Path targetFolder ) throws FlooderException {
+		throw new UnsupportedOperationException( "Flooders should override this method" );
 	}
 
-	public UUID flood( Path targetFolder ){
-		throw new UnsupportedOperationException( "Flooders should override this method" );
-	};
+	public List< LabeledFloodTask > currentRunningTasksSnapshotList(){
+		return new LinkedList<>( runningTasksList );
+	}
 
-	public void stopFlood( UUID id ) {
-		Optional< LabeledFloodTask > task = getRunningTasksList().stream()
+	public void stopFlood( UUID id ) throws FlooderException {
+		Optional< LabeledFloodTask > task = runningTasksList().stream()
 						.filter( t -> t.label().equals( id ) ).findAny();
 		if( task.isPresent() ){
-			log( "Removing task: " + id );
-			getRunningTasksList().remove( task.get() );
-			RanFlood.getDaemon().floodTaskExecutor().removeTask( task.get().floodTask() );
+			log( "Removing flood task: " + id );
+			runningTasksList().remove( task.get() );
+			RanFlood.daemon().floodTaskExecutor().removeTask( task.get().floodTask() );
 		} else {
-			error( "Could not find and remove '" + this.getClass().getName() + "' task: " + id );
+			throw new FlooderException( "Could not find and remove task: " + id );
 		}
 	}
 

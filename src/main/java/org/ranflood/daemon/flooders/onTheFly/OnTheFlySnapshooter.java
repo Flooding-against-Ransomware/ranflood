@@ -45,13 +45,13 @@ public class OnTheFlySnapshooter implements Snapshooter {
 	private final Environment signaturesDatabase;
 
 	private OnTheFlySnapshooter() {
-		Log.Companion.getLogger().info( "Test" );
+
 		signaturesDatabase = Environments
-						.newInstance( RanFlood.getDaemon().getOnTheFlyFlooder().snapshotDBPath().toFile() );
+						.newInstance( RanFlood.daemon().onTheFlyFlooder().snapshotDBPath().toFile() );
 	}
 
-	static void takeSnapshot( Path filePath ) {
-		log( "Taking snapshopt " + filePath );
+	static void takeSnapshot( Path filePath ) throws OnTheFlyFlooderException {
+		log( "Taking ON_THE_FLY snapshot " + filePath );
 		File file = filePath.toFile();
 		if ( file.isDirectory() && file.exists() ) {
 			INSTANCE.signaturesDatabase.executeInTransaction( t -> {
@@ -59,8 +59,9 @@ public class OnTheFlySnapshooter implements Snapshooter {
 								.openStore( file.getAbsolutePath(), StoreConfig.WITHOUT_DUPLICATES, t );
 				recordSignatures( filePath, targetDB, t );
 			} );
+			log( "Terminated recording of ON_THE_FLY snapshot " + filePath );
 		} else {
-			error( "Could not take " + METHOD + " snapshot of non-existent or single files, filepath " + filePath.toAbsolutePath() );
+			throw new OnTheFlyFlooderException( "Could not take " + METHOD + " snapshot of non-existent or single files, filepath " + filePath.toAbsolutePath() );
 		}
 	}
 

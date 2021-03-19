@@ -23,7 +23,7 @@ package playground;
 
 import org.ranflood.daemon.commands.Command;
 import org.ranflood.daemon.commands.FloodCommand;
-import org.ranflood.daemon.commands.RanFloodType;
+import org.ranflood.daemon.commands.types.RanFloodType;
 import org.ranflood.daemon.commands.SnapshotCommand;
 import org.ranflood.daemon.commands.transcoders.JSONTranscoder;
 import org.ranflood.daemon.commands.transcoders.ParseException;
@@ -47,7 +47,7 @@ public class TestMarshalling {
 			new SnapshotCommand.Remove( new RanFloodType( FloodMethod.RANDOM, Path.of( "." ) ) ),
 			new SnapshotCommand.List(),
 			new FloodCommand.Start( new RanFloodType( FloodMethod.RANDOM, Path.of( "." ) ) ),
-			new FloodCommand.Stop( UUID.randomUUID().toString() ),
+			new FloodCommand.Stop( FloodMethod.RANDOM, UUID.randomUUID().toString() ),
 			new FloodCommand.List()
 		);
 

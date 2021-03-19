@@ -19,58 +19,41 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon.flooders.onTheFly;
+package org.ranflood.daemon;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.impl.SimpleLogger;
 
-import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.flooders.AbstractSnapshotFlooder;
-import org.ranflood.daemon.flooders.FloodMethod;
-import org.ranflood.daemon.flooders.tasks.LabeledFloodTask;
+public class RanFloodLogger {
 
-import java.nio.file.Path;
-import java.util.List;
-import java.util.UUID;
+	static private final Logger logger;
 
-public class OnTheFlyFlooder extends AbstractSnapshotFlooder {
-
-	private final FloodMethod METHOD = FloodMethod.ON_THE_FLY;
-	private final Path snapshotDBPath;
-
-	public OnTheFlyFlooder( Path snapshotDBPath ){
-		this.snapshotDBPath = snapshotDBPath;
+	static {
+		System.setProperty( SimpleLogger.SHOW_LOG_NAME_KEY, "false" );
+		System.setProperty( SimpleLogger.SHOW_DATE_TIME_KEY, "true" );
+//		System.setProperty( SimpleLogger.DATE_TIME_FORMAT_KEY, "| yyyy-MM-dd'T'HH:mm:ss" );
+		System.setProperty( SimpleLogger.DATE_TIME_FORMAT_KEY, "|" );
+		System.setProperty( SimpleLogger.LOG_FILE_KEY, "System.out" );
+		logger = LoggerFactory.getLogger( "RanFlood" );
 	}
 
-	@Override
-	public UUID flood( Path targetFolder ) throws OnTheFlyFlooderException {
-		OnTheFlyFloodTask t = new OnTheFlyFloodTask( targetFolder, METHOD );
-		UUID id = UUID.randomUUID();
-//		log( "Adding task: " + id );
-		runningTasksList().add( new LabeledFloodTask( id, t ) );
-		RanFlood.daemon().floodTaskExecutor().addTask( t );
-		return id;
+	public static void log( String s ) {
+		logger.info( messagePrefix() + s + messageSuffix() );
 	}
 
-	@Override
-	public void takeSnapshot( Path filepath ) throws OnTheFlyFlooderException {
-		OnTheFlySnapshooter.takeSnapshot( filepath );
+	public static void error( String s ) {
+		logger.error( messagePrefix() + s + messageSuffix() );
 	}
 
-	@Override
-	public void removeSnapshot( Path filepath ) {
-		OnTheFlySnapshooter.removeSnapshot( filepath );
+	private static String messagePrefix(){
+		StackTraceElement t = Thread.currentThread()
+						.getStackTrace()[ Math.min( Thread.currentThread().getStackTrace().length-1, 4 ) ];
+		return t.getClassName()	+ "." + t.getMethodName()	+ "\n| ";
 	}
 
-	@Override
-	public List< Path > listSnapshots() {
-		return OnTheFlySnapshooter.listSnapshots();
+	private static String messageSuffix() {
+		return "\n";
 	}
 
-	@Override
-	public void shutdown() {
-		OnTheFlySnapshooter.shutdown();
-	}
-
-	public Path snapshotDBPath() {
-		return snapshotDBPath;
-	}
 }

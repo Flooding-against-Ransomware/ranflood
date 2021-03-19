@@ -38,7 +38,6 @@ dependencies {
     implementation 'info.picocli:picocli:4.6.1'
     implementation 'io.reactivex.rxjava3:rxjava:3.0.10'
     implementation 'com.oblac:nomen-est-omen:2.0.0'
-//    implementation 'org.mapdb:mapdb:3.0.8'
     implementation 'org.jetbrains.xodus:xodus-openAPI:1.3.232'
     implementation 'org.jetbrains.xodus:xodus-environment:1.3.232'
     implementation 'com.republicate:essential-json:2.6'

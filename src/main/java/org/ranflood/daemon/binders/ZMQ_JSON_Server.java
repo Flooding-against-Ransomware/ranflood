@@ -25,6 +25,8 @@ import org.ranflood.daemon.RanFlood;
 import org.ranflood.daemon.commands.*;
 import org.ranflood.daemon.commands.transcoders.JSONTranscoder;
 import org.ranflood.daemon.commands.transcoders.ParseException;
+import org.ranflood.daemon.commands.types.CommandResult;
+import org.ranflood.daemon.commands.types.RanFloodType;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
@@ -46,15 +48,14 @@ public class ZMQ_JSON_Server {
 		ZMQ.Socket socket = context.createSocket( SocketType.REP );
 		socket.bind( address );
 		log( "Server started at " + address + ", accepting requests from clients" );
-		RanFlood.getDaemon().executeCommand( () -> {
+		RanFlood.daemon().executeCommand( () -> {
 			while ( !context.isClosed() ) {
-				log( "Server waiting for reception" );
 				String request = new String( socket.recv(), ZMQ.CHARSET );
 				log( "Server received [" + request + "]" );
 				try {
 					Command< ? > command = JSONTranscoder.fromJson( request );
 					if( command.isAsync() ){
-						RanFlood.getDaemon().executeCommand( () -> {
+						RanFlood.daemon().executeCommand( () -> {
 							Object result = command.execute();
 							if( result instanceof CommandResult.Successful ){
 								log( ( ( CommandResult.Successful ) result ).message() );
@@ -75,7 +76,7 @@ public class ZMQ_JSON_Server {
 					socket.send( JSONTranscoder.wrapError( e.getMessage() ).getBytes( ZMQ.CHARSET ) );
 					if( request.equals( "shutdown" ) ){
 						error( "Cheat-code for shutdown, remove for release" );
-						RanFlood.getDaemon().shutdown();
+						RanFlood.daemon().shutdown();
 					}
 				}
 			}

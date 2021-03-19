@@ -24,7 +24,7 @@ package org.ranflood.daemon.commands.transcoders;
 import com.republicate.json.Json;
 import org.ranflood.daemon.commands.Command;
 import org.ranflood.daemon.commands.FloodCommand;
-import org.ranflood.daemon.commands.RanFloodType;
+import org.ranflood.daemon.commands.types.RanFloodType;
 import org.ranflood.daemon.commands.SnapshotCommand;
 import org.ranflood.daemon.flooders.FloodMethod;
 
@@ -90,6 +90,7 @@ public class JSONTranscoder {
 			obj.put( "subcommand", "stop" );
 			Json.Object o = new Json.Object();
 			o.put( "id", ( ( (FloodCommand.Stop) c).id() ) );
+			o.put( "method", ( ( (FloodCommand.Stop) c).method().name() ) );
 			obj.put( "parameters", o );
 		}
 		if( c instanceof FloodCommand.List ){
@@ -123,6 +124,10 @@ public class JSONTranscoder {
 
 	private JSONTranscoder( String m ){
 		this.m = m;
+	}
+
+	public static JSONTranscoder getInteractiveTranscoder( String m ){
+		return new JSONTranscoder( m );
 	}
 
 	public static Command< ? > fromJson( String m ) throws ParseException {
@@ -165,7 +170,9 @@ public class JSONTranscoder {
 			case "start" :
 				return new FloodCommand.Start( parseRanFloodType( getJsonObject( jsonObject, "parameters" ) ) );
 			case "stop" :
-				return new FloodCommand.Stop( getString( getJsonObject( jsonObject, "parameters" ), "id" ) );
+				return new FloodCommand.Stop(
+								FloodMethod.getMethod( getString( getJsonObject( jsonObject, "parameters" ), "method" ) ),
+								getString( getJsonObject( jsonObject, "parameters" ), "id" ) );
 			case "list" :
 				return new FloodCommand.List();
 			default:
@@ -173,10 +180,14 @@ public class JSONTranscoder {
 		}
 	}
 
-	private RanFloodType parseRanFloodType( Json.Object jsonObject ) throws ParseException {
+	public < T extends RanFloodType > T parseRanFloodType( Json.Object jsonObject ) throws ParseException {
 		Path path = Path.of( getString( jsonObject, "path" ) );
-		FloodMethod method = getMethod( getString( jsonObject, "method" ) );
-		return new RanFloodType( method, path );
+		FloodMethod method = FloodMethod.getMethod( getString( jsonObject, "method" ) );
+		String id = jsonObject.getString( "id" );
+		return ( T ) ( id == null ?
+						new RanFloodType( method, path )
+						: new RanFloodType.Tagged( method, path, id )
+		);
 	}
 
 	private String getString( Json.Object o, String key ) throws ParseException {
@@ -196,19 +207,6 @@ public class JSONTranscoder {
 			return (Json.Object) jo;
 		} else {
 			throw new ParseException( "Wrong type of argument for '" + key + "' node in " + m );
-		}
-	}
-
-	private FloodMethod getMethod( String method ) throws ParseException {
-		switch ( method ){
-			case "RANDOM":
-				return FloodMethod.RANDOM;
-			case "ON_THE_FLY":
-				return FloodMethod.ON_THE_FLY;
-			case "SHADOW_COPY":
-				return FloodMethod.SHADOW_COPY;
-			default:
-				throw new ParseException( "Unrecognized method " + method );
 		}
 	}
 

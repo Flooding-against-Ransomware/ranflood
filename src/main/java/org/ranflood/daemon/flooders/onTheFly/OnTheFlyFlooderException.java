@@ -21,56 +21,11 @@
 
 package org.ranflood.daemon.flooders.onTheFly;
 
+import org.ranflood.daemon.flooders.FlooderException;
 
-import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.flooders.AbstractSnapshotFlooder;
-import org.ranflood.daemon.flooders.FloodMethod;
-import org.ranflood.daemon.flooders.tasks.LabeledFloodTask;
+public class OnTheFlyFlooderException extends FlooderException {
 
-import java.nio.file.Path;
-import java.util.List;
-import java.util.UUID;
-
-public class OnTheFlyFlooder extends AbstractSnapshotFlooder {
-
-	private final FloodMethod METHOD = FloodMethod.ON_THE_FLY;
-	private final Path snapshotDBPath;
-
-	public OnTheFlyFlooder( Path snapshotDBPath ){
-		this.snapshotDBPath = snapshotDBPath;
-	}
-
-	@Override
-	public UUID flood( Path targetFolder ) throws OnTheFlyFlooderException {
-		OnTheFlyFloodTask t = new OnTheFlyFloodTask( targetFolder, METHOD );
-		UUID id = UUID.randomUUID();
-//		log( "Adding task: " + id );
-		runningTasksList().add( new LabeledFloodTask( id, t ) );
-		RanFlood.daemon().floodTaskExecutor().addTask( t );
-		return id;
-	}
-
-	@Override
-	public void takeSnapshot( Path filepath ) throws OnTheFlyFlooderException {
-		OnTheFlySnapshooter.takeSnapshot( filepath );
-	}
-
-	@Override
-	public void removeSnapshot( Path filepath ) {
-		OnTheFlySnapshooter.removeSnapshot( filepath );
-	}
-
-	@Override
-	public List< Path > listSnapshots() {
-		return OnTheFlySnapshooter.listSnapshots();
-	}
-
-	@Override
-	public void shutdown() {
-		OnTheFlySnapshooter.shutdown();
-	}
-
-	public Path snapshotDBPath() {
-		return snapshotDBPath;
+	public OnTheFlyFlooderException( String s ) {
+		super( s );
 	}
 }
