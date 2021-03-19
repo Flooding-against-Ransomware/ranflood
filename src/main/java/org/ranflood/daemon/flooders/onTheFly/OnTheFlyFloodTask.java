@@ -22,7 +22,7 @@
 package org.ranflood.daemon.flooders.onTheFly;
 
 import org.ranflood.daemon.RanFloodDaemon;
-import org.ranflood.daemon.flooders.FloodMethod;
+import org.ranflood.common.FloodMethod;
 import org.ranflood.daemon.flooders.tasks.FloodTask;
 import org.ranflood.daemon.flooders.tasks.WriteCopyFileTask;
 import org.ranflood.daemon.flooders.tasks.WriteFileTask;

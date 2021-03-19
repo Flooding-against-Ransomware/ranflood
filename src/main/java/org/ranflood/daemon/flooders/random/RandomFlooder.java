@@ -23,7 +23,7 @@ package org.ranflood.daemon.flooders.random;
 
 import org.ranflood.daemon.RanFlood;
 import org.ranflood.daemon.flooders.AbstractFlooder;
-import org.ranflood.daemon.flooders.FloodMethod;
+import org.ranflood.common.FloodMethod;
 import org.ranflood.daemon.flooders.tasks.LabeledFloodTask;
 
 import java.nio.file.Path;

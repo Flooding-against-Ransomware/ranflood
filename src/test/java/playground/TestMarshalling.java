@@ -21,13 +21,13 @@
 
 package playground;
 
-import org.ranflood.daemon.commands.Command;
-import org.ranflood.daemon.commands.FloodCommand;
-import org.ranflood.daemon.commands.types.RanFloodType;
-import org.ranflood.daemon.commands.SnapshotCommand;
-import org.ranflood.daemon.commands.transcoders.JSONTranscoder;
-import org.ranflood.daemon.commands.transcoders.ParseException;
-import org.ranflood.daemon.flooders.FloodMethod;
+import org.ranflood.common.commands.Command;
+import org.ranflood.common.commands.FloodCommand;
+import org.ranflood.common.commands.types.RanFloodType;
+import org.ranflood.common.commands.SnapshotCommand;
+import org.ranflood.common.commands.transcoders.JSONTranscoder;
+import org.ranflood.common.commands.transcoders.ParseException;
+import org.ranflood.common.FloodMethod;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
@@ -86,7 +86,7 @@ public class TestMarshalling {
 				System.out.println( "Client started, sending request to server" );
 				l.forEach( c -> {
 					try {
-						socket.send( JSONTranscoder.toJson( c ).getBytes( ZMQ.CHARSET ) );
+						socket.send( JSONTranscoder.toJsonString( c ).getBytes( ZMQ.CHARSET ) );
 					} catch ( ParseException e ) {
 						e.printStackTrace();
 					}

@@ -21,10 +21,36 @@
 
 package org.ranflood.client.subcommands;
 
+import org.ranflood.common.FloodMethod;
+import org.ranflood.common.commands.transcoders.ParseException;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 class Utils {
+
+	static private final Map<String, FloodMethod > translationMap = new HashMap<>();
+
+	static {
+		Arrays.asList( "random", "RANDOM" )
+						.forEach( e -> translationMap.put( e, FloodMethod.RANDOM ) );
+		Arrays.asList( "on-the-fly", "on_the_fly", "ON-THE-FLY", "ON_THE_FLY" )
+						.forEach( e -> translationMap.put( e, FloodMethod.ON_THE_FLY ) );
+		Arrays.asList( "shadow-copy", "shadow_copy", "SHADOW-COPY", "SHADOW_COPY" )
+						.forEach( e -> translationMap.put( e, FloodMethod.SHADOW_COPY ) );
+	}
 
 	public static String padLeft( int padSize ){
 		return String.format( "%" + "Target folders: ".length() + "s", "" );
+	}
+
+	public static FloodMethod getMethod( String m ) throws ParseException {
+		if( translationMap.containsKey( m ) ){
+			return translationMap.get( m );
+		} else {
+			throw new ParseException( "Method " + m + " not supported" );
+		}
 	}
 
 }

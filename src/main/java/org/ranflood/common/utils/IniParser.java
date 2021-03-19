@@ -19,15 +19,57 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon.flooders.tasks;
+package org.ranflood.common.utils;
 
-import org.ranflood.common.FloodMethod;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import java.nio.file.Path;
+public class IniParser {
 
-public interface FileTask {
-	Path filePath();
-	byte[] content();
-	FloodMethod floodMethod();
-	Runnable getRunnableTask();
+	private final Pattern  _section  = Pattern.compile( "\\s*\\[([^]]*)\\]\\s*" );
+	private final Pattern  _keyValue = Pattern.compile( "\\s*([^=]*)=(.*)" );
+	private final Map< String,
+					Map< String,
+									String >>  _entries  = new HashMap<>();
+
+	public IniParser( String path ) throws IOException {
+		load( path );
+	}
+
+	public void load( String path ) throws IOException {
+		try( BufferedReader br = new BufferedReader( new FileReader( path ) ) ) {
+			String line;
+			String section = null;
+			while( ( line = br.readLine() ) != null ) {
+				Matcher m = _section.matcher( line );
+				if( m.matches()) {
+					section = m.group( 1 ).trim();
+				}
+				else if( section != null ) {
+					m = _keyValue.matcher( line );
+					if( m.matches()) {
+						String key   = m.group( 1 ).trim();
+						String value = m.group( 2 ).trim();
+						Map< String, String > kv = _entries.computeIfAbsent( section, k -> new HashMap<>() );
+						kv.put( key, value );
+					}
+				}
+			}
+		}
+	}
+
+	public Optional< String > getValue( String section, String key ) {
+		Map< String, String > kv = _entries.get( section );
+		if( kv == null ) {
+			return Optional.empty();
+		}
+		return Optional.of( kv.get( key ) );
+	}
+
 }

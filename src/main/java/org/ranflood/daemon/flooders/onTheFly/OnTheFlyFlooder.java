@@ -24,7 +24,7 @@ package org.ranflood.daemon.flooders.onTheFly;
 
 import org.ranflood.daemon.RanFlood;
 import org.ranflood.daemon.flooders.AbstractSnapshotFlooder;
-import org.ranflood.daemon.flooders.FloodMethod;
+import org.ranflood.common.FloodMethod;
 import org.ranflood.daemon.flooders.tasks.LabeledFloodTask;
 
 import java.nio.file.Path;

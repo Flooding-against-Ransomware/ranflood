@@ -30,7 +30,7 @@ import java.util.concurrent.Callable;
 @CommandLine.Command(
 				name = "ranflood",
 				mixinStandardHelpOptions = true,
-				version = { "ranflood client 0.1" },
+				version = { "ranflood client 0.1-ALPHA" },
 				description = { "The RanFlood client" },
 				subcommands = {
 								Snapshot.class,
@@ -40,13 +40,17 @@ import java.util.concurrent.Callable;
 public class RanFlood implements Callable< Integer > {
 
 	public static void main( String[] args ) {
+		System.exit( run( args ) );
+	}
+
+	public static int run( String[] args ){
 		CommandLine c = new CommandLine( new RanFlood() );
 		c.setCaseInsensitiveEnumValuesAllowed( true );
-		System.exit( c.execute( args ) );
+		return c.execute( args );
 	}
 
 	@Override
-	public Integer call() throws Exception {
+	public Integer call() {
 		new CommandLine( this ).usage( System.err );
 		return 1;
 	}

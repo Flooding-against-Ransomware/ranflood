@@ -19,42 +19,11 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon.commands.types;
+package org.ranflood.common.commands.transcoders;
 
-import org.ranflood.daemon.flooders.FloodMethod;
+public class ParseException extends Exception {
 
-import java.nio.file.Path;
-
-public class RanFloodType {
-
-	final private FloodMethod method;
-	final private Path path;
-
-	public RanFloodType( FloodMethod method, Path path ) {
-		this.method = method;
-		this.path = path;
+	public ParseException( String message ) {
+		super( message );
 	}
-
-	public FloodMethod method() {
-		return method;
-	}
-
-	public Path path() {
-		return path;
-	}
-
-	public static class Tagged extends RanFloodType {
-
-		private final String id;
-
-		public Tagged( FloodMethod method, Path path, String id ) {
-			super( method, path );
-			this.id = id;
-		}
-
-		public String id() {
-			return id;
-		}
-	}
-
 }

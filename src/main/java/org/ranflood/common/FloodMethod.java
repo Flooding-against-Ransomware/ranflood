@@ -19,16 +19,27 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon.commands;
+package org.ranflood.common;
 
-public interface Command< T > {
+import org.ranflood.common.commands.transcoders.ParseException;
 
-	T execute();
+public enum FloodMethod {
 
-	String name();
+	RANDOM,
+	ON_THE_FLY,
+	SHADOW_COPY;
 
-	default boolean isAsync(){
-		return true;
+	public static FloodMethod getMethod( String method ) throws ParseException {
+		switch ( method ){
+			case "RANDOM":
+				return FloodMethod.RANDOM;
+			case "ON_THE_FLY":
+				return FloodMethod.ON_THE_FLY;
+			case "SHADOW_COPY":
+				return FloodMethod.SHADOW_COPY;
+			default:
+				throw new ParseException( "Unrecognized method " + method );
+		}
 	}
 
 }

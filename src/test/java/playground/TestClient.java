@@ -19,57 +19,37 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon.utils;
+package playground;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import org.ranflood.client.RanFlood;
 
-public class IniParser {
+import java.nio.file.Path;
 
-	private final Pattern  _section  = Pattern.compile( "\\s*\\[([^]]*)\\]\\s*" );
-	private final Pattern  _keyValue = Pattern.compile( "\\s*([^=]*)=(.*)" );
-	private final Map< String,
-					Map< String,
-									String >>  _entries  = new HashMap<>();
+public class TestClient {
 
-	public IniParser( String path ) throws IOException {
-		load( path );
+	public static void main( String[] args ) throws InterruptedException {
+
+		String folder1 = "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder1";
+
+
+//		callClient( "snapshot", "list" );
+//		callClient( "flood", "list" );
+//		callClient( "flood", "random", "" );
+
+		String UUID = "3a586d04-9670-462f-8fb4-76809eb4d34a";
+
+		if( UUID.isEmpty() ){
+			callClient( "flood", "start", "random", folder1 );
+			Thread.sleep( 1_000 );
+			callClient( "flood", "list" );
+		} else {
+			callClient( "flood", "stop", "random", UUID );
+		}
+
 	}
 
-	public void load( String path ) throws IOException {
-		try( BufferedReader br = new BufferedReader( new FileReader( path ) ) ) {
-			String line;
-			String section = null;
-			while( ( line = br.readLine() ) != null ) {
-				Matcher m = _section.matcher( line );
-				if( m.matches()) {
-					section = m.group( 1 ).trim();
-				}
-				else if( section != null ) {
-					m = _keyValue.matcher( line );
-					if( m.matches()) {
-						String key   = m.group( 1 ).trim();
-						String value = m.group( 2 ).trim();
-						Map< String, String > kv = _entries.computeIfAbsent( section, k -> new HashMap<>() );
-						kv.put( key, value );
-					}
-				}
-			}
-		}
-	}
-
-	public Optional< String > getValue( String section, String key ) {
-		Map< String, String > kv = _entries.get( section );
-		if( kv == null ) {
-			return Optional.empty();
-		}
-		return Optional.of( kv.get( key ) );
+	private static void callClient( String... s ){
+		RanFlood.run( s );
 	}
 
 }

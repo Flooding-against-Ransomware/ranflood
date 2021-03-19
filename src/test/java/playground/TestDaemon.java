@@ -21,35 +21,31 @@
 
 package playground;
 
-import com.republicate.json.Json;
-import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.commands.Command;
-import org.ranflood.daemon.commands.FloodCommand;
-import org.ranflood.daemon.commands.types.RanFloodType;
-import org.ranflood.daemon.commands.SnapshotCommand;
-import org.ranflood.daemon.commands.transcoders.JSONTranscoder;
-import org.ranflood.daemon.commands.transcoders.ParseException;
-import org.ranflood.daemon.flooders.FloodMethod;
+import org.ranflood.common.commands.Command;
+import org.ranflood.common.commands.FloodCommand;
+import org.ranflood.common.commands.types.RanFloodType;
+import org.ranflood.common.commands.SnapshotCommand;
+import org.ranflood.common.commands.transcoders.JSONTranscoder;
+import org.ranflood.common.commands.transcoders.ParseException;
+import org.ranflood.common.FloodMethod;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
-import static org.ranflood.daemon.RanFloodLogger.log;
+import static org.ranflood.common.RanFloodLogger.log;
+import static org.ranflood.common.commands.transcoders.JSONTranscoder.parseFloodList;
 
 public class TestDaemon {
 
 	public static void main( String[] args ) throws InterruptedException, IOException, ParseException {
 
-		String settings_file = Paths.get( "src/test/java/playground/settings.ini" ).toAbsolutePath().toString();
-		RanFlood.main( new String[]{ settings_file } );
-		Thread.sleep( 1000 );
+//		String settings_file = Paths.get( "src/test/java/playground/settings.ini" ).toAbsolutePath().toString();
+//		RanFlood.main( new String[]{ settings_file } );
+//		Thread.sleep( 1000 );
 
 		Path folder1 = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder1" );
 
@@ -68,7 +64,7 @@ public class TestDaemon {
 		// THIS SHOULD BE OK
 		String runningList = sendCommandList( new FloodCommand.List() );
 		log( runningList );
-		List< RanFloodType.Tagged > list = parseFloodList( runningList );
+		List< RanFloodType.Tagged > list = ( List< RanFloodType.Tagged > ) parseFloodList( runningList );
 
 		// THIS SHOULD BE OK
 		sendCommand( new FloodCommand.Stop(
@@ -98,7 +94,7 @@ public class TestDaemon {
 			log( "Retrieving list of running floods" );
 			runningList = sendCommandList( new FloodCommand.List() );
 			log( runningList );
-			list = parseFloodList( runningList );
+			list = ( List< RanFloodType.Tagged > ) parseFloodList( runningList );
 			Thread.sleep( 1000 );
 		} while ( list.isEmpty() );
 
@@ -117,7 +113,7 @@ public class TestDaemon {
 
 	private static void sendCommand( Command< ? > c ) {
 		try {
-			sendString( JSONTranscoder.toJson( c ) );
+			sendString( JSONTranscoder.toJsonString( c ) );
 		} catch ( ParseException e ) {
 			e.printStackTrace();
 		}
@@ -139,7 +135,7 @@ public class TestDaemon {
 		try ( ZContext context = new ZContext() ) {
 			ZMQ.Socket socket = context.createSocket( SocketType.REQ );
 			socket.connect( "tcp://localhost:7890" );
-			String command = JSONTranscoder.toJson( c );
+			String command = JSONTranscoder.toJsonString( c );
 			socket.send( command );
 			String response = new String( socket.recv(), ZMQ.CHARSET );
 			socket.close();
@@ -150,25 +146,6 @@ public class TestDaemon {
 			e.printStackTrace();
 			return "";
 		}
-	}
-
-	private static List< RanFloodType.Tagged > parseFloodList( String list ) throws IOException {
-		Json.Object object = Json.parse( list ).asObject();
-		Json.Array array = object.getArray( "list" );
-		return IntStream.range( 0, array.size() )
-						.mapToObj( i -> {
-							Json.Object e = array.getObject( i );
-							try {
-								return new RanFloodType.Tagged(
-												FloodMethod.getMethod( e.getString( "method" ) ),
-												Path.of( e.getString( "path" ) ),
-												e.getString( "id" )
-								);
-							} catch ( ParseException parseException ) {
-								parseException.printStackTrace();
-								return null;
-							}
-						} ).collect( Collectors.toList() );
 	}
 
 }

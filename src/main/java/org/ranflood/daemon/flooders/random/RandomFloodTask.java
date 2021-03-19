@@ -23,7 +23,7 @@ package org.ranflood.daemon.flooders.random;
 
 import com.oblac.nomen.Nomen;
 import org.ranflood.daemon.RanFloodDaemon;
-import org.ranflood.daemon.flooders.FloodMethod;
+import org.ranflood.common.FloodMethod;
 import org.ranflood.daemon.flooders.tasks.FloodTask;
 import org.ranflood.daemon.flooders.tasks.WriteFileTask;
 

@@ -21,12 +21,14 @@
 
 package org.ranflood.daemon.binders;
 
+import org.ranflood.common.commands.Command;
+import org.ranflood.common.commands.FloodCommand;
+import org.ranflood.common.commands.SnapshotCommand;
 import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.commands.*;
-import org.ranflood.daemon.commands.transcoders.JSONTranscoder;
-import org.ranflood.daemon.commands.transcoders.ParseException;
-import org.ranflood.daemon.commands.types.CommandResult;
-import org.ranflood.daemon.commands.types.RanFloodType;
+import org.ranflood.common.commands.transcoders.JSONTranscoder;
+import org.ranflood.common.commands.transcoders.ParseException;
+import org.ranflood.common.commands.types.CommandResult;
+import org.ranflood.common.commands.types.RanFloodType;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;

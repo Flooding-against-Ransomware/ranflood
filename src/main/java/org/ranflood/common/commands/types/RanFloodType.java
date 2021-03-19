@@ -19,15 +19,42 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon.flooders.tasks;
+package org.ranflood.common.commands.types;
 
 import org.ranflood.common.FloodMethod;
 
 import java.nio.file.Path;
 
-public interface FileTask {
-	Path filePath();
-	byte[] content();
-	FloodMethod floodMethod();
-	Runnable getRunnableTask();
+public class RanFloodType {
+
+	final private FloodMethod method;
+	final private Path path;
+
+	public RanFloodType( FloodMethod method, Path path ) {
+		this.method = method;
+		this.path = path;
+	}
+
+	public FloodMethod method() {
+		return method;
+	}
+
+	public Path path() {
+		return path;
+	}
+
+	public static class Tagged extends RanFloodType {
+
+		private final String id;
+
+		public Tagged( FloodMethod method, Path path, String id ) {
+			super( method, path );
+			this.id = id;
+		}
+
+		public String id() {
+			return id;
+		}
+	}
+
 }

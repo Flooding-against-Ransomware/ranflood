@@ -21,12 +21,20 @@
 
 package org.ranflood.client.subcommands;
 
+import org.ranflood.client.binders.ZMQ_JSON_Client;
+import org.ranflood.common.FloodMethod;
+import org.ranflood.common.commands.SnapshotCommand;
+import org.ranflood.common.commands.transcoders.ParseException;
+import org.ranflood.common.commands.types.RanFloodType;
 import picocli.CommandLine;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
+
+import static org.ranflood.client.subcommands.Utils.getMethod;
+import static org.ranflood.common.RanFloodLogger.error;
 
 @CommandLine.Command(
 				name = "snapshot",
@@ -41,7 +49,7 @@ import java.util.stream.Collectors;
 public class Snapshot implements Callable< Integer > {
 
 	@Override
-	public Integer call() throws Exception {
+	public Integer call() {
 		new CommandLine( this ).usage( System.err );
 		return 1;
 	}
@@ -53,62 +61,80 @@ public class Snapshot implements Callable< Integer > {
 	)
 	static class Take implements Callable< Integer > {
 
-		@CommandLine.Parameters( index = "0", arity = "1" )
+		@CommandLine.Parameters(index = "0", arity = "1")
 		String method;
 
-		@CommandLine.Parameters( index = "1..*", arity = "1..*" )
+		@CommandLine.Parameters(index = "1..*", arity = "1..*")
 		Collection< File > targetFolders;
 
 		@Override
-		public Integer call() throws Exception {
-			System.out.println( "Requested snapshot of a new folder." );
-			System.out.println( "Selected method: " + method );
-			System.out.println( "Target folders: " + targetFolders.stream()
-							.map( t -> t.toPath().toAbsolutePath().toString() )
-							.collect( Collectors.joining( ",\n"
-											+ String.format( "%" + "Target folders: ".length() + "s", "" )
-							) ) );
-			return 0;
+		public Integer call() {
+			System.out.println( "Requesting the taking of snapshots of the following folders." );
+			try {
+				FloodMethod m = getMethod( method );
+				targetFolders.forEach( t -> {
+					SnapshotCommand.Add c =
+									new SnapshotCommand.Add( new RanFloodType( m, t.toPath().toAbsolutePath() ) );
+					System.out.println( ZMQ_JSON_Client.INSTANCE().sendCommand( c ) );
+				} );
+				return 0;
+			} catch ( ParseException e ) {
+				error( "Method " + method + " not supported." );
+				return 1;
+			}
 		}
 	}
 
 	@CommandLine.Command(
 					name = "remove",
 					mixinStandardHelpOptions = true,
-					description = { "removes monitored folders" }
+					description = { "removes the snapshots of a list of folders" }
 	)
 	static class Remove implements Callable< Integer > {
 
-		@CommandLine.Parameters( index = "0", arity = "1" )
+		@CommandLine.Parameters(index = "0", arity = "1")
 		String method;
 
-		@CommandLine.Parameters( index = "1..*", arity = "1..*" )
+		@CommandLine.Parameters(index = "1..*", arity = "1..*")
 		Collection< File > targetFolders;
 
 		@Override
-		public Integer call() throws Exception {
-			System.out.println( "Requested remove of new folders." );
-			System.out.println( "Selected method: " + method );
-			String label = "Target folders: ";
-			System.out.println( label + targetFolders.stream()
-							.map( t -> t.toPath().toAbsolutePath().toString() )
-							.collect( Collectors.joining( ",\n" + Utils.padLeft( label.length() ) ) ) );
-			return 0;
+		public Integer call() {
+			System.out.println( "Requesting the removal of snapshots of the following folders." );
+			try {
+				FloodMethod m = getMethod( method );
+				targetFolders.forEach( t -> {
+					SnapshotCommand.Remove c =
+									new SnapshotCommand.Remove( new RanFloodType( m, t.toPath().toAbsolutePath() ) );
+					System.out.println( ZMQ_JSON_Client.INSTANCE().sendCommand( c ) );
+				} );
+				return 0;
+			} catch ( ParseException e ) {
+				error( "Method " + method + " not supported." );
+				return 1;
+			}
 		}
 	}
 
-
 	@CommandLine.Command(
-					name = "--list",
-					aliases = "-l",
+					name = "list",
 					mixinStandardHelpOptions = true,
 					description = { "list the snapshots currently saved" }
 	)
 	static class List implements Callable< Integer > {
 
 		@Override
-		public Integer call() throws Exception {
-			System.out.println( "Requested the list of snapshots." );
+		public Integer call() {
+			System.out.println( "Requesting the list of snapshots." );
+			SnapshotCommand.List c = new SnapshotCommand.List();
+			java.util.List< RanFloodType > l = ZMQ_JSON_Client.INSTANCE().sendListCommand( c );
+			if( l.isEmpty() ){
+				System.out.println( "There are no snapshots at the moment" );
+			} else {
+				System.out.println( l.stream()
+								.map( r -> r.method().name() + " | " + r.path() )
+								.collect( Collectors.joining( "\n" ) ) );
+			}
 			return 0;
 		}
 	}

@@ -19,19 +19,21 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon.commands.transcoders;
+package org.ranflood.common.commands.transcoders;
 
 import com.republicate.json.Json;
-import org.ranflood.daemon.commands.Command;
-import org.ranflood.daemon.commands.FloodCommand;
-import org.ranflood.daemon.commands.types.RanFloodType;
-import org.ranflood.daemon.commands.SnapshotCommand;
-import org.ranflood.daemon.flooders.FloodMethod;
+import org.ranflood.common.commands.Command;
+import org.ranflood.common.commands.FloodCommand;
+import org.ranflood.common.commands.types.RanFloodType;
+import org.ranflood.common.commands.SnapshotCommand;
+import org.ranflood.common.FloodMethod;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class JSONTranscoder {
 
@@ -55,7 +57,7 @@ public class JSONTranscoder {
 		return o.toString();
 	}
 
-	public static String toJson( Command< ? > c ) throws ParseException {
+	public static String toJsonString( Command< ? > c ) throws ParseException {
 		Json.Object o = commandToJson( c );
 		if( o.isEmpty() ){
 			throw new ParseException( "Unable to find a conversion scheme for command of type " + c.getClass().getName() );
@@ -208,6 +210,24 @@ public class JSONTranscoder {
 		} else {
 			throw new ParseException( "Wrong type of argument for '" + key + "' node in " + m );
 		}
+	}
+
+	public static List< ? extends RanFloodType > parseFloodList( String list ) throws IOException {
+		Json.Object object = Json.parse( list ).asObject();
+		Json.Array array = object.getArray( "list" );
+		return IntStream.range( 0, array.size() )
+						.mapToObj( i -> {
+							Json.Object e = array.getObject( i );
+							try {
+								FloodMethod m = FloodMethod.getMethod( e.getString( "method" ) );
+								Path p = Path.of( e.getString( "path" ) );
+								String id = e.getString( "id" );
+								return ( id == null ) ? new RanFloodType( m, p ) : new RanFloodType.Tagged( m, p, id );
+							} catch ( ParseException parseException ) {
+								parseException.printStackTrace();
+								return null;
+							}
+						} ).collect( Collectors.toList() );
 	}
 
 }

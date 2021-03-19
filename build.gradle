@@ -1,3 +1,5 @@
+import com.palantir.gradle.graal.NativeImageTask
+
 /******************************************************************************
  * Copyright 2021 (C) by Saverio Giallorenzo <saverio.giallorenzo@gmail.com>  *
  *                                                                            *
@@ -87,13 +89,29 @@ test {
 //    include '**/*Tests*'
 }
 
-graal {
-    graalVersion "21.0.0.2"
-    javaVersion "11"
-    mainClass 'org.ranflood.daemon.RanFlood'
-    outputName 'ranflood'
-    option '--no-fallback'
-//        '--initialize-at-run-time=org.eclipse.collections.api.factory.Sets'
-//    mainClass 'org.ranflood.client.RanFlood'
-//    outputName 'ranflood'
+task clientNativeImage{
+    graal {
+        mainClass "org.ranflood.client.RanFlood"
+        graalVersion "21.0.0.2"
+        javaVersion "11"
+        outputName 'ranflood'
+        option '--no-fallback'
+    }
+    dependsOn nativeImage
+}
+
+task daemonNativeImage{
+    graal {
+        mainClass "org.ranflood.daemon.RanFlood"
+        graalVersion "21.0.0.2"
+        javaVersion "11"
+        outputName 'ranfloodd'
+        option '--no-fallback'
+    }
+    dependsOn nativeImage
+}
+
+task nativeImages {
+    dependsOn clientNativeImage
+    dependsOn daemonNativeImage
 }

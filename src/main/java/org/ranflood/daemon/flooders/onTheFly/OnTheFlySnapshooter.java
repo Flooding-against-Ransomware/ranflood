@@ -24,9 +24,8 @@ package org.ranflood.daemon.flooders.onTheFly;
 import jetbrains.exodus.ByteIterable;
 import jetbrains.exodus.bindings.StringBinding;
 import jetbrains.exodus.env.*;
-import jetbrains.exodus.log.Log;
 import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.flooders.FloodMethod;
+import org.ranflood.common.FloodMethod;
 import org.ranflood.daemon.flooders.Snapshooter;
 
 import java.io.*;

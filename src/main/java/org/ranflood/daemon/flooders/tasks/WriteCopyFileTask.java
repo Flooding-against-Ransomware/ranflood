@@ -22,7 +22,7 @@
 package org.ranflood.daemon.flooders.tasks;
 
 import com.oblac.nomen.Nomen;
-import org.ranflood.daemon.flooders.FloodMethod;
+import org.ranflood.common.FloodMethod;
 
 import java.io.File;
 import java.io.FileOutputStream;

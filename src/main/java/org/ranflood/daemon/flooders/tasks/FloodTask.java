@@ -21,7 +21,7 @@
 
 package org.ranflood.daemon.flooders.tasks;
 
-import org.ranflood.daemon.flooders.FloodMethod;
+import org.ranflood.common.FloodMethod;
 
 import java.nio.file.Path;
 

@@ -19,12 +19,12 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon.commands;
+package org.ranflood.common.commands;
 
+import org.ranflood.common.commands.types.RanFloodType;
 import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.commands.types.CommandResult;
-import org.ranflood.daemon.commands.types.RanFloodType;
-import org.ranflood.daemon.flooders.FloodMethod;
+import org.ranflood.common.commands.types.CommandResult;
+import org.ranflood.common.FloodMethod;
 import org.ranflood.daemon.flooders.FlooderException;
 import org.ranflood.daemon.flooders.onTheFly.OnTheFlyFlooderException;
 

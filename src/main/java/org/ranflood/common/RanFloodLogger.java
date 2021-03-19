@@ -19,11 +19,41 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon.commands.transcoders;
+package org.ranflood.common;
 
-public class ParseException extends Exception {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.impl.SimpleLogger;
 
-	public ParseException( String message ) {
-		super( message );
+public class RanFloodLogger {
+
+	static private final Logger logger;
+
+	static {
+		System.setProperty( SimpleLogger.SHOW_LOG_NAME_KEY, "false" );
+		System.setProperty( SimpleLogger.SHOW_DATE_TIME_KEY, "true" );
+//		System.setProperty( SimpleLogger.DATE_TIME_FORMAT_KEY, "| yyyy-MM-dd'T'HH:mm:ss" );
+		System.setProperty( SimpleLogger.DATE_TIME_FORMAT_KEY, "|" );
+		System.setProperty( SimpleLogger.LOG_FILE_KEY, "System.out" );
+		logger = LoggerFactory.getLogger( "RanFlood" );
 	}
+
+	public static void log( String s ) {
+		logger.info( messagePrefix() + s + messageSuffix() );
+	}
+
+	public static void error( String s ) {
+		logger.error( messagePrefix() + s + messageSuffix() );
+	}
+
+	private static String messagePrefix(){
+		StackTraceElement t = Thread.currentThread()
+						.getStackTrace()[ Math.min( Thread.currentThread().getStackTrace().length-1, 4 ) ];
+		return t.getClassName()	+ "." + t.getMethodName()	+ "\n| ";
+	}
+
+	private static String messageSuffix() {
+		return "\n";
+	}
+
 }

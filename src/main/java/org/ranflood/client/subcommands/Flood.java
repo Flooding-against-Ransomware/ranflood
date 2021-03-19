@@ -21,12 +21,20 @@
 
 package org.ranflood.client.subcommands;
 
+import org.ranflood.client.binders.ZMQ_JSON_Client;
+import org.ranflood.common.FloodMethod;
+import org.ranflood.common.commands.FloodCommand;
+import org.ranflood.common.commands.transcoders.ParseException;
+import org.ranflood.common.commands.types.RanFloodType;
 import picocli.CommandLine;
 
 import java.io.File;
-import java.util.Collection;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
+
+import static org.ranflood.client.subcommands.Utils.getMethod;
+import static org.ranflood.common.RanFloodLogger.error;
 
 @CommandLine.Command(
 				name = "flood",
@@ -41,22 +49,30 @@ import java.util.stream.Collectors;
 public class Flood implements Callable< Integer > {
 
 	@Override
-	public Integer call() throws Exception {
+	public Integer call() {
 		new CommandLine( this ).usage( System.err );
 		return 1;
 	}
 
 	@CommandLine.Command(
-					name = "--list",
-					aliases = "-l",
+					name = "list",
 					mixinStandardHelpOptions = true,
 					description = { "list the running floods" }
 	)
 	static class List implements Callable< Integer > {
 
 		@Override
-		public Integer call() throws Exception {
-			System.out.println( "Requested the list of the running floods." );
+		public Integer call() {
+			System.out.println( "Requesting the list of the running floods." );
+			FloodCommand.List c = new FloodCommand.List();
+			java.util.List< RanFloodType.Tagged > l = ZMQ_JSON_Client.INSTANCE().sendListCommand( c );
+			if ( l.isEmpty() ){
+				System.out.println( "There are no running floods at the moment." );
+			} else {
+				System.out.println( l.stream()
+								.map( r -> r.method().name() + " | " + r.path()	+ " | " + r.id() )
+								.collect( Collectors.joining("\n")) );
+			}
 			return 0;
 		}
 	}
@@ -68,21 +84,27 @@ public class Flood implements Callable< Integer > {
 	)
 	static class Start implements Callable< Integer > {
 
-		@CommandLine.Parameters( index = "0", arity = "1" )
+		@CommandLine.Parameters(index = "0", arity = "1")
 		String method;
 
-		@CommandLine.Parameters( index = "1..*", arity = "1..*" )
+		@CommandLine.Parameters(index = "1..*", arity = "1..*")
 		Collection< File > targetFolders;
 
 		@Override
-		public Integer call() throws Exception {
-			System.out.println( "Requested the flooding of folders." );
-			System.out.println( "Selected method: " + method );
-			String label = "Target folders: ";
-			System.out.println( label + targetFolders.stream()
-							.map( t -> t.toPath().toAbsolutePath().toString() )
-							.collect( Collectors.joining( ",\n" + Utils.padLeft( label.length() ) ) ) );
-			return 0;
+		public Integer call() {
+			System.out.println( "Requesting the start of the flooding." );
+			try {
+				FloodMethod m = getMethod( method );
+				targetFolders.forEach( t -> {
+					FloodCommand.Start c =
+									new FloodCommand.Start( new RanFloodType( m, t.toPath().toAbsolutePath() ) );
+					System.out.println( ZMQ_JSON_Client.INSTANCE().sendCommand( c ) );
+				} );
+				return 0;
+			} catch ( ParseException e ) {
+				error( "Method " + method + " not supported." );
+				return 1;
+			}
 		}
 	}
 
@@ -93,13 +115,27 @@ public class Flood implements Callable< Integer > {
 	)
 	static class Stop implements Callable< Integer > {
 
-		@CommandLine.Parameters( index = "0", arity = "1" )
-		String id;
+		@CommandLine.Parameters(index = "0", arity = "1")
+		String method;
+
+		@CommandLine.Parameters(index = "1", arity = "1")
+		Collection< String > ids;
 
 		@Override
-		public Integer call() throws Exception {
-			System.out.println( "Requested stopping of flooding id: " + id );
-			return 0;
+		public Integer call() {
+			System.out.println( "Requesting the stop of the flooding." );
+			try {
+				FloodMethod m = getMethod( method );
+				ids.forEach( id -> {
+					FloodCommand.Stop c =
+									new FloodCommand.Stop( m, id );
+					System.out.println( ZMQ_JSON_Client.INSTANCE().sendCommand( c ) );
+				} );
+				return 0;
+			} catch ( ParseException e ) {
+				error( "Method " + method + " not supported." );
+				return 1;
+			}
 		}
 	}
 }

@@ -19,26 +19,32 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon.commands;
+package org.ranflood.common.commands.types;
 
-import org.ranflood.daemon.commands.types.RanFloodType;
+public class CommandResult {
 
-public abstract class AbstractCommand< T > implements Command< T >{
+	private final String message;
 
-	private final RanFloodType type;
-	private final String name;
-
-	public AbstractCommand( RanFloodType type, String name ) {
-		this.type = type;
-		this.name = name;
+	private CommandResult( String message ) {
+		this.message = message;
 	}
 
-	public RanFloodType type() {
-		return type;
+	public String message() {
+		return message;
 	}
 
-	@Override
-	public String name() {
-		return name;
+	public static class Successful extends CommandResult {
+
+		public Successful( String message ) {
+			super( message );
+		}
 	}
+
+	public static class Failed extends CommandResult {
+
+		public Failed( String message ) {
+			super( message );
+		}
+	}
+
 }
