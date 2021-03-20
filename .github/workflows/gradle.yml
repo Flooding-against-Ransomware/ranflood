@@ -73,5 +73,5 @@ jobs:
         with:
           upload_url: ${{ needs.create_release.outputs.upload_url }}
           asset_path: ./ranflood-alpha.zip
-          asset_name: ranflood-alpha_{{ runner.os }}.zip
+          asset_name: ranflood-alpha_${{ runner.os }}.zip
           asset_content_type: application/zip
