@@ -12,7 +12,6 @@ jobs:
     runs-on: [ubuntu-latest]
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
-      outputs:
       tag: ${{ steps.tag.outputs.tag }}
     steps:
       - name: Get tag
