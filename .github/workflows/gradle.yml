@@ -50,15 +50,24 @@ jobs:
         run: |
          if [ "$RUNNER_OS" == "Windows" ]; then
           choco install visualstudio2019-workload-vctools
-          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
          fi
         shell: bash
       
       - name: Build client
-        run: ./gradlew clientNativeImage
+        run: |
+         if [ "$RUNNER_OS" == "Windows" ]; then
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
+         fi
+          ./gradlew clientNativeImage
+        shell: bash
       
       - name: Build daemon
-        run: ./gradlew daemonNativeImage
+        run: |
+         if [ "$RUNNER_OS" == "Windows" ]; then
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
+         fi
+          ./gradlew daemonNativeImage
+        shell: bash
       
       - name: Package executables
         id: package-executables
