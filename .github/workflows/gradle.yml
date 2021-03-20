@@ -1,6 +1,3 @@
-# This workflow will build a Java project with Gradle
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
-
 name: Build releases
 
 on:
@@ -10,22 +7,43 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  create_release:
+    name: create_release
+    runs-on: [ubuntu-latest]
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v1
+      - name: create release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: 'ALPHA'
+          release_name: Release 'ALPHA'
+          draft: false
+          prerelease: false
 
-    runs-on: ${{ matrix.os }}
-
+  build_and_upload:
+    needs: [create_release]
+    name: build and upload
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-
+        os: [ubuntu-latest, macOS-latest]
+      runs-on : ${{ matrix.os }}
     steps:
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      if: startsWith( github.ref, 'ALPHA' )
-      with:
-        tag_name: ALPHA
-        release_name: Release ALPHA
-        draft: false
-        prerelease: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}      
+      - name: Check out code
+        uses: actions/checkout@v1
+      - name: Build
+        run: |
+          echo "test" > test.txt
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: ./text.txt
+          asset_name: text.txt-${{ runner.os }}
+          asset_content_type: application/text
