@@ -10,6 +10,8 @@ jobs:
   create_release:
     name: create_release
     runs-on: [ubuntu-latest]
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
     steps:
       - name: Check out code
         uses: actions/checkout@v1
