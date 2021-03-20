@@ -21,31 +21,49 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: 'ALPHA'
-          release_name: Release 'ALPHA'
+          tag_name: alpha
+          release_name: Release alpha
           draft: false
           prerelease: false
 
   build_and_upload:
     needs: [create_release]
     name: build and upload
+    
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest]
+        os: [ubuntu-latest, macOS-latest, windows-latest]
     runs-on : ${{ matrix.os }}
+    
     steps:
-      - name: Check out code
-        uses: actions/checkout@v1
-      - name: Build
+      - uses: actions/checkout@v2
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+      
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      
+      - name: Build client
+        run: ./gradlew clientNativeImage
+      
+      - name: Build daemon
+        run: ./gradlew daemonNativeImage
+      
+      - name: Package executables
+        id: package-executables
         run: |
-          echo "test" > test.txt
+          zip --junk-paths ranflood-alpha.zip ./build/graal/*
+      
       - name: Upload Release Asset
         id: upload-release-asset
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: ./test.txt
-          asset_name: test.txt-${{ runner.os }}
-          asset_content_type: application/text
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./ranflood-alpha.zip
+        asset_name: ranflood-alpha_{{ runner.os }}.zip
+        asset_content_type: application/zip
