@@ -2,9 +2,7 @@ name: Build releases
 
 on:
   push:
-    branches: [ master ]
-    tags:
-      - '*'
+    branches: [ none ]
 
 jobs:
   create_release:
