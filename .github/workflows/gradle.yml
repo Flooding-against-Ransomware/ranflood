@@ -10,7 +10,6 @@ jobs:
   build:
     name: build     
     
-    strategy:
     runs-on : windows-latest
     
     steps:
