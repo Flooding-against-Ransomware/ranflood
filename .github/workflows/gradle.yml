@@ -46,6 +46,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: ./text.txt
-          asset_name: text.txt-${{ runner.os }}
+          asset_path: ./test.txt
+          asset_name: test.txt-${{ runner.os }}
           asset_content_type: application/text
