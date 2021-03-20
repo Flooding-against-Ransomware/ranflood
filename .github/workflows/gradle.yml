@@ -20,12 +20,12 @@ jobs:
 
     steps:
     - name: Release
-        uses: softprops/action-gh-release@v1
-        if: startsWith( github.ref, 'ALPHA' )
-        with:
-          tag_name: ALPHA
-          release_name: Release ALPHA
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}      
+      uses: softprops/action-gh-release@v1
+      if: startsWith( github.ref, 'ALPHA' )
+      with:
+        tag_name: ALPHA
+        release_name: Release ALPHA
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}      
