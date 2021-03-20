@@ -47,27 +47,17 @@ jobs:
         run: chmod +x gradlew
         
       - name: Add SDK when building under Windows
+        if: runner.os == 'Windows'
         run: |
-         if [ "$RUNNER_OS" == "Windows" ]; then
           choco install visualstudio2019-workload-vctools
-         fi
-        shell: bash
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
+        shell: cmd
       
       - name: Build client
-        run: |
-         if [ "$RUNNER_OS" == "Windows" ]; then
-          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
-         fi
-          ./gradlew clientNativeImage
-        shell: bash
+        run: ./gradlew clientNativeImage
       
       - name: Build daemon
-        run: |
-         if [ "$RUNNER_OS" == "Windows" ]; then
-          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
-         fi
-          ./gradlew daemonNativeImage
-        shell: bash
+        run: ./gradlew daemonNativeImage
       
       - name: Package executables
         id: package-executables
