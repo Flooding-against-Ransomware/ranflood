@@ -22,8 +22,10 @@ jobs:
         java-version: 11
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
-    - name: Build with Gradle
-      run: ./gradlew nativeImages
+    - name: Build client
+      run: ./gradlew clientNativeImage
+    - name: Build daemon
+      run: ./gradlew daemonNativeImage
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
