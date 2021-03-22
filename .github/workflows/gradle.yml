@@ -1,8 +1,12 @@
 name: Build releases
 
 on:
-  push:
-    branches: [ none ]
+  workflow_dispatch:
+    inputs:
+      name:
+        description: 'Name of release'
+        required: true
+        default: 'v.0.1-alpha'
 
 jobs:
   create_release:
@@ -12,9 +16,6 @@ jobs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
       tag: ${{ steps.tag.outputs.tag }}
     steps:
-      - name: Get tag
-        id: tag
-        uses: dawidd6/action-get-tag@v1
       - name: Use tag
         run: echo ${{steps.tag.outputs.tag}}
       - name: Check out code
@@ -25,8 +26,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.tag.outputs.tag }}
-          release_name: Release ${{ steps.tag.outputs.tag }}
+          tag_name: ${{ github.event.inputs.name }}
+          release_name: Release ${{ github.event.inputs.name }}
           draft: false
           prerelease: false
 
