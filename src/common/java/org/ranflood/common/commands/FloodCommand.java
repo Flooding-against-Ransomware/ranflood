@@ -19,35 +19,71 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package playground;
+package org.ranflood.common.commands;
 
-import org.ranflood.client.RanFlood;
+import org.ranflood.common.commands.types.RanFloodType;
+import org.ranflood.common.commands.types.CommandResult;
+import org.ranflood.common.FloodMethod;
 
-public class TestClient {
+public class FloodCommand {
 
-	public static void main( String[] args ) throws InterruptedException {
+	private FloodCommand() {
+	}
 
-		String folder1 = "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder1";
+	public static class Start extends AbstractCommand< CommandResult > {
 
-
-//		callClient( "snapshot", "list" );
-//		callClient( "flood", "list" );
-//		callClient( "flood", "random", "" );
-
-		String UUID = "3a586d04-9670-462f-8fb4-76809eb4d34a";
-
-		if( UUID.isEmpty() ){
-			callClient( "flood", "start", "random", folder1 );
-			Thread.sleep( 1_000 );
-			callClient( "flood", "list" );
-		} else {
-			callClient( "flood", "stop", "random", UUID );
+		public Start( RanFloodType type ) {
+			super( type, "Flood start" );
 		}
 
 	}
 
-	private static void callClient( String... s ){
-		RanFlood.run( s );
+	public static class Stop implements Command< CommandResult > {
+
+		private final String id;
+		private final FloodMethod method;
+
+		public Stop( FloodMethod method, String id ) {
+			this.id = id;
+			this.method = method;
+		}
+
+		public String id() {
+			return id;
+		}
+
+		public FloodMethod method() {
+			return method;
+		}
+
+		@Override
+		public String name() {
+			return "Flood stop";
+		}
+
+		@Override
+		public CommandResult execute() {
+			throw new UnsupportedOperationException( "Execution is not implemented by the FloodCommand.Stop class" );
+		}
+
+	}
+
+	public static class List implements Command< java.util.List< RanFloodType.Tagged > > {
+
+		@Override
+		public java.util.List< RanFloodType.Tagged > execute() {
+			throw new UnsupportedOperationException( "Execution is not implemented by the AbstractCommand class" );
+		}
+
+		@Override
+		public String name() {
+			return "Flood list";
+		}
+
+		@Override
+		public boolean isAsync() {
+			return false;
+		}
 	}
 
 }

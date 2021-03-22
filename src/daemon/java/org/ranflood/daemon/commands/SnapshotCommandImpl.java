@@ -19,24 +19,25 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.common.commands;
+package org.ranflood.daemon.commands;
 
+import org.ranflood.common.FloodMethod;
+import org.ranflood.common.commands.SnapshotCommand;
+import org.ranflood.common.commands.types.CommandResult;
 import org.ranflood.common.commands.types.RanFloodType;
 import org.ranflood.daemon.RanFlood;
-import org.ranflood.common.commands.types.CommandResult;
-import org.ranflood.common.FloodMethod;
 import org.ranflood.daemon.flooders.onTheFly.OnTheFlyFlooderException;
 
 import java.util.LinkedList;
 
-public class SnapshotCommand {
+public class SnapshotCommandImpl {
 
-	private SnapshotCommand(){}
+	private SnapshotCommandImpl(){}
 
-	public static class Add extends AbstractCommand< CommandResult > {
+	public static class Add extends SnapshotCommand.Add {
 
 		public Add( RanFloodType type ) {
-			super( type, "Snapshot add" );
+			super( type );
 		}
 
 		// TODO: finish implementing this
@@ -61,10 +62,10 @@ public class SnapshotCommand {
 
 	}
 
-	public static class Remove extends AbstractCommand< CommandResult > {
+	public static class Remove extends SnapshotCommand.Remove {
 
 		public Remove( RanFloodType type ) {
-			super( type, "Snapshot remove" );
+			super( type );
 		}
 
 		// TODO: finish implementing this
@@ -85,7 +86,7 @@ public class SnapshotCommand {
 
 	}
 
-	public static class List implements Command< java.util.List< RanFloodType > > {
+	public static class List extends SnapshotCommand.List {
 
 		// TODO: finish implementing this
 		@Override
@@ -95,16 +96,6 @@ public class SnapshotCommand {
 							.forEach( p -> l.add( new RanFloodType( FloodMethod.ON_THE_FLY, p ) ) );
 			// TODO: include also ShadowCopy
 			return l;
-		}
-
-		@Override
-		public String name() {
-			return "Snapshot list";
-		}
-
-		@Override
-		public boolean isAsync() {
-			return false;
 		}
 
 	}

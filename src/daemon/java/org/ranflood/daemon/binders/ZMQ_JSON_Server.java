@@ -29,6 +29,8 @@ import org.ranflood.common.commands.transcoders.JSONTranscoder;
 import org.ranflood.common.commands.transcoders.ParseException;
 import org.ranflood.common.commands.types.CommandResult;
 import org.ranflood.common.commands.types.RanFloodType;
+import org.ranflood.daemon.commands.FloodCommandImpl;
+import org.ranflood.daemon.commands.SnapshotCommandImpl;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
@@ -55,7 +57,7 @@ public class ZMQ_JSON_Server {
 				String request = new String( socket.recv(), ZMQ.CHARSET );
 				log( "Server received [" + request + "]" );
 				try {
-					Command< ? > command = JSONTranscoder.fromJson( request );
+					Command< ? > command = bindToImpl( JSONTranscoder.fromJson( request ) );
 					if( command.isAsync() ){
 						RanFlood.daemon().executeCommand( () -> {
 							Object result = command.execute();
@@ -83,6 +85,31 @@ public class ZMQ_JSON_Server {
 				}
 			}
 		});
+	}
+
+	private static Command<?> bindToImpl( Command<?> command ) {
+		if( command instanceof SnapshotCommand.Add ){
+			return new SnapshotCommandImpl.Add( ( ( SnapshotCommand.Add ) command ).type() );
+		}
+		if( command instanceof SnapshotCommand.Remove ){
+			return new SnapshotCommandImpl.Remove( ( ( SnapshotCommand.Remove ) command ).type() );
+		}
+		if( command instanceof SnapshotCommand.List ){
+			return new SnapshotCommandImpl.List();
+		}
+		if( command instanceof FloodCommand.Start ){
+			return new FloodCommandImpl.Start( ( ( FloodCommand.Start ) command ).type() );
+		}
+		if( command instanceof FloodCommand.Stop ){
+			return new FloodCommandImpl.Stop(
+							( ( FloodCommand.Stop ) command ).method(),
+							( ( FloodCommand.Stop ) command ).id()
+			);
+		}
+		if( command instanceof FloodCommand.List ){
+			return new FloodCommandImpl.List();
+		}
+		throw new UnsupportedOperationException( "" );
 	}
 
 	public static void shutdown() {

@@ -19,12 +19,14 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.common.commands;
+package org.ranflood.daemon.commands;
 
-import org.ranflood.common.commands.types.RanFloodType;
-import org.ranflood.daemon.RanFlood;
+import org.ranflood.common.commands.Command;
+import org.ranflood.common.commands.FloodCommand;
 import org.ranflood.common.commands.types.CommandResult;
+import org.ranflood.common.commands.types.RanFloodType;
 import org.ranflood.common.FloodMethod;
+import org.ranflood.daemon.RanFlood;
 import org.ranflood.daemon.flooders.FlooderException;
 import org.ranflood.daemon.flooders.onTheFly.OnTheFlyFlooderException;
 
@@ -32,15 +34,14 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class FloodCommand {
+public class FloodCommandImpl {
 
-	private FloodCommand() {
-	}
+	private FloodCommandImpl() {}
 
-	public static class Start extends AbstractCommand< CommandResult > {
+	public static class Start extends FloodCommand.Start {
 
 		public Start( RanFloodType type ) {
-			super( type, "Flood start" );
+			super( type );
 		}
 
 		// todo: implement this

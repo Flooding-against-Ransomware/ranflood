@@ -19,35 +19,31 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package playground;
+package org.ranflood.common.commands;
 
-import org.ranflood.client.RanFlood;
+import org.ranflood.common.commands.types.RanFloodType;
 
-public class TestClient {
+public abstract class AbstractCommand< T > implements Command< T >{
 
-	public static void main( String[] args ) throws InterruptedException {
+	private final RanFloodType type;
+	private final String name;
 
-		String folder1 = "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder1";
-
-
-//		callClient( "snapshot", "list" );
-//		callClient( "flood", "list" );
-//		callClient( "flood", "random", "" );
-
-		String UUID = "3a586d04-9670-462f-8fb4-76809eb4d34a";
-
-		if( UUID.isEmpty() ){
-			callClient( "flood", "start", "random", folder1 );
-			Thread.sleep( 1_000 );
-			callClient( "flood", "list" );
-		} else {
-			callClient( "flood", "stop", "random", UUID );
-		}
-
+	public AbstractCommand( RanFloodType type, String name ) {
+		this.type = type;
+		this.name = name;
 	}
 
-	private static void callClient( String... s ){
-		RanFlood.run( s );
+	public RanFloodType type() {
+		return type;
 	}
 
+	@Override
+	public String name() {
+		return name;
+	}
+
+	@Override
+	public T execute() {
+		throw new UnsupportedOperationException( "Execution is not implemented by the AbstractCommand class" );
+	}
 }

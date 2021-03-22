@@ -76,6 +76,7 @@ public class ZMQ_JSON_Client {
 		return _sendCommand( c );
 	}
 
+	@SuppressWarnings( "unchecked" )
 	public List< RanFloodType.Tagged > sendListCommand( FloodCommand.List c ) {
 		try {
 			return ( List< RanFloodType.Tagged > ) _sendList( JSONTranscoder.toJsonString( c ) );
@@ -85,6 +86,7 @@ public class ZMQ_JSON_Client {
 		return Collections.emptyList();
 	}
 
+	@SuppressWarnings( "unchecked" )
 	public List< RanFloodType > sendListCommand( SnapshotCommand.List c ) {
 		try {
 			return ( List< RanFloodType > ) _sendList( JSONTranscoder.toJsonString( c ) );
@@ -92,11 +94,6 @@ public class ZMQ_JSON_Client {
 			error( e.getMessage() );
 		}
 		return Collections.emptyList();
-	}
-
-	public void shutdown() {
-		socket.close();
-		context.destroy();
 	}
 
 	// UTILITY METHODS

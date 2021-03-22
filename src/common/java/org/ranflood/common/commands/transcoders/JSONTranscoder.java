@@ -73,21 +73,21 @@ public class JSONTranscoder {
 			obj.put( "subcommand", "add" );
 			obj.put( "parameters", ranFloodTypeToJson( ( (SnapshotCommand.Add) c).type() ) );
 		}
-		if( c instanceof SnapshotCommand.Remove ){
+		else if( c instanceof SnapshotCommand.Remove ){
 			obj.put( "command", "snapshot" );
 			obj.put( "subcommand", "remove" );
 			obj.put( "parameters", ranFloodTypeToJson( ( (SnapshotCommand.Remove) c).type() ) );
 		}
-		if( c instanceof SnapshotCommand.List ){
+		else if( c instanceof SnapshotCommand.List ){
 			obj.put( "command", "snapshot" );
 			obj.put( "subcommand", "list" );
 		}
-		if( c instanceof FloodCommand.Start ){
+		else if( c instanceof FloodCommand.Start ){
 			obj.put( "command", "flood" );
 			obj.put( "subcommand", "start" );
 			obj.put( "parameters", ranFloodTypeToJson( ( (FloodCommand.Start) c).type() ) );
 		}
-		if( c instanceof FloodCommand.Stop ){
+		else if( c instanceof FloodCommand.Stop ){
 			obj.put( "command", "flood" );
 			obj.put( "subcommand", "stop" );
 			Json.Object o = new Json.Object();
@@ -95,7 +95,7 @@ public class JSONTranscoder {
 			o.put( "method", ( ( (FloodCommand.Stop) c).method().name() ) );
 			obj.put( "parameters", o );
 		}
-		if( c instanceof FloodCommand.List ){
+		else if( c instanceof FloodCommand.List ){
 			obj.put( "command", "flood" );
 			obj.put( "subcommand", "list" );
 		}
@@ -126,10 +126,6 @@ public class JSONTranscoder {
 
 	private JSONTranscoder( String m ){
 		this.m = m;
-	}
-
-	public static JSONTranscoder getInteractiveTranscoder( String m ){
-		return new JSONTranscoder( m );
 	}
 
 	public static Command< ? > fromJson( String m ) throws ParseException {
@@ -182,6 +178,7 @@ public class JSONTranscoder {
 		}
 	}
 
+	@SuppressWarnings( "unchecked" )
 	public < T extends RanFloodType > T parseRanFloodType( Json.Object jsonObject ) throws ParseException {
 		Path path = Path.of( getString( jsonObject, "path" ) );
 		FloodMethod method = FloodMethod.getMethod( getString( jsonObject, "method" ) );
