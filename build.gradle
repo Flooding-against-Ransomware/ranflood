@@ -112,9 +112,9 @@ task daemonNativeImage {
             outputName "ranfloodd"
             option '--no-fallback'
             option "-cp"
-            option sourceSets.daemon.output.join(":") + ":" +
-                    sourceSets.common.output.join(":") + ":" +
-                    configurations.daemon.join(":")
+            option sourceSets.daemon.output.join(File.pathSeparator) + File.pathSeparator +
+                    sourceSets.common.output.join(File.pathSeparator) + File.pathSeparator +
+                    configurations.daemon.join(File.pathSeparator)
 //            println "OPTIONS:" + graal.options.get()
             windowsVsVarsPath "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat"
         }
@@ -131,9 +131,9 @@ task clientNativeImage {
             outputName "ranflood"
             option '--no-fallback'
             option "-cp"
-            option sourceSets.client.output.join(":") + ":" +
-                    sourceSets.common.output.join(":") + ":" +
-                    configurations.client.join(":")
+            option sourceSets.client.output.join(File.pathSeparator) + File.pathSeparator +
+                    sourceSets.common.output.join(File.pathSeparator) + File.pathSeparator +
+                    configurations.client.join(File.pathSeparator)
 //            println "OPTIONS:" + graal.options.get()
             windowsVsVarsPath "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat"
         }
