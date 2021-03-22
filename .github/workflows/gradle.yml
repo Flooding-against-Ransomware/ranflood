@@ -37,7 +37,7 @@ jobs:
     
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest]
+        os: [ubuntu-latest, macOS-latest, windows-latest]
     runs-on : ${{ matrix.os }}
     
     steps:
@@ -55,22 +55,30 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           choco install visualstudio2019-workload-vctools
-          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\VC\Auxiliary\Build\vcvars64.bat"
         shell: cmd
-      
+    
+      - name: Build jars (Linux only)
+        if: runner.os == 'Linux'
+        run: |
+          ./gradlew jar
+
       - name: Build client
         run: ./gradlew clientNativeImage
       
       - name: Build daemon
         run: ./gradlew daemonNativeImage
-      
+          
       - name: Package executables
         id: package-executables
         run: |
           zip --junk-paths ranflood.zip ./build/graal/*
       
+      - name: Package jar executables
+        if: runner.os == 'Linux'
+        run: |
+          zip --junk-paths ranflood-jar.zip ./build/libs/*
+
       - name: Upload Release Asset
-        id: upload-release-asset
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -78,4 +86,15 @@ jobs:
           upload_url: ${{ needs.create_release.outputs.upload_url }}
           asset_path: ./ranflood.zip
           asset_name: ranflood-${{ needs.create_release.outputs.tag }}_${{ runner.os }}.zip
+          asset_content_type: application/zip
+          
+      - name: Upload Jar Release Asset
+        if: runner.os == 'Linux'
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: ./ranflood-jar.zip
+          asset_name: ranflood-${{ needs.create_release.outputs.tag }}_all.zip
           asset_content_type: application/zip
