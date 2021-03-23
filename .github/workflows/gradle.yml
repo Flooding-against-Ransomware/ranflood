@@ -68,25 +68,32 @@ jobs:
       - name: Build daemon
         run: ./gradlew daemonNativeImage
           
-      - name: Package executables
+      - name: Package executables (*nix)
         id: package-executables
+        if: runner.os == 'Linux' || runner.os == 'MacOs'
         run: |
-          zip --junk-paths ranflood.zip ./build/graal/*
+          zip --junk-paths ranflood.zip build/graal/*
       
-      - name: Package jar executables
-        if: runner.os == 'Linux'
+      - name: Package executables (windows)
+        id: package-executables-win
+        if: runner.os == 'Windows'
         run: |
-          zip --junk-paths ranflood-jar.zip ./build/libs/*
-
+          powershell Compress-Archive build\graal\* ranflood.zip
+      
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: ./ranflood.zip
+          asset_path: ranflood.zip
           asset_name: ranflood-${{ needs.create_release.outputs.tag }}_${{ runner.os }}.zip
           asset_content_type: application/zip
+          
+      - name: Package jar executables
+        if: runner.os == 'Linux'
+        run: |
+          zip --junk-paths ranflood-jar.zip build/libs/*
           
       - name: Upload Jar Release Asset
         if: runner.os == 'Linux'
@@ -95,6 +102,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_release.outputs.upload_url }}
-          asset_path: ./ranflood-jar.zip
+          asset_path: ranflood-jar.zip
           asset_name: ranflood-${{ needs.create_release.outputs.tag }}_all.zip
           asset_content_type: application/zip
