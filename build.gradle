@@ -174,9 +174,6 @@ task daemonJar ( type: Jar ) {
 }
 
 jar {
-    // this prevents the jar task from creating its "own" Ranflood.jar archive
-    actions = []
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    dependsOn clientJar
-    dependsOn daemonJar
+    finalizedBy clientJar
+    finalizedBy daemonJar
 }
