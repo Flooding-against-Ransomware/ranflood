@@ -54,7 +54,7 @@ jobs:
       - name: Add SDK when building under Windows
         if: runner.os == 'Windows'
         run: |
-          choco install visualstudio2019-workload-vctools
+          choco install visualstudio2017-workload-vctools
         shell: cmd
     
       - name: Build jars (Linux only)
