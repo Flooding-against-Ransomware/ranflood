@@ -29,6 +29,7 @@ import org.ranflood.daemon.flooders.tasks.FloodTask;
 import org.ranflood.daemon.flooders.tasks.WriteFileTask;
 
 import java.io.File;
+import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,8 +61,22 @@ public class RandomFloodTask extends FloodTask {
 		cacheCursor = ( cacheCursor + 1 ) % randomCache.length;
 		if( randomCache[ cacheCursor ] == null
 						|| randomCache[ cacheCursor ].left().get() > cache_value_max_usage ){
-			content = new byte[ rng.nextInt( Double.valueOf( Math.pow( 2, 22 ) ).intValue() ) + Double.valueOf( Math.pow( 2, 7 ) ).intValue() ];
-			rng.nextBytes( content );
+			int randomSize = rng.nextInt( Double.valueOf( Math.pow( 2, 22 ) ).intValue() )
+							+ Double.valueOf( Math.pow( 2, 7 ) ).intValue();
+			ByteBuffer b = ByteBuffer.allocate( randomSize );
+			long seed = System.nanoTime();
+			for ( int i = 0; i < b.capacity() / Long.BYTES; i++ ) {
+				seed ^= ( seed << 13 );
+				seed ^= ( seed >>> 7 );
+				seed ^= ( seed << 17 );
+				b.putLong( seed );
+			}
+			if( b.remaining() > 0 ){
+				byte[] r = new byte[ b.remaining() ];
+				new Random().nextBytes( r );
+				b.put( r );
+			}
+			content = b.array();
 			randomCache[ cacheCursor ] = new Pair<>( new AtomicInteger( 1 ), content );
 		} else {
 			content = randomCache[ cacheCursor ].right();
