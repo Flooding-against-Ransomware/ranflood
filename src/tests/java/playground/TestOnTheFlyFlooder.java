@@ -19,57 +19,50 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon.flooders.onTheFly;
-
+package playground;
 
 import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.flooders.AbstractSnapshotFlooder;
-import org.ranflood.common.FloodMethod;
-import org.ranflood.daemon.flooders.tasks.LabeledFloodTask;
+import org.ranflood.daemon.RanFloodDaemon;
+import org.ranflood.daemon.flooders.FlooderException;
 
 import java.nio.file.Path;
-import java.util.List;
 import java.util.UUID;
 
-public class OnTheFlyFlooder extends AbstractSnapshotFlooder {
+import static org.ranflood.common.RanFloodLogger.log;
 
-	private final FloodMethod METHOD = FloodMethod.ON_THE_FLY;
-	private final Path snapshotDBPath;
+public class TestOnTheFlyFlooder {
 
-	public OnTheFlyFlooder( Path snapshotDBPath ){
-		this.snapshotDBPath = snapshotDBPath;
+	public static void main( String[] args ) throws FlooderException {
+		RanFlood.main( TestCommons.getArgs() );
+		RanFloodDaemon daemon = RanFlood.daemon();
+		Path filePath = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/" );
+		// WE CREATE SOME FILES
+//		UUID idRandom = daemon.randomFlooder().flood( filePath );
+//		try {
+//			Thread.sleep( 2000 );
+//		} catch ( InterruptedException e ) {
+//			e.printStackTrace();
+//		}
+//		daemon.randomFlooder().stopFlood( idRandom );
+
+		// WE TAKE THE SIGNATURES OF THE FILES
+		daemon.onTheFlyFlooder().takeSnapshot( filePath );
+
+		// WE LAUNCH THE ON_THE_FLY FLOODER
+		UUID id1 = daemon.onTheFlyFlooder().flood( filePath );
+		log( "Launched flooder: " + id1 );
+		try {
+			Thread.sleep( 1000 );
+		} catch ( InterruptedException e ) {
+			e.printStackTrace();
+		}
+		log( "STOPPING" );
+		daemon.onTheFlyFlooder().stopFlood( id1 );
+		log( "REMOVING SNAPSHOTS" );
+		daemon.onTheFlyFlooder().removeSnapshot( filePath );
+		daemon.shutdown();
 	}
 
-	@Override
-	public UUID flood( Path targetFolder ) throws OnTheFlyFlooderException {
-		OnTheFlyFloodTask t = new OnTheFlyFloodTask( targetFolder, METHOD );
-		UUID id = UUID.randomUUID();
-		runningTasksList().add( new LabeledFloodTask( id, t ) );
-		RanFlood.daemon().floodTaskExecutor().addTask( t );
-		return id;
-	}
-
-	@Override
-	public void takeSnapshot( Path filepath ) throws OnTheFlyFlooderException {
-		OnTheFlySnapshooter.takeSnapshot( filepath );
-	}
-
-	@Override
-	public void removeSnapshot( Path filepath ) {
-		OnTheFlySnapshooter.removeSnapshot( filepath );
-	}
-
-	@Override
-	public List< Path > listSnapshots() {
-		return OnTheFlySnapshooter.listSnapshots();
-	}
-
-	@Override
-	public void shutdown() {
-		OnTheFlySnapshooter.shutdown();
-	}
-
-	public Path snapshotDBPath() {
-		return snapshotDBPath;
-	}
 }
+
+

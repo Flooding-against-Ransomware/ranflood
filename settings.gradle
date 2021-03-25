@@ -1,2 +1,1 @@
-rootProject.name = 'ranflood'
-include 'src'
+rootProject.name = 'org.ranflood'

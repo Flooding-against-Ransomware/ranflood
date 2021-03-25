@@ -83,16 +83,21 @@ public class OnTheFlySnapshooter implements Snapshooter {
 		File folder = filepath.toFile();
 		Arrays.stream( Objects.requireNonNull( folder.listFiles() ) )
 						.forEach( f -> {
-							try {
-								db.put( transaction,
-												StringBinding.stringToEntry( f.getAbsolutePath() ),
-												StringBinding.stringToEntry( getFileSignature( f.toPath() ) )
-								);
-							} catch ( IOException | NoSuchAlgorithmException e ) {
-								error( "An error occurred when taking the signature for "
-												+ METHOD + " of " + f.getAbsolutePath()
-												+ " : " + e.getMessage()
-								);
+							if ( f.isFile() ) {
+								try {
+									db.put( transaction,
+													StringBinding.stringToEntry( f.getAbsolutePath() ),
+													StringBinding.stringToEntry( getFileSignature( f.toPath() ) )
+									);
+								} catch ( IOException | NoSuchAlgorithmException e ) {
+									error( "An error occurred when taking the signature for "
+													+ METHOD + " of " + f.getAbsolutePath()
+													+ " : " + e.getMessage()
+									);
+								}
+							}
+							if( f.isDirectory() ){
+								recordSignatures( f.toPath(), db, transaction );
 							}
 						} );
 	}

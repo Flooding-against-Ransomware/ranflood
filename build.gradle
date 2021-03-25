@@ -46,9 +46,9 @@ dependencies {
     common  'org.slf4j:slf4j-simple:1.7.9'
     common  'org.zeromq:jeromq:0.5.2'
 
+    clientAnnotationProcessor 'info.picocli:picocli-codegen:4.6.1'
     client 'info.picocli:picocli:4.6.1'
 //    client 'info.picocli:picocli-codegen:4.6.1'
-    clientAnnotationProcessor 'info.picocli:picocli-codegen:4.6.1'
 
     daemon  'io.reactivex.rxjava3:rxjava:3.0.10'
     daemon  'com.oblac:nomen-est-omen:2.0.0'
@@ -72,16 +72,15 @@ sourceSets {
     }
     client {
         java.srcDir 'src/client/java/'
-        compileClasspath += configurations.client + sourceSets.common.output + configurations.clientAnnotationProcessor
-//        println compileClasspath.toList()
+        compileClasspath += configurations.client + configurations.clientAnnotationProcessor + sourceSets.common.output
     }
     daemon {
         java.srcDir 'src/daemon/java'
         compileClasspath += configurations.daemon + sourceSets.common.output
     }
-    test {
-        java.srcDir 'src/test/java'
-        compileClasspath += configurations.client + configurations.daemon + sourceSets.common.output + sourceSets.client.output + sourceSets.daemon.output
+    tests {
+        java.srcDir 'src/tests/java'
+        runtimeClasspath += compileClasspath += configurations.client + configurations.daemon + sourceSets.common.output + sourceSets.client.output + sourceSets.daemon.output
     }
 }
 

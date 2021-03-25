@@ -27,6 +27,7 @@ import org.ranflood.daemon.flooders.tasks.FloodTask;
 import org.ranflood.daemon.flooders.tasks.WriteCopyFileTask;
 import org.ranflood.daemon.flooders.tasks.WriteFileTask;
 
+import static org.ranflood.common.RanFloodLogger.log;
 import static org.ranflood.daemon.RanFloodDaemon.error;
 
 import java.io.File;
@@ -70,7 +71,7 @@ public class OnTheFlyFloodTask extends FloodTask {
 						);
 					}
 				}
-			} else {
+			} else { //
 				return Arrays.stream( Objects.requireNonNull( file.listFiles() ) )
 								.parallel()
 								.flatMap( f -> {

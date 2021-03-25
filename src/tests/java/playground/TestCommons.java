@@ -21,36 +21,14 @@
 
 package playground;
 
-import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.RanFloodDaemon;
-import org.ranflood.daemon.flooders.FlooderException;
+import java.nio.file.Paths;
 
-import java.nio.file.Path;
-import java.util.UUID;
+public class TestCommons {
 
-public class TestRandomFlooder {
+	public static final String settings_file = Paths.get( "src/tests/java/playground/settings.ini" ).toAbsolutePath().toString();
 
-	public static void main( String[] args ) throws FlooderException {
-		RanFlood.main( TestCommons.getArgs() );
-		RanFloodDaemon daemon = RanFlood.daemon();
-		UUID id1 = daemon.randomFlooder().flood( Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder1" ) );
-		try {
-			Thread.sleep( 1000 );
-		} catch ( InterruptedException e ) {
-			e.printStackTrace();
-		}
-		UUID id2 = daemon.randomFlooder().flood( Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder2" ) );
-		try {
-			Thread.sleep( 1000 );
-		} catch ( InterruptedException e ) {
-			e.printStackTrace();
-		}
-		daemon.randomFlooder().stopFlood( UUID.randomUUID() );
-		daemon.randomFlooder().stopFlood( id1 );
-		daemon.randomFlooder().stopFlood( id2 );
-		daemon.shutdown();
+	public static String[] getArgs(){
+		return new String[]{ settings_file };
 	}
 
 }
-
-

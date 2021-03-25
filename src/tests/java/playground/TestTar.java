@@ -21,44 +21,14 @@
 
 package playground;
 
-import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.RanFloodDaemon;
-import org.ranflood.daemon.flooders.FlooderException;
-import org.ranflood.daemon.flooders.onTheFly.OnTheFlyFlooderException;
-
 import java.nio.file.Path;
-import java.util.UUID;
+import java.util.Arrays;
 
-public class TestOnTheFlyFlooder {
+public class TestTar {
 
-	public static void main( String[] args ) throws FlooderException {
-		RanFlood.main( TestCommons.getArgs() );
-		RanFloodDaemon daemon = RanFlood.daemon();
-		Path filePath = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder1" );
-		// WE CREATE SOME FILES
-		UUID idRandom = daemon.randomFlooder().flood( filePath );
-		try {
-			Thread.sleep( 2000 );
-		} catch ( InterruptedException e ) {
-			e.printStackTrace();
-		}
-		daemon.randomFlooder().stopFlood( idRandom );
-
-		// WE TAKE THE SIGNATURES OF THE FILES
-		daemon.onTheFlyFlooder().takeSnapshot( filePath );
-
-		// WE LAUNCH THE ON_THE_FLY FLOODER
-		UUID id1 = daemon.onTheFlyFlooder().flood( filePath );
-		try {
-			Thread.sleep( 2000 );
-		} catch ( InterruptedException e ) {
-			e.printStackTrace();
-		}
-		daemon.onTheFlyFlooder().stopFlood( id1 );
-		daemon.onTheFlyFlooder().removeSnapshot( filePath );
-		daemon.shutdown();
+	public static void main( String[] args ) {
+		Path filePath = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/" );
+		System.out.println( Arrays.toString( filePath.toFile().listFiles() ) );
 	}
 
 }
-
-

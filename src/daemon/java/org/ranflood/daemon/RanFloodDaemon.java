@@ -42,6 +42,7 @@ public class RanFloodDaemon {
 
 	private final FloodTaskExecutor floodTaskExecutor = FloodTaskExecutor.getInstance();
 	private final ExecutorService commandExecutor = Executors.newFixedThreadPool( Runtime.getRuntime().availableProcessors() );
+	private static final ExecutorService scheduler = Executors.newFixedThreadPool( Runtime.getRuntime().availableProcessors() );
 	private final RandomFlooder RANDOM_FLOODER = new RandomFlooder();
 	private final OnTheFlyFlooder ON_THE_FLY_FLOODER;
 	static private Emitter< Runnable > emitter;
@@ -50,6 +51,7 @@ public class RanFloodDaemon {
 		Observable.< Runnable >create( e -> emitter = e )
 						.toFlowable( BackpressureStrategy.BUFFER )
 						.subscribeOn( Schedulers.io() )
+						.observeOn( Schedulers.from( scheduler ) )
 						.subscribe( Runnable::run );
 	}
 
@@ -76,9 +78,6 @@ public class RanFloodDaemon {
 
 	public static void executeIORunnable( Runnable r ) {
 		emitter.onNext( r );
-//		Flowable.fromRunnable( r )
-//						.subscribeOn( Schedulers.io() )
-//						.subscribe();
 	}
 
 	public void executeCommand( Runnable r ) {
@@ -109,9 +108,10 @@ public class RanFloodDaemon {
 	public void shutdown() {
 		ZMQ_JSON_Server.shutdown();
 		floodTaskExecutor.shutdown();
-		commandExecutor.shutdown();
-		ON_THE_FLY_FLOODER.shutdown();
 		emitter.onComplete();
+		commandExecutor.shutdown();
+		scheduler.shutdown();
+		ON_THE_FLY_FLOODER.shutdown();
 	}
 
 	public void start() {

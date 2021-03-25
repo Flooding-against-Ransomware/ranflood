@@ -22,6 +22,7 @@
 package org.ranflood.daemon.flooders.random;
 
 import com.oblac.nomen.Nomen;
+import org.ranflood.common.utils.Pair;
 import org.ranflood.daemon.RanFloodDaemon;
 import org.ranflood.common.FloodMethod;
 import org.ranflood.daemon.flooders.tasks.FloodTask;
@@ -32,6 +33,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class RandomFloodTask extends FloodTask {
 
@@ -44,19 +47,39 @@ public class RandomFloodTask extends FloodTask {
 			".ppt", ".pptx", ".jpeg", ".jps", ".gif", ".png", ".mov", ".avi",
 			".mp4", ".mpeg", ".mp3", ".wav", ".ogg" )
 	);
+
 	private static final Random rng = new Random();
+	private static final ReentrantLock randomCacheLock = new ReentrantLock();
+	private static final Pair< AtomicInteger, byte[] >[] randomCache = ( Pair< AtomicInteger, byte[] >[] ) new Pair< ?, ? >[ 64 ];
+	private static int cacheCursor = 0;
+	private static final int cache_value_max_usage = 8;
+
+	private static byte[] getCachedRandomBytes(){
+		byte[] content;
+		randomCacheLock.lock();
+		cacheCursor = ( cacheCursor + 1 ) % randomCache.length;
+		if( randomCache[ cacheCursor ] == null
+						|| randomCache[ cacheCursor ].left().get() > cache_value_max_usage ){
+			content = new byte[ rng.nextInt( Double.valueOf( Math.pow( 2, 22 ) ).intValue() ) + Double.valueOf( Math.pow( 2, 7 ) ).intValue() ];
+			rng.nextBytes( content );
+			randomCache[ cacheCursor ] = new Pair<>( new AtomicInteger( 1 ), content );
+		} else {
+			content = randomCache[ cacheCursor ].right();
+			randomCache[ cacheCursor ].left().incrementAndGet();
+		}
+		randomCacheLock.unlock();
+		return content;
+	}
 
 	@Override
 	public Runnable getRunnableTask() {
 		return () -> {
-			byte[] content = new byte[ new Random().nextInt( Double.valueOf( Math.pow( 2, 22 ) ).intValue() ) + Double.valueOf( Math.pow( 2, 7 ) ).intValue() ];
-			new Random().nextBytes( content );
 			Path filePath = Path.of(
 							this.filePath().toAbsolutePath() + File.separator
 											+ Nomen.randomName()
 											+ FILE_EXTESIONS.get( rng.nextInt( FILE_EXTESIONS.size() ) )
 			);
-			WriteFileTask d = new WriteFileTask( filePath, content, this.floodMethod() );
+			WriteFileTask d = new WriteFileTask( filePath, getCachedRandomBytes(), this.floodMethod() );
 			RanFloodDaemon.executeIORunnable( d.getRunnableTask() );
 		};
 	}

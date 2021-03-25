@@ -30,64 +30,55 @@ import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.ranflood.daemon.RanFloodDaemon;
 import org.ranflood.daemon.flooders.tasks.FloodTask;
 
+import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class FloodTaskExecutor {
 
-	private final LinkedBlockingQueue< FloodTask > floodTaskList = new LinkedBlockingQueue<>();;
-//	private final ExecutorService scheduler;
-//	private final AtomicBoolean POISON_PILL;
+	private final HashSet< FloodTask > floodTaskList = new HashSet<>();
+	private final ReentrantLock taskListLock = new ReentrantLock();
 	static private final FloodTaskExecutor INSTANCE = new FloodTaskExecutor();
-	static private Emitter< Runnable > emitter;
-
-	static {
-		Observable.< Runnable >create( e -> emitter = e )
-						.toFlowable( BackpressureStrategy.BUFFER )
-						.subscribeOn( Schedulers.computation() )
-						.subscribe( Runnable::run );
-	}
-
-//	private FloodTaskExecutor() {
-//		this.floodTaskList = new LinkedBlockingQueue<>();
-//		POISON_PILL = new AtomicBoolean( true );
-//		scheduler = Executors.newSingleThreadExecutor();
-//		scheduler.submit( () -> {
-//			while ( POISON_PILL.get() ) {
-//				floodTaskList.forEach( t -> {
-////					log( "Issuing execution of FloodTask " + t.hashCode() );
-//					RanFloodDaemon.executeIORunnable( t.getRunnableTask() );
-//				});
-//			}
-//		});
-//	}
 
 	public static FloodTaskExecutor getInstance(){
 		return INSTANCE;
 	}
 
 	public void addTask( FloodTask t ) {
+		taskListLock.lock();
 		floodTaskList.add( t );
-		addRunnable();
+		taskListLock.unlock();
+		launchRecursiveCallable( t );
 	}
 
-	private void addRunnable(){
-		emitter.onNext( () -> {
-			floodTaskList.forEach( t -> RanFloodDaemon.executeIORunnable( t.getRunnableTask() ) );
-			if( !floodTaskList.isEmpty() ) addRunnable();
-		} );
+	private void launchRecursiveCallable( FloodTask t ){
+		RanFloodDaemon.executeIORunnable( () -> {
+			if ( hasTask( t ) ){
+				launchRecursiveCallable( t );
+			}
+			RanFloodDaemon.executeIORunnable( t.getRunnableTask() );
+		});
+	}
+
+	public boolean hasTask( FloodTask t ){
+		boolean present;
+		taskListLock.lock();
+		present = floodTaskList.contains( t );
+		taskListLock.unlock();
+		return present;
 	}
 
 	public void removeTask( FloodTask t ){
+		taskListLock.lock();
 		floodTaskList.remove( t );
+		taskListLock.unlock();
 	}
 
 	public void shutdown() {
 		log( "Shutting down the FloodTaskExecutor" );
-		emitter.onComplete();
-//		POISON_PILL.set( false );
+//		emitter.onComplete();
 //		scheduler.shutdown();
 	}
 
