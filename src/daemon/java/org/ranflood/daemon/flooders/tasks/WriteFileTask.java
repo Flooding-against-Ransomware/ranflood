@@ -27,7 +27,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
-import static org.ranflood.daemon.RanFloodDaemon.error;
+import static org.ranflood.common.RanFloodLogger.error;
 
 public class WriteFileTask implements FileTask {
 	private final Path filePath;

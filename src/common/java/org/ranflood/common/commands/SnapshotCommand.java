@@ -27,6 +27,8 @@ import org.ranflood.common.FloodMethod;
 
 import java.util.LinkedList;
 
+import static org.ranflood.common.RanFloodLogger.error;
+
 public class SnapshotCommand {
 
 	private SnapshotCommand(){}
@@ -51,6 +53,7 @@ public class SnapshotCommand {
 
 		@Override
 		public java.util.List< RanFloodType > execute() {
+			error( "Unsupported exception" );
 			throw new UnsupportedOperationException( "Execution is not implemented by the AbstractCommand class" );
 		}
 

@@ -68,22 +68,10 @@ public class FloodCommandImpl {
 
 	}
 
-	public static class Stop implements Command< CommandResult > {
-
-		private final String id;
-		private final FloodMethod method;
+	public static class Stop extends FloodCommand.Stop {
 
 		public Stop( FloodMethod method, String id ) {
-			this.id = id;
-			this.method = method;
-		}
-
-		public String id() {
-			return id;
-		}
-
-		public FloodMethod method() {
-			return method;
+			super( method, id );
 		}
 
 		// todo: implement this
@@ -92,17 +80,17 @@ public class FloodCommandImpl {
 			switch ( this.method() ) {
 				case RANDOM:
 					try {
-						RanFlood.daemon().randomFlooder().stopFlood( UUID.fromString( this.id ) );
-						return new CommandResult.Successful( "Stopped " + this.method() + " flood, ID: " + id );
+						RanFlood.daemon().randomFlooder().stopFlood( UUID.fromString( this.id() ) );
+						return new CommandResult.Successful( "Stopped " + this.method() + " flood, ID: " + id() );
 					} catch ( FlooderException e ) {
-						return new CommandResult.Failed( "Error trying to stop " + this.method() + " flood, ID: " + id );
+						return new CommandResult.Failed( "Error trying to stop " + this.method() + " flood, ID: " + id() );
 					}
 				case ON_THE_FLY:
 					try {
-						RanFlood.daemon().onTheFlyFlooder().stopFlood( UUID.fromString( this.id ) );
-						return new CommandResult.Successful( "Stopped " + this.method() + " flood, ID: " + id );
+						RanFlood.daemon().onTheFlyFlooder().stopFlood( UUID.fromString( this.id() ) );
+						return new CommandResult.Successful( "Stopped " + this.method() + " flood, ID: " + this.id() );
 					} catch ( FlooderException e ) {
-						return new CommandResult.Failed( "Error trying to stop " + this.method() + " flood, ID: " + id );
+						return new CommandResult.Failed( "Error trying to stop " + this.method() + " flood, ID: " + this.id() );
 					}
 				case SHADOW_COPY:
 					return new CommandResult.Failed( "Method 'SHADOW_COPY' not implemented" );
@@ -117,7 +105,7 @@ public class FloodCommandImpl {
 		}
 	}
 
-	public static class List implements Command< java.util.List< RanFloodType.Tagged > > {
+	public static class List extends FloodCommand.List {
 
 		// todo: implement this
 		@Override
@@ -135,15 +123,6 @@ public class FloodCommandImpl {
 			).collect( Collectors.toList() );
 		}
 
-		@Override
-		public String name() {
-			return "Flood list";
-		}
-
-		@Override
-		public boolean isAsync() {
-			return false;
-		}
 	}
 
 }

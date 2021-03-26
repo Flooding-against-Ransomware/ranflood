@@ -24,7 +24,8 @@ package org.ranflood.daemon.flooders.tasks;
 import org.ranflood.common.FloodMethod;
 
 import java.nio.file.Path;
-import static org.ranflood.daemon.RanFloodDaemon.log;
+
+import static org.ranflood.common.RanFloodLogger.log;
 
 public class DummyFileTask implements FileTask {
 	private final Path filePath;

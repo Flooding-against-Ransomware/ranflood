@@ -28,12 +28,14 @@ import org.ranflood.common.commands.SnapshotCommand;
 import org.ranflood.common.commands.transcoders.JSONTranscoder;
 import org.ranflood.common.commands.transcoders.ParseException;
 import org.ranflood.common.FloodMethod;
+import org.ranflood.daemon.RanFlood;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import static org.ranflood.common.RanFloodLogger.log;
@@ -44,9 +46,9 @@ public class TestDaemon {
 	@SuppressWarnings( "unchecked" )
 	public static void main( String[] args ) throws InterruptedException, IOException, ParseException {
 
-//		String settings_file = Paths.get( "src/test/java/playground/settings.ini" ).toAbsolutePath().toString();
-//		RanFlood.main( new String[]{ settings_file } );
-//		Thread.sleep( 1000 );
+		String settings_file = Paths.get( "src/tests/java/playground/settings.ini" ).toAbsolutePath().toString();
+		RanFlood.main( new String[]{ settings_file } );
+		Thread.sleep( 1000 );
 
 		Path folder1 = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder1" );
 

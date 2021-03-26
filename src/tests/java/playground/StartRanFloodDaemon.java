@@ -23,11 +23,12 @@ package playground;
 
 import org.ranflood.daemon.RanFlood;
 
+import java.io.IOException;
 import java.nio.file.Paths;
 
 public class StartRanFloodDaemon {
 
-	public static void main( String[] args ) {
+	public static void main( String[] args ) throws IOException {
 		String settings_file = Paths.get( "src/test/java/playground/settings.ini" ).toAbsolutePath().toString();
 		RanFlood.main( new String[]{ settings_file } );
 	}

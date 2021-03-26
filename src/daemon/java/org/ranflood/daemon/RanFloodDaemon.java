@@ -38,6 +38,8 @@ import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static org.ranflood.common.RanFloodLogger.error;
+
 public class RanFloodDaemon {
 
 	private final FloodTaskExecutor floodTaskExecutor = FloodTaskExecutor.getInstance();
@@ -57,16 +59,13 @@ public class RanFloodDaemon {
 
 	IniParser settings = null;
 
-	public RanFloodDaemon( Path settingsFilePath ) {
+	public RanFloodDaemon( Path settingsFilePath ) throws IOException {
 		try {
 			settings = new IniParser( settingsFilePath.toAbsolutePath().toString() );
 		} catch ( IOException e ) {
-			error( "Cloud not find setting file at: " + settingsFilePath.toAbsolutePath() );
+			throw new IOException( "Cloud not find setting file at: " + settingsFilePath.toAbsolutePath() );
 		}
-		Optional< String > opt = ( ( settings != null )
-						? settings.getValue( "OnTheFlyFlooder", "Signature_DB" )
-						: Optional.empty()
-		);
+		Optional< String > opt = settings.getValue( "OnTheFlyFlooder", "Signature_DB" );
 		ON_THE_FLY_FLOODER = new OnTheFlyFlooder( Path.of( opt.orElseGet( () -> {
 							String signaturesDBpath = Paths.get( "" ).toAbsolutePath().toString() + File.separator + "signatures.db";
 							error( "OnTheFlyFlooder -> Signature_DB not found in the settings file. Using " + signaturesDBpath );
@@ -83,15 +82,6 @@ public class RanFloodDaemon {
 	public void executeCommand( Runnable r ) {
 		commandExecutor.submit( r );
 	}
-
-	public static void log( String s ) {
-		RanFloodLogger.log( s );
-	}
-
-	public static void error( String s ) {
-		RanFloodLogger.error( s );
-	}
-
 
 	public FloodTaskExecutor floodTaskExecutor() {
 		return floodTaskExecutor;

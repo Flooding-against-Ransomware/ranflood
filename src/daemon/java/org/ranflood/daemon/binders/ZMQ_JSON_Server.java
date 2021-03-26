@@ -37,76 +37,80 @@ import org.zeromq.ZMQ;
 
 import java.util.List;
 
-import static org.ranflood.daemon.RanFloodDaemon.error;
-import static org.ranflood.daemon.RanFloodDaemon.log;
+import static org.ranflood.common.RanFloodLogger.error;
+import static org.ranflood.common.RanFloodLogger.log;
 
 public class ZMQ_JSON_Server {
 
-	private ZMQ_JSON_Server() {}
+	private ZMQ_JSON_Server() {
+	}
 
 	private final static ZContext context = new ZContext();
 
 	public static void start( String addressParameter ) {
 		final String address = ( addressParameter == null || addressParameter.isEmpty() ) ?
-						"tcp://localhost:7890": addressParameter;
+						"tcp://localhost:7890" : addressParameter;
 		ZMQ.Socket socket = context.createSocket( SocketType.REP );
 		socket.bind( address );
 		log( "Server started at " + address + ", accepting requests from clients" );
 		RanFlood.daemon().executeCommand( () -> {
 			while ( !context.isClosed() ) {
 				String request = new String( socket.recv(), ZMQ.CHARSET );
-				log( "Server received [" + request + "]" );
-				try {
-					Command< ? > command = bindToImpl( JSONTranscoder.fromJson( request ) );
-					if( command.isAsync() ){
-						RanFlood.daemon().executeCommand( () -> {
+				RanFlood.daemon().executeCommand( () -> {
+					log( "Server received [" + request + "]" );
+					try {
+						Command< ? > command = bindToImpl( JSONTranscoder.fromJson( request ) );
+						if ( command.isAsync() ) {
 							Object result = command.execute();
-							if( result instanceof CommandResult.Successful ){
+							if ( result instanceof CommandResult.Successful ) {
 								log( ( ( CommandResult.Successful ) result ).message() );
 							} else {
 								error( ( ( CommandResult.Failed ) result ).message() );
 							}
-						} );
-						socket.send( JSONTranscoder.wrapSuccess( "Command " + command.name() + " issued." ) );
-					} else {
-						List< ? extends RanFloodType > l =
-										( command instanceof SnapshotCommand.List ) ?
-														( ( SnapshotCommand.List ) command ).execute()
-													: ( ( FloodCommand.List ) command ).execute();
-						socket.send( JSONTranscoder.wrapListRanFloodType( l ) );
+							socket.send( JSONTranscoder.wrapSuccess( "Command " + command.name() + " issued." ) );
+						} else {
+							List< ? extends RanFloodType > l =
+											( command instanceof SnapshotCommand.List ) ?
+															( ( SnapshotCommandImpl.List ) command ).execute()
+															: ( ( FloodCommandImpl.List ) command ).execute();
+							socket.send( JSONTranscoder.wrapListRanFloodType( l ) );
+						}
+					} catch ( ParseException e ) {
+						error( e.getMessage() );
+						socket.send( JSONTranscoder.wrapError( e.getMessage() ).getBytes( ZMQ.CHARSET ) );
+						if ( request.equals( "shutdown" ) ) {
+							error( "Cheat-code for shutdown, remove for release" );
+							RanFlood.daemon().shutdown();
+						}
+					} catch ( Exception e ){
+						error( e.getMessage() );
+						socket.send( e.getMessage().getBytes( ZMQ.CHARSET ) );
 					}
-				} catch ( ParseException e ) {
-					error( e.getMessage() );
-					socket.send( JSONTranscoder.wrapError( e.getMessage() ).getBytes( ZMQ.CHARSET ) );
-					if( request.equals( "shutdown" ) ){
-						error( "Cheat-code for shutdown, remove for release" );
-						RanFlood.daemon().shutdown();
-					}
-				}
+				} );
 			}
-		});
+		} );
 	}
 
-	private static Command<?> bindToImpl( Command<?> command ) {
-		if( command instanceof SnapshotCommand.Add ){
+	private static Command< ? > bindToImpl( Command< ? > command ) {
+		if ( command instanceof SnapshotCommand.Add ) {
 			return new SnapshotCommandImpl.Add( ( ( SnapshotCommand.Add ) command ).type() );
 		}
-		if( command instanceof SnapshotCommand.Remove ){
+		if ( command instanceof SnapshotCommand.Remove ) {
 			return new SnapshotCommandImpl.Remove( ( ( SnapshotCommand.Remove ) command ).type() );
 		}
-		if( command instanceof SnapshotCommand.List ){
+		if ( command instanceof SnapshotCommand.List ) {
 			return new SnapshotCommandImpl.List();
 		}
-		if( command instanceof FloodCommand.Start ){
+		if ( command instanceof FloodCommand.Start ) {
 			return new FloodCommandImpl.Start( ( ( FloodCommand.Start ) command ).type() );
 		}
-		if( command instanceof FloodCommand.Stop ){
+		if ( command instanceof FloodCommand.Stop ) {
 			return new FloodCommandImpl.Stop(
 							( ( FloodCommand.Stop ) command ).method(),
 							( ( FloodCommand.Stop ) command ).id()
 			);
 		}
-		if( command instanceof FloodCommand.List ){
+		if ( command instanceof FloodCommand.List ) {
 			return new FloodCommandImpl.List();
 		}
 		throw new UnsupportedOperationException( "" );

@@ -44,7 +44,7 @@ public class OnTheFlyFlooder extends AbstractSnapshotFlooder {
 	public UUID flood( Path targetFolder ) throws OnTheFlyFlooderException {
 		OnTheFlyFloodTask t = new OnTheFlyFloodTask( targetFolder, METHOD );
 		UUID id = UUID.randomUUID();
-		runningTasksList().add( new LabeledFloodTask( id, t ) );
+		addRunningTask( new LabeledFloodTask( id, t ) );
 		RanFlood.daemon().floodTaskExecutor().addTask( t );
 		return id;
 	}

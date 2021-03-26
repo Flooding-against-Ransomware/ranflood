@@ -22,44 +22,41 @@
 package org.ranflood.daemon.flooders;
 
 import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.flooders.onTheFly.OnTheFlyFlooderException;
 import org.ranflood.daemon.flooders.tasks.LabeledFloodTask;
 
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
-import static org.ranflood.daemon.RanFloodDaemon.log;
+import static org.ranflood.common.RanFloodLogger.log;
 
 public class AbstractFlooder {
 
-	private final LinkedList< LabeledFloodTask > runningTasksList;
+	private final ConcurrentHashMap< UUID, LabeledFloodTask > runningTasks;
 
 	public AbstractFlooder(){
-		runningTasksList = new LinkedList<>();
-	}
-
-	protected List< LabeledFloodTask > runningTasksList(){
-		return runningTasksList;
+		runningTasks = new ConcurrentHashMap<>();
 	}
 
 	public UUID flood( Path targetFolder ) throws FlooderException {
 		throw new UnsupportedOperationException( "Flooders should override this method" );
 	}
 
+	protected void addRunningTask( LabeledFloodTask t ){
+		runningTasks.put( t.label(), t );
+	}
+
 	public List< LabeledFloodTask > currentRunningTasksSnapshotList(){
-		return new LinkedList<>( runningTasksList );
+		return new LinkedList<>( runningTasks.values() );
 	}
 
 	public void stopFlood( UUID id ) throws FlooderException {
-		Optional< LabeledFloodTask > task = runningTasksList().stream()
-						.filter( t -> t.label().equals( id ) ).findAny();
-		if( task.isPresent() ){
-			log( "Removing flood task: " + id );
-			runningTasksList().remove( task.get() );
-			RanFlood.daemon().floodTaskExecutor().removeTask( task.get().floodTask() );
+		LabeledFloodTask task = runningTasks.remove( id );
+		if( task != null ){
+			RanFlood.daemon().floodTaskExecutor().removeTask( task.floodTask() );
+			log( "Removed flood task: " + id );
 		} else {
 			throw new FlooderException( "Could not find and remove task: " + id );
 		}

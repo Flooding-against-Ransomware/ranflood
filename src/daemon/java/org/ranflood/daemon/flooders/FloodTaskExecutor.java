@@ -21,25 +21,17 @@
 
 package org.ranflood.daemon.flooders;
 
-import static org.ranflood.daemon.RanFloodDaemon.log;
+import static org.ranflood.common.RanFloodLogger.log;
 
-import io.reactivex.rxjava3.core.BackpressureStrategy;
-import io.reactivex.rxjava3.core.Emitter;
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.ranflood.daemon.RanFloodDaemon;
 import org.ranflood.daemon.flooders.tasks.FloodTask;
-
 import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class FloodTaskExecutor {
 
 	private final HashSet< FloodTask > floodTaskList = new HashSet<>();
-	private final ReentrantLock taskListLock = new ReentrantLock();
+	private final ReentrantReadWriteLock taskListLock = new ReentrantReadWriteLock();
 	static private final FloodTaskExecutor INSTANCE = new FloodTaskExecutor();
 
 	public static FloodTaskExecutor getInstance(){
@@ -47,9 +39,9 @@ public class FloodTaskExecutor {
 	}
 
 	public void addTask( FloodTask t ) {
-		taskListLock.lock();
+		taskListLock.writeLock().lock();
 		floodTaskList.add( t );
-		taskListLock.unlock();
+		taskListLock.writeLock().unlock();
 		launchRecursiveCallable( t );
 	}
 
@@ -64,16 +56,16 @@ public class FloodTaskExecutor {
 
 	public boolean hasTask( FloodTask t ){
 		boolean present;
-		taskListLock.lock();
+		taskListLock.readLock().lock();
 		present = floodTaskList.contains( t );
-		taskListLock.unlock();
+		taskListLock.readLock().unlock();
 		return present;
 	}
 
 	public void removeTask( FloodTask t ){
-		taskListLock.lock();
+		taskListLock.writeLock().lock();
 		floodTaskList.remove( t );
-		taskListLock.unlock();
+		taskListLock.writeLock().unlock();
 	}
 
 	public void shutdown() {

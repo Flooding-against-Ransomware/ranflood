@@ -21,7 +21,9 @@
 
 package org.ranflood.daemon;
 
+import java.io.IOException;
 import java.nio.file.Path;
+import static org.ranflood.common.RanFloodLogger.error;
 
 public class RanFlood {
 
@@ -29,11 +31,15 @@ public class RanFlood {
 
 	public static void main( String[] args ) {
 		if( args.length < 1 ){
-			System.err.println( "Expected 1 argument, path to the settings ini file." );
+			error( "Expected 1 argument, path to the settings ini file." );
 			System.exit( 1 );
 		}
-		daemon = new RanFloodDaemon( Path.of( args[ 0 ] ) );
-		daemon.start();
+		try {
+			daemon = new RanFloodDaemon( Path.of( args[ 0 ] ) );
+			daemon.start();
+		} catch ( IOException e ) {
+			error( e.getMessage() );
+		}
 	}
 
 	public static RanFloodDaemon daemon(){

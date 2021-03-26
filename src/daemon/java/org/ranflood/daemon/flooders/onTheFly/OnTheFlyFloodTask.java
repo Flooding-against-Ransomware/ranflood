@@ -28,7 +28,7 @@ import org.ranflood.daemon.flooders.tasks.WriteCopyFileTask;
 import org.ranflood.daemon.flooders.tasks.WriteFileTask;
 
 import static org.ranflood.common.RanFloodLogger.log;
-import static org.ranflood.daemon.RanFloodDaemon.error;
+import static org.ranflood.common.RanFloodLogger.error;
 
 import java.io.File;
 import java.io.FileInputStream;

@@ -34,8 +34,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-import static org.ranflood.daemon.RanFloodDaemon.error;
-import static org.ranflood.daemon.RanFloodDaemon.log;
+import static org.ranflood.common.RanFloodLogger.error;
+import static org.ranflood.common.RanFloodLogger.log;
 
 public class OnTheFlySnapshooter implements Snapshooter {
 
