@@ -112,6 +112,7 @@ tasks.withType( JavaCompile ) {
 
 task daemonNativeImage {
     doFirst {
+        nativeImage.jarFile.set( daemonJar.archiveFile.get().asFile );
         graal {
             mainClass "org.ranflood.daemon.RanFlood"
             graalVersion "21.0.0.2"
@@ -130,6 +131,7 @@ task daemonNativeImage {
 
 task clientNativeImage {
     doFirst {
+        nativeImage.jarFile.set( clientJar.archiveFile.get().asFile );
         graal {
             mainClass "org.ranflood.client.RanFlood"
             graalVersion "21.0.0.2"
