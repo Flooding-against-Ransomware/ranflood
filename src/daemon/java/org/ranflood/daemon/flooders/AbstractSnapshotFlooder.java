@@ -21,14 +21,12 @@
 
 package org.ranflood.daemon.flooders;
 
-import org.ranflood.daemon.flooders.onTheFly.OnTheFlyFlooderException;
-
 import java.nio.file.Path;
 import java.util.List;
 
 public class AbstractSnapshotFlooder extends AbstractFlooder {
 
-	public void takeSnapshot( Path filepath ) throws OnTheFlyFlooderException {
+	public void takeSnapshot( Path filepath ) throws SnapshotException {
 		throw new UnsupportedOperationException( "Flooders should override this method" );
 	}
 

@@ -21,10 +21,68 @@
 
 package org.ranflood.daemon.flooders.shadowCopy;
 
-import org.ranflood.daemon.flooders.AbstractFlooder;
+import org.ranflood.common.FloodMethod;
+import org.ranflood.daemon.RanFlood;
+import org.ranflood.daemon.flooders.AbstractSnapshotFlooder;
+import org.ranflood.daemon.flooders.FlooderException;
+import org.ranflood.daemon.flooders.SnapshotException;
+import org.ranflood.daemon.flooders.tasks.LabeledFloodTask;
 
-public class ShadowCopyFlooder extends AbstractFlooder {
+import java.nio.file.Path;
+import java.util.List;
+import java.util.UUID;
 
+public class ShadowCopyFlooder extends AbstractSnapshotFlooder {
 
+	private final FloodMethod METHOD = FloodMethod.SHADOW_COPY;
+	private final Path archiveRoot;
+	private final Path archiveDatabase;
 
+	public ShadowCopyFlooder( Path archiveRoot, Path archiveDatabase ) {
+		this.archiveRoot = archiveRoot;
+		this.archiveDatabase = archiveDatabase;
+	}
+
+	@Override
+	public UUID flood( Path targetFolder ) throws FlooderException {
+		try {
+			ShadowCopyFloodTask t =
+							new ShadowCopyFloodTask( targetFolder, METHOD,
+											ShadowCopySnapshooter.getSnapshotArchivePath( targetFolder ) );
+			UUID id = UUID.randomUUID();
+			addRunningTask( new LabeledFloodTask( id, t ) );
+			RanFlood.daemon().floodTaskExecutor().addTask( t );
+			return id;
+		} catch ( SnapshotException e ) {
+			throw new FlooderException( e.getMessage() );
+		}
+	}
+
+	@Override
+	public void takeSnapshot( Path filepath ) throws SnapshotException {
+		ShadowCopySnapshooter.takeSnapshot( filepath );
+	}
+
+	@Override
+	public void removeSnapshot( Path filepath ) {
+		ShadowCopySnapshooter.removeSnapshot( filepath );
+	}
+
+	@Override
+	public List< Path > listSnapshots() {
+		return ShadowCopySnapshooter.listSnapshots();
+	}
+
+	@Override
+	public void shutdown() {
+		ShadowCopySnapshooter.shutdown();
+	}
+
+	public Path archiveRoot() {
+		return archiveRoot;
+	}
+
+	public Path archiveDatabase() {
+		return archiveDatabase;
+	}
 }

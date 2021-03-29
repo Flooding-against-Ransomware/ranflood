@@ -21,5 +21,32 @@
 
 package org.ranflood.daemon.flooders;
 
-public interface Snapshooter {
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+
+public abstract class Snapshooter {
+
+	public static String getFileSignature( Path filePath ) throws IOException, NoSuchAlgorithmException {
+		try ( InputStream input = new FileInputStream( filePath.toFile() ) ) {
+			byte[] bytes = input.readAllBytes();
+			input.close();
+			MessageDigest digest = MessageDigest.getInstance( "SHA-1" );
+			digest.update( bytes );
+			return Base64.getEncoder().encodeToString( digest.digest() );
+		}
+	}
+
+	public static String getPathSignature( Path p ) throws NoSuchAlgorithmException {
+			MessageDigest digest = MessageDigest.getInstance( "SHA-1" );
+			digest.update( p.toAbsolutePath().toString().getBytes( StandardCharsets.UTF_8 ) );
+			return Base64.getEncoder().encodeToString( digest.digest() )
+							.replaceAll( "[/:=]", "" );
+		}
+
 }

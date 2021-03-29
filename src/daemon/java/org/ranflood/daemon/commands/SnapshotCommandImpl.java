@@ -26,7 +26,7 @@ import org.ranflood.common.commands.SnapshotCommand;
 import org.ranflood.common.commands.types.CommandResult;
 import org.ranflood.common.commands.types.RanFloodType;
 import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.flooders.onTheFly.OnTheFlyFlooderException;
+import org.ranflood.daemon.flooders.SnapshotException;
 
 import java.util.LinkedList;
 
@@ -50,7 +50,7 @@ public class SnapshotCommandImpl {
 					try {
 						RanFlood.daemon().onTheFlyFlooder().takeSnapshot( this.type().path() );
 						return new CommandResult.Successful( "Creation snapshot for the on-the-fly flooder" );
-					} catch ( OnTheFlyFlooderException e ) {
+					} catch ( SnapshotException e ) {
 						return new CommandResult.Failed( "Could not issue the creation of a snapshot for the on-the-fly flooder: " + e.getMessage() );
 					}
 				case SHADOW_COPY:

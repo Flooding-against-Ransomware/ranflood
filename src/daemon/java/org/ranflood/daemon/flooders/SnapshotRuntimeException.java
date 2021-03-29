@@ -19,10 +19,9 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon.flooders.onTheFly;
+package org.ranflood.daemon.flooders;
 
-public class SnapshotException extends Exception {
-	public SnapshotException( String s ) {
-		super( s );
+public class SnapshotRuntimeException extends RuntimeException {
+	public SnapshotRuntimeException( String message ) {
 	}
 }

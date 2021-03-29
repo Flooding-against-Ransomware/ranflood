@@ -24,6 +24,7 @@ package playground;
 import org.ranflood.daemon.RanFlood;
 import org.ranflood.daemon.RanFloodDaemon;
 import org.ranflood.daemon.flooders.FlooderException;
+import org.ranflood.daemon.flooders.SnapshotException;
 
 import java.nio.file.Path;
 import java.util.UUID;
@@ -32,7 +33,7 @@ import static org.ranflood.common.RanFloodLogger.log;
 
 public class TestOnTheFlyFlooder {
 
-	public static void main( String[] args ) throws FlooderException {
+	public static void main( String[] args ) throws FlooderException, SnapshotException {
 		RanFlood.main( TestCommons.getArgs() );
 		RanFloodDaemon daemon = RanFlood.daemon();
 		Path filePath = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/" );

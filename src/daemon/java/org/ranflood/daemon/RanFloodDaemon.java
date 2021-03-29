@@ -29,6 +29,7 @@ import org.ranflood.daemon.flooders.FloodTaskExecutor;
 import org.ranflood.daemon.flooders.onTheFly.OnTheFlyFlooder;
 import org.ranflood.daemon.flooders.random.RandomFlooder;
 import org.ranflood.common.utils.IniParser;
+import org.ranflood.daemon.flooders.shadowCopy.ShadowCopyFlooder;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,6 +48,7 @@ public class RanFloodDaemon {
 	private static final ExecutorService scheduler = Executors.newFixedThreadPool( Runtime.getRuntime().availableProcessors() );
 	private final RandomFlooder RANDOM_FLOODER = new RandomFlooder();
 	private final OnTheFlyFlooder ON_THE_FLY_FLOODER;
+	private final ShadowCopyFlooder SHADOW_COPY_FLOODER;
 	static private Emitter< Runnable > emitter;
 
 	static {
@@ -65,13 +67,26 @@ public class RanFloodDaemon {
 		} catch ( IOException e ) {
 			throw new IOException( "Cloud not find setting file at: " + settingsFilePath.toAbsolutePath() );
 		}
-		Optional< String > opt = settings.getValue( "OnTheFlyFlooder", "Signature_DB" );
-		ON_THE_FLY_FLOODER = new OnTheFlyFlooder( Path.of( opt.orElseGet( () -> {
-							String signaturesDBpath = Paths.get( "" ).toAbsolutePath().toString() + File.separator + "signatures.db";
-							error( "OnTheFlyFlooder -> Signature_DB not found in the settings file. Using " + signaturesDBpath );
-							return signaturesDBpath;
-						} )
-		)
+		Optional< String > on_the_fly_opt = settings.getValue( "OnTheFlyFlooder", "Signature_DB" );
+		ON_THE_FLY_FLOODER = new OnTheFlyFlooder( Path.of( on_the_fly_opt.orElseGet( () -> {
+			String signaturesDBpath = Paths.get( "" ).toAbsolutePath().toString() + File.separator + "signatures.db";
+			error( "OnTheFlyFlooder -> Signature_DB not found in the settings file. Using " + signaturesDBpath );
+			return signaturesDBpath;
+		} ) )
+		);
+		Optional< String > shadow_copy_opt_archive_root = settings.getValue( "ShadowCopyFlooder", "ArchiveRoot" );
+		Optional< String > shadow_copy_opt_archive_database = settings.getValue( "ShadowCopyFlooder", "ArchiveDatabase" );
+		SHADOW_COPY_FLOODER = new ShadowCopyFlooder(
+						Path.of( shadow_copy_opt_archive_root.orElseGet( () -> {
+							String archiveRoot = Paths.get( "" ).toAbsolutePath().toString() + File.separator + "archive";
+							error( "ShadowCopyFlooder -> ArchiveRoot not found in the settings file. Using " + archiveRoot );
+							return archiveRoot;
+						} ) ),
+						Path.of( shadow_copy_opt_archive_database.orElseGet( () -> {
+							String archiveRoot = Paths.get( "" ).toAbsolutePath().toString() + File.separator + "archive.db";
+							error( "ShadowCopyFlooder -> ArchiveDatabase not found in the settings file. Using " + archiveRoot );
+							return archiveRoot;
+						} ) )
 		);
 	}
 
@@ -95,6 +110,10 @@ public class RanFloodDaemon {
 		return ON_THE_FLY_FLOODER;
 	}
 
+	public ShadowCopyFlooder shadowCopyFlooder() {
+		return SHADOW_COPY_FLOODER;
+	}
+
 	public void shutdown() {
 		ZMQ_JSON_Server.shutdown();
 		floodTaskExecutor.shutdown();
@@ -107,4 +126,5 @@ public class RanFloodDaemon {
 	public void start() {
 		ZMQ_JSON_Server.start( settings.getValue( "ZMQ_JSON_Server", "address" ).orElse( "" ) );
 	}
+
 }

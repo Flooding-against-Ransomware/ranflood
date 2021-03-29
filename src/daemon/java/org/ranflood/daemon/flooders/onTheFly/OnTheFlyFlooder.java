@@ -25,6 +25,8 @@ package org.ranflood.daemon.flooders.onTheFly;
 import org.ranflood.daemon.RanFlood;
 import org.ranflood.daemon.flooders.AbstractSnapshotFlooder;
 import org.ranflood.common.FloodMethod;
+import org.ranflood.daemon.flooders.FlooderException;
+import org.ranflood.daemon.flooders.SnapshotException;
 import org.ranflood.daemon.flooders.tasks.LabeledFloodTask;
 
 import java.nio.file.Path;
@@ -41,7 +43,7 @@ public class OnTheFlyFlooder extends AbstractSnapshotFlooder {
 	}
 
 	@Override
-	public UUID flood( Path targetFolder ) throws OnTheFlyFlooderException {
+	public UUID flood( Path targetFolder ) throws FlooderException {
 		OnTheFlyFloodTask t = new OnTheFlyFloodTask( targetFolder, METHOD );
 		UUID id = UUID.randomUUID();
 		addRunningTask( new LabeledFloodTask( id, t ) );
@@ -50,7 +52,7 @@ public class OnTheFlyFlooder extends AbstractSnapshotFlooder {
 	}
 
 	@Override
-	public void takeSnapshot( Path filepath ) throws OnTheFlyFlooderException {
+	public void takeSnapshot( Path filepath ) throws SnapshotException {
 		OnTheFlySnapshooter.takeSnapshot( filepath );
 	}
 

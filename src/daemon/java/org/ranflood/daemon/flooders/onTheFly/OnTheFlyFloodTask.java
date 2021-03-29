@@ -23,11 +23,12 @@ package org.ranflood.daemon.flooders.onTheFly;
 
 import org.ranflood.daemon.RanFloodDaemon;
 import org.ranflood.common.FloodMethod;
+import org.ranflood.daemon.flooders.FlooderException;
+import org.ranflood.daemon.flooders.SnapshotException;
 import org.ranflood.daemon.flooders.tasks.FloodTask;
 import org.ranflood.daemon.flooders.tasks.WriteCopyFileTask;
 import org.ranflood.daemon.flooders.tasks.WriteFileTask;
 
-import static org.ranflood.common.RanFloodLogger.log;
 import static org.ranflood.common.RanFloodLogger.error;
 
 import java.io.File;
@@ -44,7 +45,7 @@ public class OnTheFlyFloodTask extends FloodTask {
 
 	private final List< WriteFileTask > tasks;
 
-	public OnTheFlyFloodTask( Path filePath, FloodMethod floodMethod ) throws OnTheFlyFlooderException {
+	public OnTheFlyFloodTask( Path filePath, FloodMethod floodMethod ) throws FlooderException {
 		super( filePath, floodMethod );
 		tasks = getWriteFileTasks( filePath(), filePath() );
 	}
@@ -52,12 +53,12 @@ public class OnTheFlyFloodTask extends FloodTask {
 	@Override
 	public Runnable getRunnableTask() {
 		return () ->
-						tasks.stream().parallel().forEach( t ->
+						tasks.forEach( t ->
 										RanFloodDaemon.executeIORunnable( t.getRunnableTask() )
 						);
 	}
 
-	private List< WriteFileTask > getWriteFileTasks( Path parentFilePath, Path filePath ) throws OnTheFlyFlooderException {
+	private List< WriteFileTask > getWriteFileTasks( Path parentFilePath, Path filePath ) throws FlooderException {
 		File file = filePath.toFile();
 		try {
 			if ( file.isFile() ) {
@@ -77,9 +78,10 @@ public class OnTheFlyFloodTask extends FloodTask {
 								.flatMap( f -> {
 									try {
 										return getWriteFileTasks( parentFilePath, f.toPath() ).stream();
-									} catch ( OnTheFlyFlooderException e ) {
+									} catch ( FlooderException e ) {
 										error( "Error in instantiating writing task for "
 														+ f.toPath().toAbsolutePath() + " in " + parentFilePath.toAbsolutePath()
+														+ ": " + e.getMessage()
 										);
 										return Stream.empty();
 									}
@@ -87,15 +89,15 @@ public class OnTheFlyFloodTask extends FloodTask {
 								.collect( Collectors.toList() );
 			}
 		} catch ( IOException e ) {
-			throw new OnTheFlyFlooderException(
+			throw new FlooderException(
 							"Could not open file or folder " + file.getAbsolutePath() + " while trying to create " + floodMethod() + " task"
 			);
 		} catch ( NoSuchAlgorithmException e ) {
-			throw new OnTheFlyFlooderException(
+			throw new FlooderException(
 							"Error in using signatures algorithm " + e.getMessage()
 			);
 		} catch ( SnapshotException e ) {
-			throw new OnTheFlyFlooderException( "Could not find a snapshot of file " + file.getAbsolutePath() );
+			throw new FlooderException( "Could not find a snapshot of file " + file.getAbsolutePath() );
 		}
 
 		return Collections.emptyList();

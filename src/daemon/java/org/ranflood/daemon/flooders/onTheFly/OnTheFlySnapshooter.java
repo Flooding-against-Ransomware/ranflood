@@ -26,30 +26,30 @@ import jetbrains.exodus.bindings.StringBinding;
 import jetbrains.exodus.env.*;
 import org.ranflood.daemon.RanFlood;
 import org.ranflood.common.FloodMethod;
+import org.ranflood.daemon.flooders.FlooderException;
 import org.ranflood.daemon.flooders.Snapshooter;
+import org.ranflood.daemon.flooders.SnapshotException;
 
 import java.io.*;
 import java.nio.file.Path;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import static org.ranflood.common.RanFloodLogger.error;
 import static org.ranflood.common.RanFloodLogger.log;
 
-public class OnTheFlySnapshooter implements Snapshooter {
+public class OnTheFlySnapshooter extends Snapshooter {
 
 	private static final FloodMethod METHOD = FloodMethod.ON_THE_FLY;
 	private static final OnTheFlySnapshooter INSTANCE = new OnTheFlySnapshooter();
 	private final Environment signaturesDatabase;
 
 	private OnTheFlySnapshooter() {
-
 		signaturesDatabase = Environments
 						.newInstance( RanFlood.daemon().onTheFlyFlooder().snapshotDBPath().toFile() );
 	}
 
-	static void takeSnapshot( Path filePath ) throws OnTheFlyFlooderException {
+	static void takeSnapshot( Path filePath ) throws SnapshotException {
 		log( "Taking ON_THE_FLY snapshot " + filePath );
 		File file = filePath.toFile();
 		if ( file.isDirectory() && file.exists() ) {
@@ -60,15 +60,15 @@ public class OnTheFlySnapshooter implements Snapshooter {
 			} );
 			log( "Terminated recording of ON_THE_FLY snapshot " + filePath );
 		} else {
-			throw new OnTheFlyFlooderException( "Could not take " + METHOD + " snapshot of non-existent or single files, filepath " + filePath.toAbsolutePath() );
+			throw new SnapshotException( "Could not take " + METHOD + " snapshot of non-existent or single files, filepath " + filePath.toAbsolutePath() );
 		}
 	}
 
 	static void removeSnapshot( Path filePath ) {
 		String key = filePath.toAbsolutePath().toString();
-		INSTANCE.signaturesDatabase.executeInTransaction( t -> {
-			INSTANCE.signaturesDatabase.removeStore( key, t );
-		} );
+		INSTANCE.signaturesDatabase.executeInTransaction( t ->
+			INSTANCE.signaturesDatabase.removeStore( key, t )
+		);
 	}
 
 	static List< Path > listSnapshots() {
@@ -87,7 +87,7 @@ public class OnTheFlySnapshooter implements Snapshooter {
 								try {
 									db.put( transaction,
 													StringBinding.stringToEntry( f.getAbsolutePath() ),
-													StringBinding.stringToEntry( getFileSignature( f.toPath() ) )
+													StringBinding.stringToEntry( OnTheFlySnapshooter.getFileSignature( f.toPath() ) )
 									);
 								} catch ( IOException | NoSuchAlgorithmException e ) {
 									error( "An error occurred when taking the signature for "
@@ -124,16 +124,6 @@ public class OnTheFlySnapshooter implements Snapshooter {
 				throw new SnapshotException( "Could not find a snapshot corresponding to the parent folder: "
 								+ snapshotParent.toAbsolutePath().toString() );
 			}
-		}
-	}
-
-	public static String getFileSignature( Path filePath ) throws IOException, NoSuchAlgorithmException {
-		try ( InputStream input = new FileInputStream( filePath.toFile() ) ) {
-			byte[] bytes = input.readAllBytes();
-			input.close();
-			MessageDigest digest = MessageDigest.getInstance( "MD5" );
-			digest.update( bytes );
-			return Base64.getEncoder().encodeToString( digest.digest() );
 		}
 	}
 

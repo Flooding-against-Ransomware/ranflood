@@ -28,7 +28,6 @@ import org.ranflood.common.commands.types.RanFloodType;
 import org.ranflood.common.FloodMethod;
 import org.ranflood.daemon.RanFlood;
 import org.ranflood.daemon.flooders.FlooderException;
-import org.ranflood.daemon.flooders.onTheFly.OnTheFlyFlooderException;
 
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -56,7 +55,7 @@ public class FloodCommandImpl {
 					try {
 						id = RanFlood.daemon().onTheFlyFlooder().flood( this.type().path() ).toString();
 						return new CommandResult.Successful( "Launched " + this.type().method() + " flood, ID: " + id );
-					} catch ( OnTheFlyFlooderException e ) {
+					} catch ( FlooderException e ) {
 						return new CommandResult.Failed( "Error in launching " + this.type().method() + " flood: " + e.getMessage() );
 					}
 				case SHADOW_COPY:
