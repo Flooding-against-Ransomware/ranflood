@@ -21,51 +21,56 @@
 
 package org.ranflood.daemon.flooders.shadowCopy;
 
-import com.oblac.nomen.Nomen;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.utils.IOUtils;
 import org.ranflood.common.FloodMethod;
+import org.ranflood.daemon.RanFloodDaemon;
 import org.ranflood.daemon.flooders.tasks.FloodTask;
+import org.ranflood.daemon.flooders.tasks.WriteCopyFileTask;
+import org.ranflood.daemon.flooders.tasks.WriteFileTask;
 
 import java.io.*;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedList;
+import java.util.List;
 
 import static org.ranflood.common.RanFloodLogger.error;
 
 public class ShadowCopyFloodTask extends FloodTask {
 
-	private final Path tarFilePath;
+	private final List< WriteFileTask > tasks;
 
 	public ShadowCopyFloodTask( Path filePath, FloodMethod floodMethod, Path tarFilePath ) {
 		super( filePath, floodMethod );
-		this.tarFilePath = tarFilePath;
+		tasks = getWriteFileTasks( tarFilePath );
 	}
 
 	@Override
 	public Runnable getRunnableTask() {
-		return () -> {
-			try ( TarArchiveInputStream tarIn = new TarArchiveInputStream(
-							new BufferedInputStream( new FileInputStream( tarFilePath.toFile() ) ) ) ) {
-				TarArchiveEntry entry = tarIn.getNextTarEntry();
-				while ( entry != null ) {
-					Path file = filePath().resolve( entry.getName() );
-					String originalFileName = file.getFileName().toString();
-					String fileName = originalFileName.substring( 0, originalFileName.lastIndexOf( "." ) );
-					String extension = originalFileName.substring( originalFileName.lastIndexOf( "." ) );
-					file = file.getParent().resolve( fileName + Nomen.est().literal( "" ).adjective().get() + extension );
-					if ( !file.getParent().toFile().exists() )
-						// this should be synchronized if we want to have it running in parallel
-						file.getParent().toFile().mkdirs();
-					Files.createFile( file );
-					IOUtils.copy( tarIn, new FileOutputStream( file.toFile() ) );
-					entry = tarIn.getNextTarEntry();
-				}
-			} catch ( IOException e ) {
-				error( "Could not open the archive at path " + tarFilePath.toAbsolutePath() );
+		return () ->
+						tasks.forEach( t ->
+										RanFloodDaemon.executeIORunnable( t.getRunnableTask() )
+						);
+	}
+
+	private List< WriteFileTask > getWriteFileTasks( Path tarFilePath ) {
+		LinkedList< WriteFileTask > l = new LinkedList<>();
+		try ( TarArchiveInputStream tarIn = new TarArchiveInputStream(
+						new BufferedInputStream( new FileInputStream( tarFilePath.toFile() ) ) ) ) {
+			TarArchiveEntry entry = tarIn.getNextTarEntry();
+			while ( entry != null ) {
+				l.add( new WriteCopyFileTask(
+								filePath().resolve( entry.getName() ),
+								IOUtils.toByteArray( tarIn ),
+								floodMethod()
+				) );
+				entry = tarIn.getNextTarEntry();
 			}
-		};
+		} catch ( IOException e ) {
+			error( "Could not open the archive at path " + tarFilePath.toAbsolutePath() );
+		}
+		return l;
 	}
 
 }

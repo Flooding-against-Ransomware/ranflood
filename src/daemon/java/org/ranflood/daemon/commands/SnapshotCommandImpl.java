@@ -40,7 +40,6 @@ public class SnapshotCommandImpl {
 			super( type );
 		}
 
-		// TODO: finish implementing this
 		@Override
 		public CommandResult execute() {
 			switch ( this.type().method() ){
@@ -54,7 +53,12 @@ public class SnapshotCommandImpl {
 						return new CommandResult.Failed( "Could not issue the creation of a snapshot for the on-the-fly flooder: " + e.getMessage() );
 					}
 				case SHADOW_COPY:
-					return new CommandResult.Failed( "Method 'SHADOW_COPY' not implemented" );
+					try {
+						RanFlood.daemon().shadowCopyFlooder().takeSnapshot( this.type().path() );
+						return new CommandResult.Successful( "Creation snapshot for the shadow-copy flooder" );
+					} catch ( SnapshotException e ) {
+						return new CommandResult.Failed( "Could not issue the creation of a snapshot for the on-the-fly flooder: " + e.getMessage() );
+					}
 				default:
 					return new CommandResult.Failed( "Unrecognized method: " + this.type().method().name() );
 			}
@@ -68,7 +72,6 @@ public class SnapshotCommandImpl {
 			super( type );
 		}
 
-		// TODO: finish implementing this
 		@Override
 		public CommandResult execute() {
 			switch ( this.type().method() ){
@@ -78,7 +81,8 @@ public class SnapshotCommandImpl {
 					RanFlood.daemon().onTheFlyFlooder().removeSnapshot( this.type().path() );
 					return new CommandResult.Successful( "Issued the removal of the snapshot of the on-the-fly flooder" );
 				case SHADOW_COPY:
-					return new CommandResult.Failed( "Method 'SHADOW_COPY' not implemented" );
+					RanFlood.daemon().shadowCopyFlooder().removeSnapshot( this.type().path() );
+					return new CommandResult.Successful( "Issued the removal of the snapshot of the shadow-copy flooder" );
 				default:
 					return new CommandResult.Failed( "Unrecognized method: " + this.type().method().name() );
 			}
@@ -88,13 +92,13 @@ public class SnapshotCommandImpl {
 
 	public static class List extends SnapshotCommand.List {
 
-		// TODO: finish implementing this
 		@Override
 		public java.util.List< RanFloodType > execute() {
 			LinkedList< RanFloodType > l = new LinkedList<>();
 			RanFlood.daemon().onTheFlyFlooder().listSnapshots()
 							.forEach( p -> l.add( new RanFloodType( FloodMethod.ON_THE_FLY, p ) ) );
-			// TODO: include also ShadowCopy
+			RanFlood.daemon().shadowCopyFlooder().listSnapshots()
+							.forEach( p -> l.add( new RanFloodType( FloodMethod.SHADOW_COPY, p ) ) );
 			return l;
 		}
 

@@ -68,7 +68,6 @@ public class ShadowCopySnapshooter extends Snapshooter {
 			Path tarFile;
 			try {
 				tarFile = INSTANCE.archiveRoot.resolve( ShadowCopySnapshooter.getPathSignature( filePath ) );
-				log( "THE TARFILE IS " + tarFile );
 			} catch ( NoSuchAlgorithmException e ) {
 				throw new SnapshotException( "An error occurred when taking the signature for "
 								+ METHOD + " of " + filePath.toAbsolutePath() + " : " + e.getMessage()
@@ -90,7 +89,6 @@ public class ShadowCopySnapshooter extends Snapshooter {
 											tarOut.putArchiveEntry( e );
 											IOUtils.copy( is, tarOut );
 											tarOut.closeArchiveEntry();
-											log( "INCLUDED " + f.toPath().toAbsolutePath() );
 										} catch ( IOException exception ) {
 											error( "Could not include file " + f.toPath().toAbsolutePath() + " in the archive: " +
 															exception.getMessage()

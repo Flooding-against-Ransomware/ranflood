@@ -42,9 +42,7 @@ public class WriteCopyFileTask extends WriteFileTask {
 			try {
 				File parentFolder = filePath().getParent().toFile();
 				if( !parentFolder.exists() ){
-					synchronized ( filePath() ){
 						parentFolder.mkdirs();
-					}
 				}
 				String originalFileName = filePath().getFileName().toString();
 				String fileName = originalFileName.substring( 0, originalFileName.lastIndexOf( "." ) );

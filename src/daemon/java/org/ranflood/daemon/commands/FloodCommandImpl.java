@@ -21,7 +21,6 @@
 
 package org.ranflood.daemon.commands;
 
-import org.ranflood.common.commands.Command;
 import org.ranflood.common.commands.FloodCommand;
 import org.ranflood.common.commands.types.CommandResult;
 import org.ranflood.common.commands.types.RanFloodType;
@@ -35,7 +34,8 @@ import java.util.stream.Stream;
 
 public class FloodCommandImpl {
 
-	private FloodCommandImpl() {}
+	private FloodCommandImpl() {
+	}
 
 	public static class Start extends FloodCommand.Start {
 
@@ -43,7 +43,6 @@ public class FloodCommandImpl {
 			super( type );
 		}
 
-		// todo: implement this
 		@Override
 		public CommandResult execute() {
 			String id;
@@ -59,7 +58,12 @@ public class FloodCommandImpl {
 						return new CommandResult.Failed( "Error in launching " + this.type().method() + " flood: " + e.getMessage() );
 					}
 				case SHADOW_COPY:
-					return new CommandResult.Failed( "Method 'SHADOW_COPY' not implemented" );
+					try {
+						id = RanFlood.daemon().shadowCopyFlooder().flood( this.type().path() ).toString();
+						return new CommandResult.Successful( "Launched " + this.type().method() + " flood, ID: " + id );
+					} catch ( FlooderException e ) {
+						return new CommandResult.Failed( "Error in launching " + this.type().method() + " flood: " + e.getMessage() );
+					}
 				default:
 					return new CommandResult.Failed( "Unrecognized method: " + this.type().method().name() );
 			}
@@ -73,7 +77,6 @@ public class FloodCommandImpl {
 			super( method, id );
 		}
 
-		// todo: implement this
 		@Override
 		public CommandResult execute() {
 			switch ( this.method() ) {
@@ -92,7 +95,12 @@ public class FloodCommandImpl {
 						return new CommandResult.Failed( "Error trying to stop " + this.method() + " flood, ID: " + this.id() );
 					}
 				case SHADOW_COPY:
-					return new CommandResult.Failed( "Method 'SHADOW_COPY' not implemented" );
+					try {
+						RanFlood.daemon().shadowCopyFlooder().stopFlood( UUID.fromString( this.id() ) );
+						return new CommandResult.Successful( "Stopped " + this.method() + " flood, ID: " + this.id() );
+					} catch ( FlooderException e ) {
+						return new CommandResult.Failed( "Error trying to stop " + this.method() + " flood, ID: " + this.id() );
+					}
 				default:
 					return new CommandResult.Failed( "Unrecognized method: " + this.method().name() );
 			}
@@ -106,13 +114,15 @@ public class FloodCommandImpl {
 
 	public static class List extends FloodCommand.List {
 
-		// todo: implement this
 		@Override
 		public java.util.List< RanFloodType.Tagged > execute() {
-			return Stream.concat(
+			return Stream.concat( Stream.concat(
 							RanFlood.daemon().randomFlooder()
 											.currentRunningTasksSnapshotList().stream(),
 							RanFlood.daemon().onTheFlyFlooder()
+											.currentRunningTasksSnapshotList().stream()
+							),
+							RanFlood.daemon().shadowCopyFlooder()
 											.currentRunningTasksSnapshotList().stream()
 			).map( t -> new RanFloodType.Tagged(
 											t.floodTask().floodMethod(),
