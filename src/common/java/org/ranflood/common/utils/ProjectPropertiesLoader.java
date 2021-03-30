@@ -19,52 +19,19 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.client;
+package org.ranflood.common.utils;
 
-import org.ranflood.client.subcommands.Flood;
-import org.ranflood.client.subcommands.Snapshot;
-import org.ranflood.common.utils.ProjectPropertiesLoader;
-import picocli.CommandLine;
-
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
-import java.util.concurrent.Callable;
 
+public class ProjectPropertiesLoader {
 
-@CommandLine.Command(
-				name = "ranflood",
-				mixinStandardHelpOptions = true,
-				versionProvider = RanFlood.VersionProvider.class,
-				description = { "The RanFlood client" },
-				subcommands = {
-								Snapshot.class,
-								Flood.class
-				}
-)
-public class RanFlood implements Callable< Integer > {
-
-	public static void main( String[] args ) {
-		System.exit( run( args ) );
+	public static Properties loadPropertyFile( ClassLoader c ) throws IOException {
+		Properties properties = new Properties();
+		String propertiesFileName = "project.properties";
+		InputStream inputStream = c.getResourceAsStream( propertiesFileName );
+		properties.load( inputStream );
+		return properties;
 	}
-
-	public static int run( String[] args ) {
-		CommandLine c = new CommandLine( new RanFlood() );
-		c.setCaseInsensitiveEnumValuesAllowed( true );
-		return c.execute( args );
-	}
-
-	@Override
-	public Integer call() {
-		new CommandLine( this ).usage( System.err );
-		return 1;
-	}
-
-	static class VersionProvider implements CommandLine.IVersionProvider {
-
-		@Override
-		public String[] getVersion() throws Exception {
-			Properties properties = ProjectPropertiesLoader.loadPropertyFile( RanFlood.class.getClassLoader() );
-			return new String[]{ "Ranflood client version " + properties.getProperty( "version" ) };
-		}
-	}
-
 }

@@ -23,7 +23,6 @@ package org.ranflood.daemon;
 
 import io.reactivex.rxjava3.core.*;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import org.ranflood.common.RanFloodLogger;
 import org.ranflood.daemon.binders.ZMQ_JSON_Server;
 import org.ranflood.daemon.flooders.FloodTaskExecutor;
 import org.ranflood.daemon.flooders.onTheFly.OnTheFlyFlooder;
@@ -40,6 +39,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static org.ranflood.common.RanFloodLogger.error;
+import static org.ranflood.common.RanFloodLogger.log;
 
 public class RanFloodDaemon {
 
@@ -88,6 +88,7 @@ public class RanFloodDaemon {
 							return archiveRoot;
 						} ) )
 		);
+		log( "Ranflood Daemon (ranfloodd) version " + RanFlood.version() + " started." );
 	}
 
 	public static void executeIORunnable( Runnable r ) {

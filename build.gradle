@@ -28,7 +28,11 @@ plugins {
 //targetCompatibility = 11
 
 group 'org.ranflood'
-def version = '0.1-ALPHA'
+
+// when changing this value remember to change the same
+// value in the project.properties files of the client
+// and daemon sub-projects
+def version = '0.2-BETA'
 
 repositories {
     mavenCentral()
@@ -73,11 +77,11 @@ sourceSets {
     }
     client {
         java.srcDir 'src/client/java/'
-        compileClasspath += configurations.client + configurations.clientAnnotationProcessor + sourceSets.common.output
+        runtimeClasspath += compileClasspath += configurations.client + configurations.clientAnnotationProcessor + sourceSets.common.output
     }
     daemon {
         java.srcDir 'src/daemon/java'
-        compileClasspath += configurations.daemon + sourceSets.common.output
+        runtimeClasspath += compileClasspath += configurations.daemon + sourceSets.common.output
     }
     tests {
         java.srcDir 'src/tests/java'

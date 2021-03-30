@@ -21,6 +21,8 @@
 
 package org.ranflood.daemon;
 
+import org.ranflood.common.utils.ProjectPropertiesLoader;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import static org.ranflood.common.RanFloodLogger.error;
@@ -28,6 +30,15 @@ import static org.ranflood.common.RanFloodLogger.error;
 public class RanFlood {
 
 	private static RanFloodDaemon daemon;
+	private static String version;
+
+	static {
+		try {
+			version = ProjectPropertiesLoader.loadPropertyFile( RanFlood.class.getClassLoader() ).getProperty( "version" );
+		} catch ( IOException exception ) {
+			exception.printStackTrace();
+		}
+	}
 
 	public static void main( String[] args ) {
 		if( args.length < 1 ){
@@ -46,4 +57,7 @@ public class RanFlood {
 		return daemon;
 	}
 
+	public static String version() {
+		return version;
+	}
 }
