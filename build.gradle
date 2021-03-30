@@ -124,6 +124,7 @@ task daemonNativeImage {
             javaVersion "11"
             outputName "ranfloodd"
             option '--no-fallback'
+            option "-H:IncludeResources=.*/*.properties"
             option "-cp"
             option sourceSets.daemon.output.join(File.pathSeparator) + File.pathSeparator +
                     sourceSets.common.output.join(File.pathSeparator) + File.pathSeparator +
@@ -143,6 +144,7 @@ task clientNativeImage {
             javaVersion "11"
             outputName "ranflood"
             option '--no-fallback'
+            option "-H:IncludeResources=.*/*.properties"
             option "-cp"
             option sourceSets.client.output.join(File.pathSeparator) + File.pathSeparator +
                     sourceSets.common.output.join(File.pathSeparator) + File.pathSeparator +
