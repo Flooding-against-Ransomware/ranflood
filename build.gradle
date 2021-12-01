@@ -21,7 +21,8 @@
 
 plugins {
     id 'java'
-    id 'com.palantir.graal' version "0.7.2"
+//    id 'com.palantir.graal' version "0.7.2"
+    id 'com.palantir.graal' version "0.10.0"
 }
 
 //sourceCompatibility = 11
@@ -118,47 +119,6 @@ tasks.withType( JavaCompile ) {
 //    include '**/*Tests*'
 //}
 
-
-task daemonNativeImage {
-    doFirst {
-        nativeImage.jarFile.set( daemonJar.archiveFile.get().asFile );
-        graal {
-            mainClass "org.ranflood.daemon.RanFlood"
-            graalVersion "21.0.0.2"
-            javaVersion "11"
-            outputName "ranfloodd"
-            option '--no-fallback'
-            option "-H:IncludeResources=.*/*.properties"
-            option "-cp"
-            option sourceSets.daemon.output.join(File.pathSeparator) + File.pathSeparator +
-                    sourceSets.common.output.join(File.pathSeparator) + File.pathSeparator +
-                    configurations.daemon.join(File.pathSeparator)
-            windowsVsVarsPath "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat"
-        }
-    }
-    finalizedBy nativeImage
-}
-
-task clientNativeImage {
-    doFirst {
-        nativeImage.jarFile.set( clientJar.archiveFile.get().asFile );
-        graal {
-            mainClass "org.ranflood.client.RanFlood"
-            graalVersion "21.0.0.2"
-            javaVersion "11"
-            outputName "ranflood"
-            option '--no-fallback'
-            option "-H:IncludeResources=.*/*.properties"
-            option "-cp"
-            option sourceSets.client.output.join(File.pathSeparator) + File.pathSeparator +
-                    sourceSets.common.output.join(File.pathSeparator) + File.pathSeparator +
-                    configurations.client.join(File.pathSeparator)
-            windowsVsVarsPath "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat"
-        }
-    }
-    finalizedBy nativeImage
-}
-
 task clientJar ( type: Jar ) {
     manifest {
         attributes "Implementation-Title": "Ranflood Client Jar Package",
@@ -203,4 +163,48 @@ jar {
     enabled = false // this avoids creating an empty "project" jar file
     finalizedBy clientJar
     finalizedBy daemonJar
+}
+
+task daemonNativeImage {
+    dependsOn( daemonJar )
+    doFirst {
+//      nativeImage.jarFile.set( daemonJar.archiveFile.get().asFile );
+        nativeImage.setJarFile project.provider( () -> daemonJar.archiveFile.get().asFile ) as Provider< File >
+        graal {
+            mainClass "org.ranflood.daemon.RanFlood"
+            graalVersion "21.0.0.2"
+            javaVersion "11"
+            outputName "ranfloodd"
+            option '--no-fallback'
+            option "-H:IncludeResources=.*/*.properties"
+            option "-cp"
+            option sourceSets.daemon.output.join(File.pathSeparator) + File.pathSeparator +
+                    sourceSets.common.output.join(File.pathSeparator) + File.pathSeparator +
+                    configurations.daemon.join(File.pathSeparator)
+            windowsVsVarsPath "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat"
+        }
+    }
+    finalizedBy nativeImage
+}
+
+task clientNativeImage {
+    dependsOn( clientJar )
+    doFirst {
+//        nativeImage.jarFile.set( clientJar.archiveFile.get().asFile );
+        nativeImage.setJarFile project.provider( () -> clientJar.archiveFile.get().asFile ) as Provider< File >
+        graal {
+            mainClass "org.ranflood.client.RanFlood"
+            graalVersion "21.0.0.2"
+            javaVersion "11"
+            outputName "ranflood"
+            option '--no-fallback'
+            option "-H:IncludeResources=.*/*.properties"
+            option "-cp"
+            option sourceSets.client.output.join(File.pathSeparator) + File.pathSeparator +
+                    sourceSets.common.output.join(File.pathSeparator) + File.pathSeparator +
+                    configurations.client.join(File.pathSeparator)
+            windowsVsVarsPath "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat"
+        }
+    }
+    finalizedBy nativeImage
 }
