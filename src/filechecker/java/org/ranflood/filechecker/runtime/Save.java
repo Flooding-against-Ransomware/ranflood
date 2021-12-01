@@ -35,25 +35,31 @@ public class Save {
 
 	public static void run( File checksum, File folder ) throws IOException {
 		Map< String, String > report = new HashMap<>();
-		if ( ! Files.exists( folder.toPath() ) )
+		if ( !Files.exists( folder.toPath() ) )
 			throw new IOException( "folder " + folder + " does not exist" );
-		if ( ! Files.isDirectory( folder.toPath() ) )
+		if ( !Files.isDirectory( folder.toPath() ) )
 			throw new IOException( folder + " is not a directory" );
-		if( ! Files.exists( checksum.toPath().toAbsolutePath() ) )
-			throw new IOException( "path " + checksum.toPath().getParent() + " must exist to save the checksum file" );
+		if ( !Files.exists( checksum.toPath().toAbsolutePath().getParent() ) )
+			throw new IOException( "path " + checksum.toPath().toAbsolutePath().getParent() + " must exist to save the checksum file" );
 		Files.walk( folder.toPath().toAbsolutePath() )
-						.filter( f -> Files.isRegularFile( f, LinkOption.NOFOLLOW_LINKS ) )
+						.filter( f -> {
+							try { return Files.isRegularFile( f, LinkOption.NOFOLLOW_LINKS );}
+							catch ( Exception e ) {
+								System.err.println( "Problem processing file: " + f + ", " + e.getMessage() );
+								return false;
+						}})
 						.forEach( f -> {
-			try {
-				report.put( folder.toPath().toAbsolutePath().relativize( f.toAbsolutePath() ).toString(), getFileSignature( f ) );
-			} catch ( IOException | NoSuchAlgorithmException e ) {
-				System.err.println( "Problem processing file: " + f + ", " + e.getMessage() );
-			}
-		} );
+							try {
+								report.put( folder.toPath().toAbsolutePath().relativize( f.toAbsolutePath() ).toString(), getFileSignature( f ) );
+							} catch ( IOException | NoSuchAlgorithmException e ) {
+								System.err.println( "Problem processing file: " + f + ", " + e.getMessage() );
+							}
+						} );
 		String reportContent = report.entrySet().stream()
 						.map( e -> e.getKey() + "," + e.getValue() )
 						.collect( Collectors.joining( "\n" ) );
 		Files.writeString( checksum.toPath(), reportContent );
+
 	}
 
 }

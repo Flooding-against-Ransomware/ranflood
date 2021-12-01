@@ -35,6 +35,7 @@ import static org.ranflood.filechecker.runtime.Utils.getFileSignature;
 public class Check {
 
 	public static void run( File checksum, File folder, File report, Boolean deep ) throws IOException {
+		Map< String, String > reportContent = new HashMap<>();
 		if ( !Files.exists( checksum.toPath().toAbsolutePath().getParent() ) )
 			throw new IOException( "could not file checksum file " + checksum.toPath() );
 		if ( !Files.exists( folder.toPath() ) )
@@ -46,34 +47,58 @@ public class Check {
 										.map( l -> l.split( "," ) )
 										.collect( Collectors.toUnmodifiableMap( s -> s[ 0 ], s -> s[ 1 ] ) ) );
 		// first we check if we can find all files
-		Set< String > found = new HashSet<>();
-		for( Map.Entry< String, String > entry : new HashMap<>( checksumMap ).entrySet() ){
+		for ( Map.Entry< String, String > entry : new HashMap<>( checksumMap ).entrySet() ) {
 			try {
 				String signature = getFileSignature( folder.toPath().resolve( Path.of( entry.getKey() ) ) );
-				if( signature.equals( entry.getValue() ) ){
+				if ( signature.equals( entry.getValue() ) ) {
 					checksumMap.remove( entry.getKey() );
-					found.add( entry.getKey() );
+					reportContent.put( entry.getKey(), signature );
 				}
-			} catch ( IOException | NoSuchAlgorithmException ignored ) {}
+			} catch ( IOException | NoSuchAlgorithmException ignored ) {
+			}
 		}
 		// if needed, and we did not find some files, we check if we can find them with the deep search
-		HashSet< String > missingSignatures = new HashSet<>( checksumMap.values() );
-		if( deep && ! checksumMap.isEmpty() ){
-			Files.walk( folder.toPath().toAbsolutePath() )
-							.filter( f -> Files.isRegularFile( f, LinkOption.NOFOLLOW_LINKS ) )
-							.filter( f -> ! found.contains( f.toString() ) )
-							.forEach( f -> {
+		if ( deep && !checksumMap.isEmpty() ) {
+			HashSet< String > missingSignatures = new HashSet<>( checksumMap.values() );
+			List< Path > files = Files.walk( folder.toPath().toAbsolutePath() )
+							.filter( f -> {
 								try {
-									String signature = getFileSignature( f );
-									if( missingSignatures.contains( signature ) ){
-										missingSignatures.remove( signature );
-										found.add( folder.toPath().toAbsolutePath().relativize( f ).toString() );
-									}
-								} catch ( IOException | NoSuchAlgorithmException ignored ) {}
-							} );
+									return Files.isRegularFile( f, LinkOption.NOFOLLOW_LINKS ) && !reportContent.containsKey( f.toString() );
+								} catch ( Exception e ) {
+									System.err.println( "Problem processing file: " + f + ", " + e.getMessage() );
+									return false;
+								}
+							} ).collect( Collectors.toList());
+			for ( Path f : files ) {
+				try {
+					String signature = getFileSignature( f );
+					if ( missingSignatures.contains( signature ) ) {
+						missingSignatures.remove( signature );
+						reportContent.put( folder.toPath().toAbsolutePath().relativize( f ).toString(), signature );
+					}
+				} catch ( IOException | NoSuchAlgorithmException ignored ) {
+				}
+				if ( checksumMap.isEmpty() )
+					break;
+			}
 		}
-		String reportContent = String.join( "\n", found );
-		Files.writeString( report.toPath(), reportContent );
+//			Files.walk( folder.toPath().toAbsolutePath() )
+//							.filter( f -> Files.isRegularFile( f, LinkOption.NOFOLLOW_LINKS ) )
+//							.filter( f -> ! found.contains( f.toString() ) )
+//							.forEach( f -> {
+//								try {
+//									String signature = getFileSignature( f );
+//									if( missingSignatures.contains( signature ) ){
+//										missingSignatures.remove( signature );
+//										found.add( folder.toPath().toAbsolutePath().relativize( f ).toString() + ","  );
+//									}
+//								} catch ( IOException | NoSuchAlgorithmException ignored ) {}
+//							} );
+//		}
+//		}
+		String reportContentString = reportContent.entrySet().stream()
+						.map( e -> e.getKey() + "," + e.getValue() )
+						.collect( Collectors.joining( "\n" ) );
+		Files.writeString( report.toPath(), reportContentString );
 	}
-
 }
