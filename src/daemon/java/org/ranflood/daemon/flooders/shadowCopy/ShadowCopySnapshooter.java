@@ -80,6 +80,7 @@ public class ShadowCopySnapshooter extends Snapshooter {
 				}
 				try ( TarArchiveOutputStream tarOut = new TarArchiveOutputStream(
 								new BufferedOutputStream( Files.newOutputStream( tarFile ) ) ) ) {
+					tarOut.setLongFileMode( TarArchiveOutputStream.LONGFILE_POSIX );
 					Files.walk( filePath )
 									.map( Path::toFile )
 									.filter( file -> !file.isDirectory() )
