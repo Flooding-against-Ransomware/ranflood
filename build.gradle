@@ -32,7 +32,7 @@ group 'org.ranflood'
 // when changing this value remember to change the same
 // value in the project.properties files of the client
 // and daemon sub-projects
-def version = '0.2-BETA'
+def version = '0.2.1-BETA'
 
 repositories {
     mavenCentral()
@@ -189,7 +189,7 @@ task daemonJar ( type: Jar ) {
 task filecheckerJar ( type: Jar ) {
     manifest {
         attributes "Implementation-Title": "Filechecker",
-                "Implementation-Version": "0.1",
+                "Implementation-Version": "0.2",
                 'Main-Class': 'org.ranflood.filechecker.FileChecker'
     }
     archiveBaseName.set( "filechecker" )
