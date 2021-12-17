@@ -55,14 +55,12 @@ dependencies {
     client 'info.picocli:picocli:4.6.2'
 //    client 'info.picocli:picocli-codegen:4.6.1'
 
-    daemon 'io.reactivex.rxjava3:rxjava:3.1.2'
+    daemon 'io.reactivex.rxjava3:rxjava:3.1.3'
     daemon 'com.oblac:nomen-est-omen:2.1.0'
     daemon 'org.jetbrains.xodus:xodus-openAPI:1.3.232'
     daemon 'org.jetbrains.xodus:xodus-environment:1.3.232'
     daemon 'org.apache.commons:commons-compress:1.21'
 
-//    testImplementation "org.junit.jupiter:junit-jupiter-api:5.6.0"
-//    testImplementation "net.jqwik:jqwik:1.3.10"
 }
 
 //tasks.withType(JavaCompile) {
@@ -120,6 +118,10 @@ tasks.withType( JavaCompile ) {
 //}
 
 task clientJar ( type: Jar ) {
+    doFirst {
+        def propertiesFile = sourceSets.client.allSource.filter( f -> f.path.contains(".properties") ).getSingleFile()
+        propertiesFile.text = propertiesFile.text.replace( "version=.+", "version=" + version )
+    }
     manifest {
         attributes "Implementation-Title": "Ranflood Client Jar Package",
                 "Implementation-Version": version,
@@ -133,6 +135,10 @@ task clientJar ( type: Jar ) {
 }
 
 task daemonJar ( type: Jar ) {
+    doFirst {
+        def propertiesFile = sourceSets.daemon.allSource.filter( f -> f.path.contains(".properties") ).getSingleFile()
+        propertiesFile.text = propertiesFile.text.replace( "version=.+", "version=" + version )
+    }
     manifest {
         attributes "Implementation-Title": "Ranflood Daemon Jar Package",
                 "Implementation-Version": version,
