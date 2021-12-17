@@ -33,7 +33,7 @@ group 'org.ranflood'
 // when changing this value remember to change the same
 // value in the project.properties files of the client
 // and daemon sub-projects
-def version = '0.2.1-BETA'
+def version = '0.3-BETA'
 
 repositories {
     mavenCentral()
