@@ -30,10 +30,7 @@ plugins {
 
 group 'org.ranflood'
 
-// when changing this value remember to change the same
-// value in the project.properties files of the client
-// and daemon sub-projects
-def version = '0.3-BETA'
+def version = '0.3.1-BETA'
 
 repositories {
     mavenCentral()
@@ -120,7 +117,7 @@ tasks.withType( JavaCompile ) {
 task clientJar ( type: Jar ) {
     doFirst {
         def propertiesFile = sourceSets.client.allSource.filter( f -> f.path.contains(".properties") ).getSingleFile()
-        propertiesFile.text = propertiesFile.text.replace( "version=.+", "version=" + version )
+        propertiesFile.text = propertiesFile.text.replaceAll( "version=.+", "version=" + version )
     }
     manifest {
         attributes "Implementation-Title": "Ranflood Client Jar Package",
@@ -137,7 +134,7 @@ task clientJar ( type: Jar ) {
 task daemonJar ( type: Jar ) {
     doFirst {
         def propertiesFile = sourceSets.daemon.allSource.filter( f -> f.path.contains(".properties") ).getSingleFile()
-        propertiesFile.text = propertiesFile.text.replace( "version=.+", "version=" + version )
+        propertiesFile.text = propertiesFile.text.replaceAll( "version=.+", "version=" + version )
     }
     manifest {
         attributes "Implementation-Title": "Ranflood Daemon Jar Package",
