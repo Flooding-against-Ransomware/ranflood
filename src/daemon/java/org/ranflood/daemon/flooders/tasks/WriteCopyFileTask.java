@@ -45,8 +45,10 @@ public class WriteCopyFileTask extends WriteFileTask {
 						parentFolder.mkdirs();
 				}
 				String originalFileName = filePath().getFileName().toString();
-				String fileName = originalFileName.substring( 0, originalFileName.lastIndexOf( "." ) );
-				String extension = originalFileName.substring( originalFileName.lastIndexOf( "." ) );
+				int extensionIndex = originalFileName.indexOf( "." );
+				extensionIndex = extensionIndex >= 0 ? extensionIndex : originalFileName.length();
+				String fileName = originalFileName.substring( 0, extensionIndex );
+				String extension = originalFileName.substring( extensionIndex );
 				String copyFilePath = filePath().getParent().toAbsolutePath()
 								+ File.separator
 								+ fileName

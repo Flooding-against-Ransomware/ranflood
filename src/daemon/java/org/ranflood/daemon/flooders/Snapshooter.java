@@ -36,10 +36,14 @@ public abstract class Snapshooter {
 		try ( InputStream input = new FileInputStream( filePath.toFile() ) ) {
 			byte[] bytes = input.readAllBytes();
 			input.close();
-			MessageDigest digest = MessageDigest.getInstance( "SHA-1" );
-			digest.update( bytes );
-			return Base64.getEncoder().encodeToString( digest.digest() );
+			return getBytesSignature( bytes );
 		}
+	}
+
+	public static String getBytesSignature( byte[] bytes ) throws NoSuchAlgorithmException {
+		MessageDigest digest = MessageDigest.getInstance( "SHA-1" );
+		digest.update( bytes );
+		return Base64.getEncoder().encodeToString( digest.digest() );
 	}
 
 	public static String getPathSignature( Path p ) throws NoSuchAlgorithmException {

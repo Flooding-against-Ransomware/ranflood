@@ -62,15 +62,15 @@ public class OnTheFlyFloodTask extends FloodTask {
 		File file = filePath.toFile();
 		try {
 			if ( file.isFile() ) {
-				if ( OnTheFlySnapshooter.getFileSignature( filePath ).equals(
+				byte[] bytes;
+				try ( InputStream input = new FileInputStream( filePath.toFile() ) ) {
+					bytes = input.readAllBytes();
+				}
+				if ( OnTheFlySnapshooter.getBytesSignature( bytes ).equals(
 								OnTheFlySnapshooter.getSnapshot( parentFilePath, filePath ) ) ) {
-					try ( InputStream input = new FileInputStream( file ) ) {
-						byte[] bytes = input.readAllBytes();
-						input.close();
-						return Collections.singletonList( new WriteCopyFileTask(
-										filePath, bytes, floodMethod() )
-						);
-					}
+					return Collections.singletonList( new WriteCopyFileTask(
+									filePath, bytes, floodMethod() )
+					);
 				}
 			} else { //
 				return Arrays.stream( Objects.requireNonNull( file.listFiles() ) )
