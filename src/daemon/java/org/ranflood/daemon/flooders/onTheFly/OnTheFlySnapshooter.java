@@ -84,8 +84,10 @@ public class OnTheFlySnapshooter extends Snapshooter {
 	static private void recordSignatures( Path filepath, Store db, Transaction transaction ) {
 		File folder = filepath.toFile();
 		Arrays.stream( Objects.requireNonNull( folder.listFiles() ) )
+						.filter( File::canRead )
+						.filter( f -> ! Files.isSymbolicLink( f.toPath() ) )
 						.forEach( f -> {
-							if ( f.isFile() && ! Files.isSymbolicLink( f.toPath() ) ) {
+							if ( f.isFile() ) {
 								try {
 									db.put( transaction,
 													StringBinding.stringToEntry( f.getAbsolutePath() ),
@@ -98,7 +100,7 @@ public class OnTheFlySnapshooter extends Snapshooter {
 									);
 								}
 							}
-							if( f.isDirectory() && ! Files.isSymbolicLink( f.toPath() ) && ! INSTANCE.exclusionList.contains( f.getName() ) ){
+							if( f.isDirectory() && ! INSTANCE.exclusionList.contains( f.getName() ) ){
 								recordSignatures( f.toPath(), db, transaction );
 							}
 						} );

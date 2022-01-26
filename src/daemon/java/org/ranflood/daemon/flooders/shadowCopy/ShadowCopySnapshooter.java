@@ -101,9 +101,7 @@ public class ShadowCopySnapshooter extends Snapshooter {
 					Files.walkFileTree( filePath, new FileVisitor<>() {
 										@Override
 										public FileVisitResult preVisitDirectory( Path dir, BasicFileAttributes attrs ) throws IOException {
-											System.out.println( "Visiting " + dir.getFileName().toString() );
-											System.out.println( "against " + INSTANCE.exclusionList );
-											if ( INSTANCE.exclusionList.contains( dir.getFileName().toString() ) ) {
+											if ( INSTANCE.exclusionList.contains( dir.getFileName().toString() ) || Files.isSymbolicLink( dir ) ) {
 												return FileVisitResult.SKIP_SUBTREE;
 											} else {
 												return FileVisitResult.CONTINUE;
@@ -112,15 +110,17 @@ public class ShadowCopySnapshooter extends Snapshooter {
 
 										@Override
 										public FileVisitResult visitFile( Path file, BasicFileAttributes attrs ) throws IOException {
-											TarArchiveEntry e = new TarArchiveEntry( file, filePath.relativize( file ).toString() );
-											try ( FileInputStream is = new FileInputStream( file.toFile() ) ) {
-												tarOut.putArchiveEntry( e );
-												IOUtils.copy( is, tarOut );
-												tarOut.closeArchiveEntry();
-											} catch ( IOException exception ) {
-												error( "Could not include file " + file.toAbsolutePath() + " in the archive: " +
-																exception.getMessage()
-												);
+											if( ! Files.isSymbolicLink( file ) && file.toFile().canRead() ) {
+												TarArchiveEntry e = new TarArchiveEntry( file, filePath.relativize( file ).toString() );
+												try ( FileInputStream is = new FileInputStream( file.toFile() ) ) {
+													tarOut.putArchiveEntry( e );
+													IOUtils.copy( is, tarOut );
+													tarOut.closeArchiveEntry();
+												} catch ( IOException exception ) {
+													error( "Could not include file " + file.toAbsolutePath() + " in the archive: " +
+																	exception.getMessage()
+													);
+												}
 											}
 											return FileVisitResult.CONTINUE;
 										}
@@ -153,7 +153,6 @@ public class ShadowCopySnapshooter extends Snapshooter {
 		} else {
 			throw new SnapshotException( "Could not take " + METHOD + " snapshot of non-existent or single files, filepath " + filePath.toAbsolutePath() );
 		}
-
 	}
 
 	static void removeSnapshot( Path filePath ) {

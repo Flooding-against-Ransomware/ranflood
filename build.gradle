@@ -113,6 +113,15 @@ tasks.withType( JavaCompile ) {
 //    include '**/*Tests*'
 //}
 
+build {
+    doFirst {
+        def propertiesFile = sourceSets.client.allSource.filter(f -> f.path.contains(".properties")).getSingleFile()
+        propertiesFile.text = propertiesFile.text.replaceAll("version=.+", "version=" + version)
+        propertiesFile = sourceSets.daemon.allSource.filter( f -> f.path.contains(".properties") ).getSingleFile()
+        propertiesFile.text = propertiesFile.text.replaceAll( "version=.+", "version=" + version )
+    }
+}
+
 task clientJar ( type: Jar ) {
     doFirst {
         def propertiesFile = sourceSets.client.allSource.filter( f -> f.path.contains(".properties") ).getSingleFile()
