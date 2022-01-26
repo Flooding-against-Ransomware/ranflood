@@ -43,10 +43,12 @@ public class OnTheFlySnapshooter extends Snapshooter {
 	private static final FloodMethod METHOD = FloodMethod.ON_THE_FLY;
 	private static final OnTheFlySnapshooter INSTANCE = new OnTheFlySnapshooter();
 	private final Environment signaturesDatabase;
+	private final Set< String > exclusionList;
 
 	private OnTheFlySnapshooter() {
 		signaturesDatabase = Environments
 						.newInstance( RanFlood.daemon().onTheFlyFlooder().snapshotDBPath().toFile() );
+		exclusionList = RanFlood.daemon().onTheFlyFlooder().exclusionList();
 	}
 
 	static void takeSnapshot( Path filePath ) throws SnapshotException {
@@ -96,7 +98,7 @@ public class OnTheFlySnapshooter extends Snapshooter {
 									);
 								}
 							}
-							if( f.isDirectory() && ! Files.isSymbolicLink( f.toPath() ) ){
+							if( f.isDirectory() && ! Files.isSymbolicLink( f.toPath() ) && ! INSTANCE.exclusionList.contains( f.getName() ) ){
 								recordSignatures( f.toPath(), db, transaction );
 							}
 						} );

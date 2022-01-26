@@ -31,15 +31,18 @@ import org.ranflood.daemon.flooders.tasks.LabeledFloodTask;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class OnTheFlyFlooder extends AbstractSnapshotFlooder {
 
 	private final FloodMethod METHOD = FloodMethod.ON_THE_FLY;
 	private final Path snapshotDBPath;
+	private final Set< String > exclusionList;
 
-	public OnTheFlyFlooder( Path snapshotDBPath ){
+	public OnTheFlyFlooder( Path snapshotDBPath, Set< String > exclusionList ){
 		this.snapshotDBPath = snapshotDBPath;
+		this.exclusionList = exclusionList;
 	}
 
 	@Override
@@ -74,4 +77,6 @@ public class OnTheFlyFlooder extends AbstractSnapshotFlooder {
 	public Path snapshotDBPath() {
 		return snapshotDBPath;
 	}
+
+	public Set< String > exclusionList(){ return exclusionList; }
 }

@@ -69,12 +69,15 @@ public class RanFloodDaemon {
 		} catch ( IOException e ) {
 			throw new IOException( "Cloud not find setting file at: " + settingsFilePath.toAbsolutePath() );
 		}
-		Optional< String > on_the_fly_opt = settings.getValue( "OnTheFlyFlooder", "Signature_DB" );
-		ON_THE_FLY_FLOODER = new OnTheFlyFlooder( Path.of( on_the_fly_opt.orElseGet( () -> {
-			String signaturesDBpath = Paths.get( "" ).toAbsolutePath().toString() + File.separator + "signatures.db";
-			error( "OnTheFlyFlooder -> Signature_DB not found in the settings file. Using " + signaturesDBpath );
-			return signaturesDBpath;
-		} ) )
+		Optional< String > on_the_fly_opt_signature_db = settings.getValue( "OnTheFlyFlooder", "Signature_DB" );
+		Optional< String > on_the_fly_opt_exclude_folder_names = settings.getValue( "OnTheFlyFlooder", "ExcludeFolderNames" );
+		ON_THE_FLY_FLOODER = new OnTheFlyFlooder(
+						Path.of( on_the_fly_opt_signature_db.orElseGet( () -> {
+							String signaturesDBpath = Paths.get( "" ).toAbsolutePath().toString() + File.separator + "signatures.db";
+							error( "OnTheFlyFlooder -> Signature_DB not found in the settings file. Using " + signaturesDBpath );
+							return signaturesDBpath;
+						} ) ),
+						Arrays.stream( on_the_fly_opt_exclude_folder_names.orElse( "" ).split( "," ) ).map( String::trim ).collect( Collectors.toSet() )
 		);
 		Optional< String > shadow_copy_opt_archive_root = settings.getValue( "ShadowCopyFlooder", "ArchiveRoot" );
 		Optional< String > shadow_copy_opt_archive_database = settings.getValue( "ShadowCopyFlooder", "ArchiveDatabase" );
@@ -90,7 +93,7 @@ public class RanFloodDaemon {
 							error( "ShadowCopyFlooder -> ArchiveDatabase not found in the settings file. Using " + archiveRoot );
 							return archiveRoot;
 						} ) ),
-						Arrays.stream( shadow_copy_opt_exclude_folder_names.orElse( "" ).split( "," ) ).map( String::trim ).collect( Collectors.toSet())
+						Arrays.stream( shadow_copy_opt_exclude_folder_names.orElse( "" ).split( "," ) ).map( String::trim ).collect( Collectors.toSet() )
 		);
 		log( "Ranflood Daemon (ranfloodd) version " + RanFlood.version() + " started." );
 	}
