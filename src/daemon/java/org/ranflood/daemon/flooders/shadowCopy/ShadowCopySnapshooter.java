@@ -33,8 +33,8 @@ import org.ranflood.daemon.flooders.Snapshooter;
 import org.ranflood.daemon.flooders.SnapshotException;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -46,12 +46,14 @@ public class ShadowCopySnapshooter extends Snapshooter {
 
 	private static final FloodMethod METHOD = FloodMethod.SHADOW_COPY;
 	private final Path archiveRoot;
+	private final Set< String > exclusionList;
 	private final Environment archiveDatabase;
 	private final static ShadowCopySnapshooter INSTANCE = new ShadowCopySnapshooter();
 	private final static String archiveDatabaseName = "archives";
 
 	private ShadowCopySnapshooter() {
 		this.archiveRoot = RanFlood.daemon().shadowCopyFlooder().archiveRoot();
+		this.exclusionList = RanFlood.daemon().shadowCopyFlooder().exclusionList();
 		if ( !archiveRoot.toFile().exists() ) {
 			try {
 				Files.createDirectories( archiveRoot );
@@ -64,7 +66,7 @@ public class ShadowCopySnapshooter extends Snapshooter {
 
 	static void takeSnapshot( Path filePath ) throws SnapshotException {
 		log( "Taking SHADOW_COPY archive " + filePath );
-		if ( filePath.toFile().isDirectory() && filePath.toFile().exists() && ! Files.isSymbolicLink( filePath ) ) {
+		if ( filePath.toFile().isDirectory() && filePath.toFile().exists() && !Files.isSymbolicLink( filePath ) ) {
 			Path tarFile;
 			try {
 				tarFile = INSTANCE.archiveRoot.resolve( ShadowCopySnapshooter.getPathSignature( filePath ) );
@@ -81,21 +83,59 @@ public class ShadowCopySnapshooter extends Snapshooter {
 				try ( TarArchiveOutputStream tarOut = new TarArchiveOutputStream(
 								new BufferedOutputStream( Files.newOutputStream( tarFile ) ) ) ) {
 					tarOut.setLongFileMode( TarArchiveOutputStream.LONGFILE_POSIX );
-					Files.walk( filePath )
-									.map( Path::toFile )
-									.filter( file -> ! file.isDirectory() && ! Files.isSymbolicLink( file.toPath() ) )
-									.forEach( f -> {
-										TarArchiveEntry e = new TarArchiveEntry( f, filePath.relativize( f.toPath() ).toString() );
-										try ( FileInputStream is = new FileInputStream( f ) ) {
-											tarOut.putArchiveEntry( e );
-											IOUtils.copy( is, tarOut );
-											tarOut.closeArchiveEntry();
-										} catch ( IOException exception ) {
-											error( "Could not include file " + f.toPath().toAbsolutePath() + " in the archive: " +
-															exception.getMessage()
-											);
+//					Files.walk( filePath )
+//									.map( Path::toFile )
+//									.filter( file -> ! file.isDirectory() && ! Files.isSymbolicLink( file.toPath() ) )
+//									.forEach( f -> {
+//										TarArchiveEntry e = new TarArchiveEntry( f, filePath.relativize( f.toPath() ).toString() );
+//										try ( FileInputStream is = new FileInputStream( f ) ) {
+//											tarOut.putArchiveEntry( e );
+//											IOUtils.copy( is, tarOut );
+//											tarOut.closeArchiveEntry();
+//										} catch ( IOException exception ) {
+//											error( "Could not include file " + f.toPath().toAbsolutePath() + " in the archive: " +
+//															exception.getMessage()
+//											);
+//										}
+//									} );
+					Files.walkFileTree( filePath, new FileVisitor<>() {
+										@Override
+										public FileVisitResult preVisitDirectory( Path dir, BasicFileAttributes attrs ) throws IOException {
+											System.out.println( "Visiting " + dir.getFileName().toString() );
+											System.out.println( "against " + INSTANCE.exclusionList );
+											if ( INSTANCE.exclusionList.contains( dir.getFileName().toString() ) ) {
+												return FileVisitResult.SKIP_SUBTREE;
+											} else {
+												return FileVisitResult.CONTINUE;
+											}
 										}
-									} );
+
+										@Override
+										public FileVisitResult visitFile( Path file, BasicFileAttributes attrs ) throws IOException {
+											TarArchiveEntry e = new TarArchiveEntry( file, filePath.relativize( file ).toString() );
+											try ( FileInputStream is = new FileInputStream( file.toFile() ) ) {
+												tarOut.putArchiveEntry( e );
+												IOUtils.copy( is, tarOut );
+												tarOut.closeArchiveEntry();
+											} catch ( IOException exception ) {
+												error( "Could not include file " + file.toAbsolutePath() + " in the archive: " +
+																exception.getMessage()
+												);
+											}
+											return FileVisitResult.CONTINUE;
+										}
+
+										@Override
+										public FileVisitResult visitFileFailed( Path file, IOException exc ) throws IOException {
+											return FileVisitResult.CONTINUE;
+										}
+
+										@Override
+										public FileVisitResult postVisitDirectory( Path dir, IOException exc ) throws IOException {
+											return FileVisitResult.CONTINUE;
+										}
+									}
+					);
 					tarOut.flush();
 					INSTANCE.archiveDatabase.executeInTransaction( t -> {
 						final Store targetDB = INSTANCE.archiveDatabase

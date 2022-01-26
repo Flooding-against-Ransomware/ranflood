@@ -21,7 +21,6 @@
 
 package playground;
 
-import jetbrains.exodus.log.Log;
 import org.ranflood.common.FloodMethod;
 import org.ranflood.common.commands.Command;
 import org.ranflood.common.commands.FloodCommand;
@@ -56,7 +55,7 @@ public class TestShadowCopyFlooder {
 		String settings_file = Paths.get( "src/tests/java/playground/settings.ini" ).toAbsolutePath().toString();
 		RanFlood.main( new String[]{ settings_file } );
 		Thread.sleep( 1000 );
-		Path filePath = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/" );
+		Path filePath = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder" );
 
 		if ( Arrays.stream( filePath.toFile().listFiles() ).filter( File::isDirectory ).count() < 1 ){
 			createTestStructure( filePath );

@@ -34,9 +34,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import static org.ranflood.common.RanFloodLogger.error;
 import static org.ranflood.common.RanFloodLogger.log;
@@ -76,6 +78,7 @@ public class RanFloodDaemon {
 		);
 		Optional< String > shadow_copy_opt_archive_root = settings.getValue( "ShadowCopyFlooder", "ArchiveRoot" );
 		Optional< String > shadow_copy_opt_archive_database = settings.getValue( "ShadowCopyFlooder", "ArchiveDatabase" );
+		Optional< String > shadow_copy_opt_exclude_folder_names = settings.getValue( "ShadowCopyFlooder", "ExcludeFolderNames" );
 		SHADOW_COPY_FLOODER = new ShadowCopyFlooder(
 						Path.of( shadow_copy_opt_archive_root.orElseGet( () -> {
 							String archiveRoot = Paths.get( "" ).toAbsolutePath().toString() + File.separator + "archive";
@@ -86,7 +89,8 @@ public class RanFloodDaemon {
 							String archiveRoot = Paths.get( "" ).toAbsolutePath().toString() + File.separator + "archive.db";
 							error( "ShadowCopyFlooder -> ArchiveDatabase not found in the settings file. Using " + archiveRoot );
 							return archiveRoot;
-						} ) )
+						} ) ),
+						Arrays.stream( shadow_copy_opt_exclude_folder_names.orElse( "" ).split( "," ) ).map( String::trim ).collect( Collectors.toSet())
 		);
 		log( "Ranflood Daemon (ranfloodd) version " + RanFlood.version() + " started." );
 	}

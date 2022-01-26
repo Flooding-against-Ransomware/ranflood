@@ -30,6 +30,7 @@ import org.ranflood.daemon.flooders.tasks.LabeledFloodTask;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public class ShadowCopyFlooder extends AbstractSnapshotFlooder {
@@ -37,10 +38,12 @@ public class ShadowCopyFlooder extends AbstractSnapshotFlooder {
 	private final FloodMethod METHOD = FloodMethod.SHADOW_COPY;
 	private final Path archiveRoot;
 	private final Path archiveDatabase;
+	private final Set<String> exclusionList;
 
-	public ShadowCopyFlooder( Path archiveRoot, Path archiveDatabase ) {
+	public ShadowCopyFlooder( Path archiveRoot, Path archiveDatabase, Set< String > exclusionList ) {
 		this.archiveRoot = archiveRoot;
 		this.archiveDatabase = archiveDatabase;
+		this.exclusionList = exclusionList;
 	}
 
 	@Override
@@ -84,5 +87,8 @@ public class ShadowCopyFlooder extends AbstractSnapshotFlooder {
 
 	public Path archiveDatabase() {
 		return archiveDatabase;
+	}
+
+	public Set< String > exclusionList() { return exclusionList;
 	}
 }
