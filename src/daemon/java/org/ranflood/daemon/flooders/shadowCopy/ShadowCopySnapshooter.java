@@ -64,7 +64,7 @@ public class ShadowCopySnapshooter extends Snapshooter {
 
 	static void takeSnapshot( Path filePath ) throws SnapshotException {
 		log( "Taking SHADOW_COPY archive " + filePath );
-		if ( filePath.toFile().isDirectory() && filePath.toFile().exists() ) {
+		if ( filePath.toFile().isDirectory() && filePath.toFile().exists() && ! Files.isSymbolicLink( filePath ) ) {
 			Path tarFile;
 			try {
 				tarFile = INSTANCE.archiveRoot.resolve( ShadowCopySnapshooter.getPathSignature( filePath ) );
@@ -83,7 +83,7 @@ public class ShadowCopySnapshooter extends Snapshooter {
 					tarOut.setLongFileMode( TarArchiveOutputStream.LONGFILE_POSIX );
 					Files.walk( filePath )
 									.map( Path::toFile )
-									.filter( file -> !file.isDirectory() )
+									.filter( file -> ! file.isDirectory() && ! Files.isSymbolicLink( file.toPath() ) )
 									.forEach( f -> {
 										TarArchiveEntry e = new TarArchiveEntry( f, filePath.relativize( f.toPath() ).toString() );
 										try ( FileInputStream is = new FileInputStream( f ) ) {

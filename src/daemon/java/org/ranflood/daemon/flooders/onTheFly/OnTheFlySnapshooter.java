@@ -26,11 +26,11 @@ import jetbrains.exodus.bindings.StringBinding;
 import jetbrains.exodus.env.*;
 import org.ranflood.daemon.RanFlood;
 import org.ranflood.common.FloodMethod;
-import org.ranflood.daemon.flooders.FlooderException;
 import org.ranflood.daemon.flooders.Snapshooter;
 import org.ranflood.daemon.flooders.SnapshotException;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -52,7 +52,7 @@ public class OnTheFlySnapshooter extends Snapshooter {
 	static void takeSnapshot( Path filePath ) throws SnapshotException {
 		log( "Taking ON_THE_FLY snapshot " + filePath );
 		File file = filePath.toFile();
-		if ( file.isDirectory() && file.exists() ) {
+		if ( file.isDirectory() && ! Files.isSymbolicLink( file.toPath() ) && file.exists() ) {
 			INSTANCE.signaturesDatabase.executeInTransaction( t -> {
 				final Store targetDB = INSTANCE.signaturesDatabase
 								.openStore( file.getAbsolutePath(), StoreConfig.WITHOUT_DUPLICATES, t );
@@ -83,7 +83,7 @@ public class OnTheFlySnapshooter extends Snapshooter {
 		File folder = filepath.toFile();
 		Arrays.stream( Objects.requireNonNull( folder.listFiles() ) )
 						.forEach( f -> {
-							if ( f.isFile() ) {
+							if ( f.isFile() && ! Files.isSymbolicLink( f.toPath() ) ) {
 								try {
 									db.put( transaction,
 													StringBinding.stringToEntry( f.getAbsolutePath() ),
@@ -96,7 +96,7 @@ public class OnTheFlySnapshooter extends Snapshooter {
 									);
 								}
 							}
-							if( f.isDirectory() ){
+							if( f.isDirectory() && ! Files.isSymbolicLink( f.toPath() ) ){
 								recordSignatures( f.toPath(), db, transaction );
 							}
 						} );
@@ -117,12 +117,12 @@ public class OnTheFlySnapshooter extends Snapshooter {
 					return StringBinding.entryToString( snapshot );
 				} else {
 					throw new SnapshotException( "Could not find a signature corresponding to file: "
-									+ filepath.toAbsolutePath().toString() );
+									+ filepath.toAbsolutePath() );
 				}
 			} else {
 				transaction.commit();
 				throw new SnapshotException( "Could not find a snapshot corresponding to the parent folder: "
-								+ snapshotParent.toAbsolutePath().toString() );
+								+ snapshotParent.toAbsolutePath() );
 			}
 		}
 	}
