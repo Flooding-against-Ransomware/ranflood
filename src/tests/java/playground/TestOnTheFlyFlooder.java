@@ -36,7 +36,8 @@ public class TestOnTheFlyFlooder {
 	public static void main( String[] args ) throws FlooderException, SnapshotException {
 		RanFlood.main( TestCommons.getArgs() );
 		RanFloodDaemon daemon = RanFlood.daemon();
-		Path filePath = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/" );
+		Path filePath1 = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/Other" );
+		Path filePath2 = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/Other 2" );
 		// WE CREATE SOME FILES
 //		UUID idRandom = daemon.randomFlooder().flood( filePath );
 //		try {
@@ -47,11 +48,19 @@ public class TestOnTheFlyFlooder {
 //		daemon.randomFlooder().stopFlood( idRandom );
 
 		// WE TAKE THE SIGNATURES OF THE FILES
-		daemon.onTheFlyFlooder().takeSnapshot( filePath );
+		daemon.onTheFlyFlooder().takeSnapshot( filePath1 );
+		daemon.onTheFlyFlooder().takeSnapshot( filePath2 );
 
 		// WE LAUNCH THE ON_THE_FLY FLOODER
-		UUID id1 = daemon.onTheFlyFlooder().flood( filePath );
+		UUID id1 = daemon.onTheFlyFlooder().flood( filePath1 );
 		log( "Launched flooder: " + id1 );
+		try {
+			Thread.sleep( 1000 );
+		} catch ( InterruptedException e ) {
+			e.printStackTrace();
+		}
+		UUID id2 = daemon.onTheFlyFlooder().flood( filePath2 );
+		log( "Launched flooder: " + id2 );
 		try {
 			Thread.sleep( 1000 );
 		} catch ( InterruptedException e ) {
@@ -59,8 +68,10 @@ public class TestOnTheFlyFlooder {
 		}
 		log( "STOPPING" );
 		daemon.onTheFlyFlooder().stopFlood( id1 );
+		daemon.onTheFlyFlooder().stopFlood( id2 );
 		log( "REMOVING SNAPSHOTS" );
-		daemon.onTheFlyFlooder().removeSnapshot( filePath );
+		daemon.onTheFlyFlooder().removeSnapshot( filePath1 );
+		daemon.onTheFlyFlooder().removeSnapshot( filePath2 );
 		daemon.shutdown();
 	}
 

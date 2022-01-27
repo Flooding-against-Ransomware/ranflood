@@ -55,24 +55,27 @@ public class TestShadowCopyFlooder {
 		String settings_file = Paths.get( "src/tests/java/playground/settings.ini" ).toAbsolutePath().toString();
 		RanFlood.main( new String[]{ settings_file } );
 		Thread.sleep( 1000 );
-		Path filePath = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder" );
+		Path filePath1 = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/Other" );
+		Path filePath2 = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/Other 2" );
 
-		if ( Arrays.stream( filePath.toFile().listFiles() ).filter( File::isDirectory ).count() < 1 ){
-			createTestStructure( filePath );
+//		if ( Arrays.stream( filePath1.toFile().listFiles() ).filter( File::isDirectory ).count() < 1 ){
+//			createTestStructure( filePath1 );
+//		}
+		for ( Path filePath : List.of( filePath1, filePath2 ) ) {
+
+			sendCommand( new SnapshotCommand.Add(
+							new RanFloodType( FloodMethod.SHADOW_COPY, filePath ) )
+			);
+			Thread.sleep( 1000 );
+
+			log( sendCommandList( new SnapshotCommand.List() ) );
+			Thread.sleep( 1000 );
+
+			sendCommand( new FloodCommand.Start(
+							new RanFloodType( FloodMethod.SHADOW_COPY, filePath )
+			) );
+			Thread.sleep( 1000 );
 		}
-
-		sendCommand( new SnapshotCommand.Add(
-						new RanFloodType( FloodMethod.SHADOW_COPY, filePath ) )
-		);
-		Thread.sleep( 1000 );
-
-		log( sendCommandList( new SnapshotCommand.List() ) );
-		Thread.sleep( 1000 );
-
-		sendCommand( new FloodCommand.Start(
-						new RanFloodType( FloodMethod.SHADOW_COPY, filePath )
-		) );
-		Thread.sleep( 1000 );
 
 		// THIS SHOULD BE OK
 		List< RanFloodType.Tagged > list;
@@ -84,11 +87,14 @@ public class TestShadowCopyFlooder {
 			Thread.sleep( 1000 );
 		} while ( list.isEmpty() );
 
-		// THIS SHOULD BE OK
-		sendCommand( new FloodCommand.Stop(
-						list.get( 0 ).method(),
-						list.get( 0 ).id()
-		) );
+
+		for ( RanFloodType.Tagged rftt : list ) {
+			// THIS SHOULD BE OK
+			sendCommand( new FloodCommand.Stop(
+							rftt.method(),
+							rftt.id()
+			) );
+		}
 		Thread.sleep( 1000 );
 
 		sendString( "shutdown" );
@@ -98,30 +104,38 @@ public class TestShadowCopyFlooder {
 	}
 
 	public static void _main( String[] args ) throws FlooderException, SnapshotException, InterruptedException {
-			RanFlood.main( TestCommons.getArgs() );
-			RanFloodDaemon daemon = RanFlood.daemon();
-			Path filePath = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/" );
+		RanFlood.main( TestCommons.getArgs() );
+		RanFloodDaemon daemon = RanFlood.daemon();
+		Path filePath1 = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/Other" );
+		Path filePath2 = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/Other 2" );
 
-			if ( Arrays.stream( filePath.toFile().listFiles() ).filter( File::isDirectory ).count() < 1 ){
-				createTestStructure( filePath );
-			}
+//			if ( Arrays.stream( filePath.toFile().listFiles() ).filter( File::isDirectory ).count() < 1 ){
+//				createTestStructure( filePath );
+//			}
 
-			daemon.shadowCopyFlooder().takeSnapshot( filePath );
+		daemon.shadowCopyFlooder().takeSnapshot( filePath1 );
+		daemon.shadowCopyFlooder().takeSnapshot( filePath2 );
 
-			// WE LAUNCH THE ON_THE_FLY FLOODER
-			UUID id1 = daemon.shadowCopyFlooder().flood( filePath );
-			log( "Launched flooder: " + id1 );
+		// WE LAUNCH THE ON_THE_FLY FLOODER
+		UUID id1 = daemon.shadowCopyFlooder().flood( filePath1 );
+		log( "Launched flooder: " + id1 );
 
-			Thread.sleep( 1000 );
+		Thread.sleep( 1000 );
 
-			log( "STOPPING" );
-			daemon.shadowCopyFlooder().stopFlood( id1 );
+		UUID id2 = daemon.shadowCopyFlooder().flood( filePath2 );
 
-			Thread.sleep( 1000 );
+		Thread.sleep( 1000 );
 
-			log( "REMOVING SNAPSHOTS" );
-			daemon.shadowCopyFlooder().removeSnapshot( filePath );
-			daemon.shutdown();
+		log( "STOPPING" );
+		daemon.shadowCopyFlooder().stopFlood( id1 );
+		daemon.shadowCopyFlooder().stopFlood( id2 );
+
+		Thread.sleep( 1000 );
+
+		log( "REMOVING SNAPSHOTS" );
+		daemon.shadowCopyFlooder().removeSnapshot( filePath1 );
+		daemon.shadowCopyFlooder().removeSnapshot( filePath2 );
+		daemon.shutdown();
 
 	}
 
@@ -129,8 +143,8 @@ public class TestShadowCopyFlooder {
 		log( "Creating test folders structure" );
 		RanFloodDaemon daemon = RanFlood.daemon();
 		List< Path > l = Arrays.asList(
-						root.resolve( "folder1" ), root.resolve( "folder1" ).resolve( "folder2" ),
-						root.resolve( "folder3" ), root.resolve( "folder4" )
+						root.resolve( "Application Data" ), root.resolve( "Application Data" ).resolve( "Other" ),
+						root.resolve( "Other" ), root.resolve( "Other 2" )
 		);
 		l.forEach( f -> {
 			try {

@@ -19,49 +19,18 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon.flooders;
+package org.ranflood.daemon.flooders.tasks;
 
-import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.flooders.tasks.LabeledFloodTask;
+import org.ranflood.common.FloodMethod;
 
 import java.nio.file.Path;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
-import static org.ranflood.common.RanFloodLogger.log;
-
-public class AbstractFlooder {
-
-	private final ConcurrentHashMap< UUID, LabeledFloodTask > runningTasks;
-
-	public AbstractFlooder(){
-		runningTasks = new ConcurrentHashMap<>();
+public abstract class FloodTaskGenerator extends FloodTask {
+	public FloodTaskGenerator( Path filePath, FloodMethod floodMethod ) {
+		super( filePath, floodMethod );
 	}
 
-	public UUID flood( Path targetFolder ) throws FlooderException {
-		throw new UnsupportedOperationException( "Flooders should override this method" );
-	}
-
-	protected void addRunningTask( LabeledFloodTask t ){
-		runningTasks.put( t.label(), t );
-	}
-
-	public List< LabeledFloodTask > currentRunningTasksSnapshotList(){
-		return new LinkedList<>( runningTasks.values() );
-	}
-
-	public void stopFlood( UUID id ) throws FlooderException {
-		LabeledFloodTask task = runningTasks.remove( id );
-		if( task != null ){
-			RanFlood.daemon().floodTaskExecutor().removeTask( task.floodTask() );
-			log( "Removed flood task: " + id );
-		} else {
-			throw new FlooderException( "Could not find and remove task: " + id );
-		}
-	}
-
-	public void shutdown(){}
+	public abstract List< WriteFileTask > getFileTasks();
 
 }

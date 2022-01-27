@@ -24,47 +24,75 @@ package org.ranflood.daemon.flooders;
 import static org.ranflood.common.RanFloodLogger.log;
 
 import org.ranflood.daemon.RanFloodDaemon;
+import org.ranflood.daemon.flooders.tasks.FileTask;
 import org.ranflood.daemon.flooders.tasks.FloodTask;
-import java.util.HashSet;
+import org.ranflood.daemon.flooders.tasks.FloodTaskGenerator;
+
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class FloodTaskExecutor {
 
-	private final HashSet< FloodTask > floodTaskList = new HashSet<>();
-	private final ReentrantReadWriteLock taskListLock = new ReentrantReadWriteLock();
 	static private final FloodTaskExecutor INSTANCE = new FloodTaskExecutor();
+	static private final LinkedList< TaskStateManager > taskList = new LinkedList<>();
+	private final ReentrantReadWriteLock taskListLock = new ReentrantReadWriteLock();
 
-	public static FloodTaskExecutor getInstance(){
+	private static class TaskStateManager {
+		final private FloodTaskGenerator main;
+		final private List< FileTask > tasks;
+
+		public TaskStateManager( FloodTaskGenerator main ) {
+			this.main = main;
+			this.tasks = new LinkedList<>();
+		}
+
+		public FileTask getNextTask() {
+			if ( tasks.isEmpty() ) {
+				tasks.addAll( main.getFileTasks() );
+			}
+			return tasks.remove( 0 );
+		}
+
+		public FloodTaskGenerator main() {
+			return main;
+		}
+	}
+
+	public static FloodTaskExecutor getInstance() {
 		return INSTANCE;
 	}
 
-	public void addTask( FloodTask t ) {
+	public void addTask( FloodTaskGenerator t ) {
 		taskListLock.writeLock().lock();
-		floodTaskList.add( t );
+		taskList.add( new TaskStateManager( t ) );
 		taskListLock.writeLock().unlock();
-		launchRecursiveCallable( t );
+		signalExecution();
 	}
 
-	private void launchRecursiveCallable( FloodTask t ){
+	private void signalExecution() {
 		RanFloodDaemon.executeIORunnable( () -> {
-			if ( hasTask( t ) ){
-				launchRecursiveCallable( t );
+			taskListLock.readLock().lock();
+			if ( taskList.isEmpty() ) {
+				taskListLock.readLock().unlock();
+			} else {
+				taskListLock.readLock().unlock();
+				taskListLock.writeLock().lock();
+				TaskStateManager t = taskList.remove( 0 );
+				taskListLock.writeLock().unlock();
+				FileTask ft = t.getNextTask();
+				taskListLock.writeLock().lock();
+				taskList.add( t );
+				taskListLock.writeLock().unlock();
+				signalExecution();
+				ft.getRunnableTask().run();
 			}
-			RanFloodDaemon.executeIORunnable( t.getRunnableTask() );
-		});
+		} );
 	}
 
-	public boolean hasTask( FloodTask t ){
-		boolean present;
-		taskListLock.readLock().lock();
-		present = floodTaskList.contains( t );
-		taskListLock.readLock().unlock();
-		return present;
-	}
-
-	public void removeTask( FloodTask t ){
+	public void removeTask( FloodTask t ) {
 		taskListLock.writeLock().lock();
-		floodTaskList.remove( t );
+		taskList.removeIf( tsm -> tsm.main() == t );
 		taskListLock.writeLock().unlock();
 	}
 

@@ -26,6 +26,7 @@ import org.ranflood.common.utils.Pair;
 import org.ranflood.daemon.RanFloodDaemon;
 import org.ranflood.common.FloodMethod;
 import org.ranflood.daemon.flooders.tasks.FloodTask;
+import org.ranflood.daemon.flooders.tasks.FloodTaskGenerator;
 import org.ranflood.daemon.flooders.tasks.WriteFileTask;
 
 import java.io.File;
@@ -33,14 +34,25 @@ import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class RandomFloodTask extends FloodTask {
+public class RandomFloodTask extends FloodTaskGenerator {
 
 	public RandomFloodTask( Path filePath, FloodMethod floodMethod ) {
 		super( filePath, floodMethod );
+	}
+
+	@Override
+	public List< WriteFileTask > getFileTasks() {
+		Path filePath = Path.of(
+						this.filePath().toAbsolutePath() + File.separator
+										+ Nomen.randomName()
+										+ FILE_EXTESIONS.get( rng.nextInt( FILE_EXTESIONS.size() ) )
+		);
+		return List.of( new WriteFileTask( filePath, getCachedRandomBytes(), this.floodMethod() ) );
 	}
 
 	private static final ArrayList< String > FILE_EXTESIONS = new ArrayList<>(
@@ -88,15 +100,16 @@ public class RandomFloodTask extends FloodTask {
 
 	@Override
 	public Runnable getRunnableTask() {
-		return () -> {
-			Path filePath = Path.of(
-							this.filePath().toAbsolutePath() + File.separator
-											+ Nomen.randomName()
-											+ FILE_EXTESIONS.get( rng.nextInt( FILE_EXTESIONS.size() ) )
-			);
-			WriteFileTask d = new WriteFileTask( filePath, getCachedRandomBytes(), this.floodMethod() );
-			RanFloodDaemon.executeIORunnable( d.getRunnableTask() );
-		};
+		throw new UnsupportedOperationException( "RandomFloodTask should not be run as a normal task" );
+//		return () -> {
+//			Path filePath = Path.of(
+//							this.filePath().toAbsolutePath() + File.separator
+//											+ Nomen.randomName()
+//											+ FILE_EXTESIONS.get( rng.nextInt( FILE_EXTESIONS.size() ) )
+//			);
+//			WriteFileTask d = new WriteFileTask( filePath, getCachedRandomBytes(), this.floodMethod() );
+//			RanFloodDaemon.executeIORunnable( d.getRunnableTask() );
+//		};
 	}
 
 }

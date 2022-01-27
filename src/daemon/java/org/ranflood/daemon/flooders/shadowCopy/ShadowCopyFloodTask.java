@@ -25,8 +25,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.utils.IOUtils;
 import org.ranflood.common.FloodMethod;
-import org.ranflood.daemon.RanFloodDaemon;
-import org.ranflood.daemon.flooders.tasks.FloodTask;
+import org.ranflood.daemon.flooders.tasks.FloodTaskGenerator;
 import org.ranflood.daemon.flooders.tasks.WriteCopyFileTask;
 import org.ranflood.daemon.flooders.tasks.WriteFileTask;
 
@@ -37,7 +36,7 @@ import java.util.List;
 
 import static org.ranflood.common.RanFloodLogger.error;
 
-public class ShadowCopyFloodTask extends FloodTask {
+public class ShadowCopyFloodTask extends FloodTaskGenerator {
 
 	private final List< WriteFileTask > tasks;
 
@@ -48,10 +47,11 @@ public class ShadowCopyFloodTask extends FloodTask {
 
 	@Override
 	public Runnable getRunnableTask() {
-		return () ->
-						tasks.forEach( t ->
-										RanFloodDaemon.executeIORunnable( t.getRunnableTask() )
-						);
+		throw new UnsupportedOperationException( "ShadowCopyFloodTask should not be run as a normal task" );
+//		return () ->
+//						tasks.forEach( t ->
+//										RanFloodDaemon.executeIORunnable( t.getRunnableTask() )
+//						);
 	}
 
 	private List< WriteFileTask > getWriteFileTasks( Path tarFilePath ) {
@@ -73,4 +73,8 @@ public class ShadowCopyFloodTask extends FloodTask {
 		return l;
 	}
 
+	@Override
+	public List< WriteFileTask > getFileTasks() {
+		return tasks;
+	}
 }

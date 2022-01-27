@@ -39,13 +39,13 @@ public class TestRandomFlooder {
 		} catch ( InterruptedException e ) {
 			e.printStackTrace();
 		}
-		daemon.randomFlooder().stopFlood( id1 );
 		UUID id2 = daemon.randomFlooder().flood( Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder2" ) );
 		try {
 			Thread.sleep( 1000 );
 		} catch ( InterruptedException e ) {
 			e.printStackTrace();
 		}
+		daemon.randomFlooder().stopFlood( id1 );
 		daemon.randomFlooder().stopFlood( id2 );
 		daemon.shutdown();
 	}

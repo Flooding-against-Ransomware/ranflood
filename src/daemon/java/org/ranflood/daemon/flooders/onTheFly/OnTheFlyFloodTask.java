@@ -26,6 +26,7 @@ import org.ranflood.common.FloodMethod;
 import org.ranflood.daemon.flooders.FlooderException;
 import org.ranflood.daemon.flooders.SnapshotException;
 import org.ranflood.daemon.flooders.tasks.FloodTask;
+import org.ranflood.daemon.flooders.tasks.FloodTaskGenerator;
 import org.ranflood.daemon.flooders.tasks.WriteCopyFileTask;
 import org.ranflood.daemon.flooders.tasks.WriteFileTask;
 
@@ -41,7 +42,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class OnTheFlyFloodTask extends FloodTask {
+public class OnTheFlyFloodTask extends FloodTaskGenerator {
 
 	private final List< WriteFileTask > tasks;
 
@@ -51,11 +52,17 @@ public class OnTheFlyFloodTask extends FloodTask {
 	}
 
 	@Override
+	public List< WriteFileTask > getFileTasks() {
+		return tasks;
+	}
+
+	@Override
 	public Runnable getRunnableTask() {
-		return () ->
-						tasks.forEach( t ->
-										RanFloodDaemon.executeIORunnable( t.getRunnableTask() )
-						);
+		throw new UnsupportedOperationException( "OnTheFlyFloodTask should not be run as a normal task" );
+//		return () ->
+//						tasks.forEach( t ->
+//										RanFloodDaemon.executeIORunnable( t.getRunnableTask() )
+//						);
 	}
 
 	private List< WriteFileTask > getWriteFileTasks( Path parentFilePath, Path filePath ) throws FlooderException {
