@@ -35,13 +35,13 @@ public class TestRandomFlooder {
 		RanFloodDaemon daemon = RanFlood.daemon();
 		UUID id1 = daemon.randomFlooder().flood( Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder1" ) );
 		try {
-			Thread.sleep( 1000 );
+			Thread.sleep( 2000 );
 		} catch ( InterruptedException e ) {
 			e.printStackTrace();
 		}
 		UUID id2 = daemon.randomFlooder().flood( Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder2" ) );
 		try {
-			Thread.sleep( 1000 );
+			Thread.sleep( 2000 );
 		} catch ( InterruptedException e ) {
 			e.printStackTrace();
 		}

@@ -42,6 +42,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import static org.ranflood.common.RanFloodLogger.log;
@@ -55,13 +56,22 @@ public class TestShadowCopyFlooder {
 		String settings_file = Paths.get( "src/tests/java/playground/settings.ini" ).toAbsolutePath().toString();
 		RanFlood.main( new String[]{ settings_file } );
 		Thread.sleep( 1000 );
-		Path filePath1 = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/Other" );
-		Path filePath2 = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/Other 2" );
+		List< Path > filePaths = List.of(
+						Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/Other" ),
+						Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/Other 2" )
+		);
 
-//		if ( Arrays.stream( filePath1.toFile().listFiles() ).filter( File::isDirectory ).count() < 1 ){
-//			createTestStructure( filePath1 );
-//		}
-		for ( Path filePath : List.of( filePath1, filePath2 ) ) {
+		// we set the folders up for the copy
+		for( Path filePath : filePaths ){
+			if ( ! filePath.toFile().exists()
+							|| ! filePath.toFile().isDirectory()
+							|| Objects.requireNonNull( filePath.toFile().listFiles() ).length < 1
+			){
+				createTestStructure( filePath );
+			}
+		}
+
+		for ( Path filePath : filePaths ) {
 
 			sendCommand( new SnapshotCommand.Add(
 							new RanFloodType( FloodMethod.SHADOW_COPY, filePath ) )
@@ -194,7 +204,4 @@ public class TestShadowCopyFlooder {
 		}
 	}
 
-
 }
-
-

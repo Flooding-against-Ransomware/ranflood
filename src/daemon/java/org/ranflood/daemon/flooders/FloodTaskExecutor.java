@@ -72,20 +72,18 @@ public class FloodTaskExecutor {
 
 	private void signalExecution() {
 		RanFloodDaemon.executeIORunnable( () -> {
-			taskListLock.readLock().lock();
+			taskListLock.writeLock().lock();
 			if ( taskList.isEmpty() ) {
-				taskListLock.readLock().unlock();
+				taskListLock.writeLock().unlock();
 			} else {
-				taskListLock.readLock().unlock();
-				taskListLock.writeLock().lock();
 				TaskStateManager t = taskList.remove( 0 );
 				taskListLock.writeLock().unlock();
-				FileTask ft = t.getNextTask();
+				FileTask ft = t.getNextTask(); // getNextTask can be IO/computation heavy
 				taskListLock.writeLock().lock();
 				taskList.add( t );
 				taskListLock.writeLock().unlock();
-				signalExecution();
-				ft.getRunnableTask().run();
+				signalExecution(); // we launch the next iteration
+				ft.getRunnableTask().run(); // we execute this FileTask
 			}
 		} );
 	}

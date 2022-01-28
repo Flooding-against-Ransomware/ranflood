@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class RandomFloodTask extends FloodTaskGenerator {
 
@@ -47,12 +49,13 @@ public class RandomFloodTask extends FloodTaskGenerator {
 
 	@Override
 	public List< WriteFileTask > getFileTasks() {
+		return IntStream.range( 0, 100 ).mapToObj( i -> {
 		Path filePath = Path.of(
 						this.filePath().toAbsolutePath() + File.separator
 										+ Nomen.randomName()
-										+ FILE_EXTESIONS.get( rng.nextInt( FILE_EXTESIONS.size() ) )
-		);
-		return List.of( new WriteFileTask( filePath, getCachedRandomBytes(), this.floodMethod() ) );
+										+ FILE_EXTESIONS.get( rng.nextInt( FILE_EXTESIONS.size() ) ) );
+		return new WriteFileTask( filePath, getCachedRandomBytes(), this.floodMethod() );
+		} ).collect( Collectors.toList());
 	}
 
 	private static final ArrayList< String > FILE_EXTESIONS = new ArrayList<>(

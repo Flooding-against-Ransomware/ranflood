@@ -46,8 +46,8 @@ import static org.ranflood.common.RanFloodLogger.log;
 public class RanFloodDaemon {
 
 	private final FloodTaskExecutor floodTaskExecutor = FloodTaskExecutor.getInstance();
-	private final ExecutorService commandExecutor = Executors.newFixedThreadPool( Runtime.getRuntime().availableProcessors() );
-	private static final ExecutorService scheduler = Executors.newFixedThreadPool( Runtime.getRuntime().availableProcessors() );
+	private final ExecutorService commandExecutor = Executors.newFixedThreadPool( 2*Runtime.getRuntime().availableProcessors() );
+	private static final ExecutorService scheduler = Executors.newFixedThreadPool( 2*Runtime.getRuntime().availableProcessors() );
 	private final RandomFlooder RANDOM_FLOODER = new RandomFlooder();
 	private final OnTheFlyFlooder ON_THE_FLY_FLOODER;
 	private final ShadowCopyFlooder SHADOW_COPY_FLOODER;

@@ -55,38 +55,42 @@ public class ZMQ_JSON_Server {
 		log( "Server started at " + address + ", accepting requests from clients" );
 		RanFlood.daemon().executeCommand( () -> {
 			while ( !context.isClosed() ) {
-				String request = new String( socket.recv(), ZMQ.CHARSET );
-				RanFlood.daemon().executeCommand( () -> {
-					log( "Server received [" + request + "]" );
-					try {
-						Command< ? > command = bindToImpl( JSONTranscoder.fromJson( request ) );
-						if ( command.isAsync() ) {
-							Object result = command.execute();
-							if ( result instanceof CommandResult.Successful ) {
-								log( ( ( CommandResult.Successful ) result ).message() );
+				try {
+					String request = new String( socket.recv(), ZMQ.CHARSET );
+					RanFlood.daemon().executeCommand( () -> {
+						log( "Server received [" + request + "]" );
+						try {
+							Command< ? > command = bindToImpl( JSONTranscoder.fromJson( request ) );
+							if ( command.isAsync() ) {
+								Object result = command.execute();
+								if ( result instanceof CommandResult.Successful ) {
+									log( ( ( CommandResult.Successful ) result ).message() );
+								} else {
+									error( ( ( CommandResult.Failed ) result ).message() );
+								}
+								socket.send( JSONTranscoder.wrapSuccess( "Command " + command.name() + " issued." ) );
 							} else {
-								error( ( ( CommandResult.Failed ) result ).message() );
+								List< ? extends RanFloodType > l =
+												( command instanceof SnapshotCommand.List ) ?
+																( ( SnapshotCommandImpl.List ) command ).execute()
+																: ( ( FloodCommandImpl.List ) command ).execute();
+								socket.send( JSONTranscoder.wrapListRanFloodType( l ) );
 							}
-							socket.send( JSONTranscoder.wrapSuccess( "Command " + command.name() + " issued." ) );
-						} else {
-							List< ? extends RanFloodType > l =
-											( command instanceof SnapshotCommand.List ) ?
-															( ( SnapshotCommandImpl.List ) command ).execute()
-															: ( ( FloodCommandImpl.List ) command ).execute();
-							socket.send( JSONTranscoder.wrapListRanFloodType( l ) );
+						} catch ( ParseException e ) {
+							error( e.getMessage() );
+							socket.send( JSONTranscoder.wrapError( e.getMessage() ).getBytes( ZMQ.CHARSET ) );
+							if ( request.equals( "shutdown" ) ) {
+								error( "Cheat-code for shutdown, remove for release" );
+								RanFlood.daemon().shutdown();
+							}
+						} catch ( Exception e ) {
+							error( e.getMessage() );
+							socket.send( e.getMessage().getBytes( ZMQ.CHARSET ) );
 						}
-					} catch ( ParseException e ) {
-						error( e.getMessage() );
-						socket.send( JSONTranscoder.wrapError( e.getMessage() ).getBytes( ZMQ.CHARSET ) );
-						if ( request.equals( "shutdown" ) ) {
-							error( "Cheat-code for shutdown, remove for release" );
-							RanFlood.daemon().shutdown();
-						}
-					} catch ( Exception e ){
-						error( e.getMessage() );
-						socket.send( e.getMessage().getBytes( ZMQ.CHARSET ) );
-					}
-				} );
+					} );
+				} catch ( Exception e ) {
+					error( e.getMessage() );
+				}
 			}
 		} );
 	}
