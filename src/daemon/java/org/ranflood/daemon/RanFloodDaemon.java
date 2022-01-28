@@ -46,8 +46,8 @@ import static org.ranflood.common.RanFloodLogger.log;
 public class RanFloodDaemon {
 
 	private final FloodTaskExecutor floodTaskExecutor = FloodTaskExecutor.getInstance();
-	private final ExecutorService commandExecutor = Executors.newFixedThreadPool( 2*Runtime.getRuntime().availableProcessors() );
-	private static final ExecutorService scheduler = Executors.newFixedThreadPool( 2*Runtime.getRuntime().availableProcessors() );
+	private final ExecutorService commandExecutor = Executors.newFixedThreadPool( 2 * Runtime.getRuntime().availableProcessors() );
+	private static final ExecutorService scheduler = Executors.newFixedThreadPool( 2 * Runtime.getRuntime().availableProcessors() );
 	private final RandomFlooder RANDOM_FLOODER = new RandomFlooder();
 	private final OnTheFlyFlooder ON_THE_FLY_FLOODER;
 	private final ShadowCopyFlooder SHADOW_COPY_FLOODER;
@@ -73,7 +73,7 @@ public class RanFloodDaemon {
 		Optional< String > on_the_fly_opt_exclude_folder_names = settings.getValue( "OnTheFlyFlooder", "ExcludeFolderNames" );
 		ON_THE_FLY_FLOODER = new OnTheFlyFlooder(
 						Path.of( on_the_fly_opt_signature_db.orElseGet( () -> {
-							String signaturesDBpath = Paths.get( "" ).toAbsolutePath().toString() + File.separator + "signatures.db";
+							String signaturesDBpath = Paths.get( "" ).toAbsolutePath() + File.separator + "signatures.db";
 							error( "OnTheFlyFlooder -> Signature_DB not found in the settings file. Using " + signaturesDBpath );
 							return signaturesDBpath;
 						} ) ),
@@ -84,12 +84,12 @@ public class RanFloodDaemon {
 		Optional< String > shadow_copy_opt_exclude_folder_names = settings.getValue( "ShadowCopyFlooder", "ExcludeFolderNames" );
 		SHADOW_COPY_FLOODER = new ShadowCopyFlooder(
 						Path.of( shadow_copy_opt_archive_root.orElseGet( () -> {
-							String archiveRoot = Paths.get( "" ).toAbsolutePath().toString() + File.separator + "archive";
+							String archiveRoot = Paths.get( "" ).toAbsolutePath() + File.separator + "archive";
 							error( "ShadowCopyFlooder -> ArchiveRoot not found in the settings file. Using " + archiveRoot );
 							return archiveRoot;
 						} ) ),
 						Path.of( shadow_copy_opt_archive_database.orElseGet( () -> {
-							String archiveRoot = Paths.get( "" ).toAbsolutePath().toString() + File.separator + "archive.db";
+							String archiveRoot = Paths.get( "" ).toAbsolutePath() + File.separator + "archive.db";
 							error( "ShadowCopyFlooder -> ArchiveDatabase not found in the settings file. Using " + archiveRoot );
 							return archiveRoot;
 						} ) ),

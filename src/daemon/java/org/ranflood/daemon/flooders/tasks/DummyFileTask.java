@@ -51,10 +51,11 @@ public class DummyFileTask implements FileTask {
 	}
 
 	public Runnable getRunnableTask() {
-		return () -> { log( "DummyTask - "
-						+ " filePath: '" + filePath + "'"
-						+ " content size: " + content.length
-						+ " method: " + floodMethod.name() );
+		return () -> {
+			log( "DummyTask - "
+							+ " filePath: '" + filePath + "'"
+							+ " content size: " + content.length
+							+ " method: " + floodMethod.name() );
 		};
 	}
 

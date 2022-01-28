@@ -117,10 +117,10 @@ public class FloodCommandImpl {
 		@Override
 		public java.util.List< RanFloodType.Tagged > execute() {
 			return Stream.concat( Stream.concat(
-							RanFlood.daemon().randomFlooder()
-											.currentRunningTasksSnapshotList().stream(),
-							RanFlood.daemon().onTheFlyFlooder()
-											.currentRunningTasksSnapshotList().stream()
+											RanFlood.daemon().randomFlooder()
+															.currentRunningTasksSnapshotList().stream(),
+											RanFlood.daemon().onTheFlyFlooder()
+															.currentRunningTasksSnapshotList().stream()
 							),
 							RanFlood.daemon().shadowCopyFlooder()
 											.currentRunningTasksSnapshotList().stream()

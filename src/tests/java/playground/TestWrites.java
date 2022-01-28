@@ -29,14 +29,14 @@ import java.util.stream.IntStream;
 public class TestWrites {
 
 	public static void main( String[] args ) {
-		String root =  "/Users/thesave/Desktop/test_folder";
+		String root = "/Users/thesave/Desktop/test_folder";
 		long start = System.currentTimeMillis();
 		int file_number = 1000;
 		IntStream.range( 0, file_number )
 						.parallel()
 						.forEach( i -> {
 							try {
-								FileOutputStream f = new FileOutputStream( root + String.valueOf( i ) + ".txt" );
+								FileOutputStream f = new FileOutputStream( root + i + ".txt" );
 								byte[] b = new byte[ new Random().nextInt( Double.valueOf( Math.pow( 2, 22 ) ).intValue() ) + Double.valueOf( Math.pow( 2, 7 ) ).intValue() ];
 								new Random().nextBytes( b );
 								f.write( b );
@@ -44,7 +44,7 @@ public class TestWrites {
 							} catch ( IOException e ) {
 								e.printStackTrace();
 							}
-						});
+						} );
 		System.out.println( "File generation took: " + ( System.currentTimeMillis() - start ) + "ms" );
 	}
 }

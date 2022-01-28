@@ -66,12 +66,12 @@ public class Flood implements Callable< Integer > {
 			System.out.println( "Requesting the list of the running floods." );
 			FloodCommand.List c = new FloodCommand.List();
 			java.util.List< RanFloodType.Tagged > l = ZMQ_JSON_Client.INSTANCE().sendListCommand( c );
-			if ( l.isEmpty() ){
+			if ( l.isEmpty() ) {
 				System.out.println( "There are no running floods at the moment." );
 			} else {
 				System.out.println( l.stream()
-								.map( r -> r.method().name() + " | " + r.path()	+ " | " + r.id() )
-								.collect( Collectors.joining("\n")) );
+								.map( r -> r.method().name() + " | " + r.path() + " | " + r.id() )
+								.collect( Collectors.joining( "\n" ) ) );
 			}
 			return 0;
 		}

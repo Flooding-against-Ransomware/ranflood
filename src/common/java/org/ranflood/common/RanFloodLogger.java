@@ -46,10 +46,10 @@ public class RanFloodLogger {
 		logger.error( messagePrefix() + s + messageSuffix() );
 	}
 
-	private static String messagePrefix(){
+	private static String messagePrefix() {
 		StackTraceElement t = Thread.currentThread()
-						.getStackTrace()[ Math.min( Thread.currentThread().getStackTrace().length-1, 4 ) ];
-		return t.getClassName()	+ "." + t.getMethodName()	+ "\n| ";
+						.getStackTrace()[ Math.min( Thread.currentThread().getStackTrace().length - 1, 4 ) ];
+		return t.getClassName() + "." + t.getMethodName() + "\n| ";
 	}
 
 	private static String messageSuffix() {

@@ -40,7 +40,7 @@ public class OnTheFlyFlooder extends AbstractSnapshotFlooder {
 	private final Path snapshotDBPath;
 	private final Set< String > exclusionList;
 
-	public OnTheFlyFlooder( Path snapshotDBPath, Set< String > exclusionList ){
+	public OnTheFlyFlooder( Path snapshotDBPath, Set< String > exclusionList ) {
 		this.snapshotDBPath = snapshotDBPath;
 		this.exclusionList = exclusionList;
 	}
@@ -78,5 +78,7 @@ public class OnTheFlyFlooder extends AbstractSnapshotFlooder {
 		return snapshotDBPath;
 	}
 
-	public Set< String > exclusionList(){ return exclusionList; }
+	public Set< String > exclusionList() {
+		return exclusionList;
+	}
 }

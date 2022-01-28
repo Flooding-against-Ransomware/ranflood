@@ -19,7 +19,9 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.filechecker; import picocli.CommandLine;
+package org.ranflood.filechecker;
+
+import picocli.CommandLine;
 import org.ranflood.filechecker.subcommands.CheckCommand;
 import org.ranflood.filechecker.subcommands.SaveCommand;
 

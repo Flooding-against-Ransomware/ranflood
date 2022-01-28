@@ -53,8 +53,7 @@ public class TestShadowCopyFlooder {
 
 	public static void main( String[] args ) throws InterruptedException, IOException {
 
-		String settings_file = Paths.get( "src/tests/java/playground/settings.ini" ).toAbsolutePath().toString();
-		RanFlood.main( new String[]{ settings_file } );
+		RanFlood.main( TestCommons.getArgs() );
 		Thread.sleep( 1000 );
 		List< Path > filePaths = List.of(
 						Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/Other" ),
@@ -62,11 +61,11 @@ public class TestShadowCopyFlooder {
 		);
 
 		// we set the folders up for the copy
-		for( Path filePath : filePaths ){
-			if ( ! filePath.toFile().exists()
-							|| ! filePath.toFile().isDirectory()
+		for ( Path filePath : filePaths ) {
+			if ( !filePath.toFile().exists()
+							|| !filePath.toFile().isDirectory()
 							|| Objects.requireNonNull( filePath.toFile().listFiles() ).length < 1
-			){
+			) {
 				createTestStructure( filePath );
 			}
 		}

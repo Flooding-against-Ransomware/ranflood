@@ -28,82 +28,68 @@ import java.io.FileWriter;
 public class Flooding {
 
 	//figlio creato per sottocartelle
-	private static class FloodingChild implements Runnable{
+	private static class FloodingChild implements Runnable {
 
 		private File dir;
 
-		public FloodingChild(File dir) {
+		public FloodingChild( File dir ) {
 			this.dir = dir;
 		}
 
 		@Override
 		public void run() {
-			Flooding.startingFunction(dir);
+			Flooding.startingFunction( dir );
 		}
 
 	}
 
-	public static void main(String[] args) {
-		
+	public static void main( String[] args ) {
+
 		//Il primo parametro è il path della cartella che è stata attaccata
-		File dir = new File(args[0]);
-		
-		Flooding.startingFunction(dir);
+		File dir = new File( args[ 0 ] );
+
+		Flooding.startingFunction( dir );
 
 	}
-	
 
-	
+
 	//Inondo la cartella di file
-	public static void floodDirectory(File dir) {
+	public static void floodDirectory( File dir ) {
 		int i = 0;
-		while(true) {
-			
-			File floodFile = new File(dir.getAbsolutePath()+"/floodFile"+i);
-			System.out.println("File creato : "+ dir.getAbsolutePath()+"/floodFile"+i+".txt");
+		while ( true ) {
+
+			File floodFile = new File( dir.getAbsolutePath() + "/floodFile" + i );
+			System.out.println( "File creato : " + dir.getAbsolutePath() + "/floodFile" + i + ".txt" );
 			i++;
 			//Scrivo qualcosa nel file
 			try {
-			BufferedWriter bw = new BufferedWriter(new FileWriter(floodFile));
-			for(int k = 0; k<50;k++) {
-				bw.write("fhalòjkaojdshfalkfahdf9a8sdyh034nhsaklhdfjkh0234lmdsnaso");
-			}
-			bw.close();
-			}catch(Exception e) {
+				BufferedWriter bw = new BufferedWriter( new FileWriter( floodFile ) );
+				for ( int k = 0; k < 50; k++ ) {
+					bw.write( "fhalòjkaojdshfalkfahdf9a8sdyh034nhsaklhdfjkh0234lmdsnaso" );
+				}
+				bw.close();
+			} catch ( Exception e ) {
 				//Probabilmente non visibiel da nessuna parte
-				System.out.println("Errore apertura/scrittura" + floodFile.getAbsolutePath());
+				System.out.println( "Errore apertura/scrittura" + floodFile.getAbsolutePath() );
 			}
 		}
 	}
-	
+
 	//Funzione di partenza usata dal main e dai figli
-	public static void startingFunction(File dir) {
-		File []listFile = dir.listFiles();
-		for(File file : listFile) {
-			if(file.isDirectory()) {
+	public static void startingFunction( File dir ) {
+		File[] listFile = dir.listFiles();
+		for ( File file : listFile ) {
+			if ( file.isDirectory() ) {
 				//Figlio
-				FloodingChild child = new FloodingChild(file);
-				new Thread(child).start();
+				FloodingChild child = new FloodingChild( file );
+				new Thread( child ).start();
 			}
 		}
 		//Ho creato tutti i figli nelle sotto cartella ora posso partire a inondare
-		Flooding.floodDirectory(dir);
+		Flooding.floodDirectory( dir );
 	}
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 //sdfg

@@ -30,7 +30,7 @@ import java.util.Map;
 
 class Utils {
 
-	static private final Map<String, FloodMethod > translationMap = new HashMap<>();
+	static private final Map< String, FloodMethod > translationMap = new HashMap<>();
 
 	static {
 		Arrays.asList( "random", "RANDOM" )
@@ -41,12 +41,12 @@ class Utils {
 						.forEach( e -> translationMap.put( e, FloodMethod.SHADOW_COPY ) );
 	}
 
-	public static String padLeft( int padSize ){
+	public static String padLeft( int padSize ) {
 		return String.format( "%" + "Target folders: ".length() + "s", "" );
 	}
 
 	public static FloodMethod getMethod( String m ) throws ParseException {
-		if( translationMap.containsKey( m ) ){
+		if ( translationMap.containsKey( m ) ) {
 			return translationMap.get( m );
 		} else {
 			throw new ParseException( "Method " + m + " not supported" );

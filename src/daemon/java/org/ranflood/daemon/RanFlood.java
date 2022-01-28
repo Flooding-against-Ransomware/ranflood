@@ -25,6 +25,7 @@ import org.ranflood.common.utils.ProjectPropertiesLoader;
 
 import java.io.IOException;
 import java.nio.file.Path;
+
 import static org.ranflood.common.RanFloodLogger.error;
 
 public class RanFlood {
@@ -41,7 +42,7 @@ public class RanFlood {
 	}
 
 	public static void main( String[] args ) {
-		if( args.length < 1 ){
+		if ( args.length < 1 ) {
 			error( "Expected 1 argument, path to the settings ini file." );
 			System.exit( 1 );
 		}
@@ -53,7 +54,7 @@ public class RanFlood {
 		}
 	}
 
-	public static RanFloodDaemon daemon(){
+	public static RanFloodDaemon daemon() {
 		return daemon;
 	}
 

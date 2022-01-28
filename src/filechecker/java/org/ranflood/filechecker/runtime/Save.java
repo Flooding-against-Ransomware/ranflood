@@ -43,11 +43,13 @@ public class Save {
 			throw new IOException( "path " + checksum.toPath().toAbsolutePath().getParent() + " must exist to save the checksum file" );
 		Files.walk( folder.toPath().toAbsolutePath() )
 						.filter( f -> {
-							try { return Files.isRegularFile( f, LinkOption.NOFOLLOW_LINKS );}
-							catch ( Exception e ) {
+							try {
+								return Files.isRegularFile( f, LinkOption.NOFOLLOW_LINKS );
+							} catch ( Exception e ) {
 								System.err.println( "Problem processing file: " + f + ", " + e.getMessage() );
 								return false;
-						}})
+							}
+						} )
 						.forEach( f -> {
 							try {
 								report.put( folder.toPath().toAbsolutePath().relativize( f.toAbsolutePath() ).toString(), getFileSignature( f ) );

@@ -41,8 +41,8 @@ public class WriteCopyFileTask extends WriteFileTask {
 		return () -> {
 			try {
 				File parentFolder = filePath().getParent().toFile();
-				if( !parentFolder.exists() ){
-						parentFolder.mkdirs();
+				if ( !parentFolder.exists() ) {
+					parentFolder.mkdirs();
 				}
 				String originalFileName = filePath().getFileName().toString();
 				int extensionIndex = originalFileName.indexOf( "." );

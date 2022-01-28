@@ -37,7 +37,7 @@ import java.util.stream.IntStream;
 
 public class JSONTranscoder {
 
-	public static String wrapListRanFloodType( List< ? extends RanFloodType > l ){
+	public static String wrapListRanFloodType( List< ? extends RanFloodType > l ) {
 		Json.Object o = new Json.Object();
 		Json.Array a = new Json.Array();
 		l.forEach( i -> a.add( ranFloodTypeToJson( i ) ) );
@@ -45,13 +45,13 @@ public class JSONTranscoder {
 		return o.toString();
 	}
 
-	public static String wrapError( String m ){
+	public static String wrapError( String m ) {
 		Json.Object o = new Json.Object();
 		o.put( "error", m );
 		return o.toString();
 	}
 
-	public static String wrapSuccess( String m ){
+	public static String wrapSuccess( String m ) {
 		Json.Object o = new Json.Object();
 		o.put( "success", m );
 		return o.toString();
@@ -59,54 +59,49 @@ public class JSONTranscoder {
 
 	public static String toJsonString( Command< ? > c ) throws ParseException {
 		Json.Object o = commandToJson( c );
-		if( o.isEmpty() ){
+		if ( o.isEmpty() ) {
 			throw new ParseException( "Unable to find a conversion scheme for command of type " + c.getClass().getName() );
 		} else {
 			return o.toString();
 		}
 	}
 
-	private static Json.Object commandToJson( Command< ? > c ){
+	private static Json.Object commandToJson( Command< ? > c ) {
 		Json.Object obj = new Json.Object();
-		if( c instanceof SnapshotCommand.Add ){
+		if ( c instanceof SnapshotCommand.Add ) {
 			obj.put( "command", "snapshot" );
 			obj.put( "subcommand", "add" );
-			obj.put( "parameters", ranFloodTypeToJson( ( (SnapshotCommand.Add) c).type() ) );
-		}
-		else if( c instanceof SnapshotCommand.Remove ){
+			obj.put( "parameters", ranFloodTypeToJson( ( ( SnapshotCommand.Add ) c ).type() ) );
+		} else if ( c instanceof SnapshotCommand.Remove ) {
 			obj.put( "command", "snapshot" );
 			obj.put( "subcommand", "remove" );
-			obj.put( "parameters", ranFloodTypeToJson( ( (SnapshotCommand.Remove) c).type() ) );
-		}
-		else if( c instanceof SnapshotCommand.List ){
+			obj.put( "parameters", ranFloodTypeToJson( ( ( SnapshotCommand.Remove ) c ).type() ) );
+		} else if ( c instanceof SnapshotCommand.List ) {
 			obj.put( "command", "snapshot" );
 			obj.put( "subcommand", "list" );
-		}
-		else if( c instanceof FloodCommand.Start ){
+		} else if ( c instanceof FloodCommand.Start ) {
 			obj.put( "command", "flood" );
 			obj.put( "subcommand", "start" );
-			obj.put( "parameters", ranFloodTypeToJson( ( (FloodCommand.Start) c).type() ) );
-		}
-		else if( c instanceof FloodCommand.Stop ){
+			obj.put( "parameters", ranFloodTypeToJson( ( ( FloodCommand.Start ) c ).type() ) );
+		} else if ( c instanceof FloodCommand.Stop ) {
 			obj.put( "command", "flood" );
 			obj.put( "subcommand", "stop" );
 			Json.Object o = new Json.Object();
-			o.put( "id", ( ( (FloodCommand.Stop) c).id() ) );
-			o.put( "method", ( ( (FloodCommand.Stop) c).method().name() ) );
+			o.put( "id", ( ( ( FloodCommand.Stop ) c ).id() ) );
+			o.put( "method", ( ( ( FloodCommand.Stop ) c ).method().name() ) );
 			obj.put( "parameters", o );
-		}
-		else if( c instanceof FloodCommand.List ){
+		} else if ( c instanceof FloodCommand.List ) {
 			obj.put( "command", "flood" );
 			obj.put( "subcommand", "list" );
 		}
 		return obj;
 	}
 
-	private static < T extends RanFloodType > Json.Object ranFloodTypeToJson( T t ){
+	private static < T extends RanFloodType > Json.Object ranFloodTypeToJson( T t ) {
 		Json.Object parameters = new Json.Object();
 		parameters.put( "method", t.method().name() );
 		parameters.put( "path", t.path().toAbsolutePath().toString() );
-		if( t instanceof RanFloodType.Tagged ){
+		if ( t instanceof RanFloodType.Tagged ) {
 			parameters.put( "id", ( ( RanFloodType.Tagged ) t ).id() );
 		}
 		return parameters;
@@ -124,7 +119,7 @@ public class JSONTranscoder {
 
 	private final String m;
 
-	private JSONTranscoder( String m ){
+	private JSONTranscoder( String m ) {
 		this.m = m;
 	}
 
@@ -152,11 +147,11 @@ public class JSONTranscoder {
 
 	private Command< ? > parseSnapshotCommand( Json.Object jsonObject, String subcommand ) throws ParseException {
 		switch ( subcommand ) {
-			case "add" :
+			case "add":
 				return new SnapshotCommand.Add( parseRanFloodType( getJsonObject( jsonObject, "parameters" ) ) );
-			case "remove" :
+			case "remove":
 				return new SnapshotCommand.Remove( parseRanFloodType( getJsonObject( jsonObject, "parameters" ) ) );
-			case "list" :
+			case "list":
 				return new SnapshotCommand.List();
 			default:
 				throw new ParseException( "Unrecognized subcommand '" + subcommand + "'" );
@@ -165,20 +160,20 @@ public class JSONTranscoder {
 
 	private Command< ? > parseFloodCommand( Json.Object jsonObject, String subcommand ) throws ParseException {
 		switch ( subcommand ) {
-			case "start" :
+			case "start":
 				return new FloodCommand.Start( parseRanFloodType( getJsonObject( jsonObject, "parameters" ) ) );
-			case "stop" :
+			case "stop":
 				return new FloodCommand.Stop(
 								FloodMethod.getMethod( getString( getJsonObject( jsonObject, "parameters" ), "method" ) ),
 								getString( getJsonObject( jsonObject, "parameters" ), "id" ) );
-			case "list" :
+			case "list":
 				return new FloodCommand.List();
 			default:
 				throw new ParseException( "Unrecognized subcommand '" + subcommand + "'" );
 		}
 	}
 
-	@SuppressWarnings( "unchecked" )
+	@SuppressWarnings("unchecked")
 	public < T extends RanFloodType > T parseRanFloodType( Json.Object jsonObject ) throws ParseException {
 		Path path = Path.of( getString( jsonObject, "path" ) );
 		FloodMethod method = FloodMethod.getMethod( getString( jsonObject, "method" ) );
@@ -192,7 +187,7 @@ public class JSONTranscoder {
 	private String getString( Json.Object o, String key ) throws ParseException {
 		Object s = Optional.of( o.get( key ) )
 						.orElseThrow( () -> new ParseException( "Missing '" + key + "' node in " + m ) );
-		if( s instanceof String ){
+		if ( s instanceof String ) {
 			return ( String ) s;
 		} else {
 			throw new ParseException( "Wrong type of argument for '" + key + "' node in " + m );
@@ -202,8 +197,8 @@ public class JSONTranscoder {
 	private Json.Object getJsonObject( Json.Object o, String key ) throws ParseException {
 		Object jo = Optional.of( o.get( key ) )
 						.orElseThrow( () -> new ParseException( "Missing '" + key + "' node in " + m ) );
-		if( jo instanceof Json.Object ){
-			return (Json.Object) jo;
+		if ( jo instanceof Json.Object ) {
+			return ( Json.Object ) jo;
 		} else {
 			throw new ParseException( "Wrong type of argument for '" + key + "' node in " + m );
 		}

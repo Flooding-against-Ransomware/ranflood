@@ -33,13 +33,13 @@ public class TestRandomFlooder {
 	public static void main( String[] args ) throws FlooderException {
 		RanFlood.main( TestCommons.getArgs() );
 		RanFloodDaemon daemon = RanFlood.daemon();
-		UUID id1 = daemon.randomFlooder().flood( Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder1" ) );
+		UUID id1 = daemon.randomFlooder().flood( Path.of( "C:\\Users\\thesave\\Desktop\\ranflood_testsite\\attackedFolder\\folder1" ) );
 		try {
 			Thread.sleep( 2000 );
 		} catch ( InterruptedException e ) {
 			e.printStackTrace();
 		}
-		UUID id2 = daemon.randomFlooder().flood( Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder2" ) );
+		UUID id2 = daemon.randomFlooder().flood( Path.of( "C:\\Users\\thesave\\Desktop\\ranflood_testsite\\attackedFolder\\folder2" ) );
 		try {
 			Thread.sleep( 2000 );
 		} catch ( InterruptedException e ) {

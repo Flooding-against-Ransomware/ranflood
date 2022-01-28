@@ -47,10 +47,10 @@ public abstract class Snapshooter {
 	}
 
 	public static String getPathSignature( Path p ) throws NoSuchAlgorithmException {
-			MessageDigest digest = MessageDigest.getInstance( "SHA-1" );
-			digest.update( p.toAbsolutePath().toString().getBytes( StandardCharsets.UTF_8 ) );
-			return Base64.getEncoder().encodeToString( digest.digest() )
-							.replaceAll( "[/:=]", "" );
-		}
+		MessageDigest digest = MessageDigest.getInstance( "SHA-1" );
+		digest.update( p.toAbsolutePath().toString().getBytes( StandardCharsets.UTF_8 ) );
+		return Base64.getEncoder().encodeToString( digest.digest() )
+						.replaceAll( "[/:=]", "" );
+	}
 
 }

@@ -27,7 +27,10 @@ import java.nio.file.Path;
 
 public interface FileTask {
 	Path filePath();
+
 	byte[] content();
+
 	FloodMethod floodMethod();
+
 	Runnable getRunnableTask();
 }

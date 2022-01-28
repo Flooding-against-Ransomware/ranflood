@@ -30,7 +30,7 @@ public enum FloodMethod {
 	SHADOW_COPY;
 
 	public static FloodMethod getMethod( String method ) throws ParseException {
-		switch ( method ){
+		switch ( method ) {
 			case "RANDOM":
 				return FloodMethod.RANDOM;
 			case "ON_THE_FLY":

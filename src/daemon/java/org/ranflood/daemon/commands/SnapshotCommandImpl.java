@@ -32,7 +32,8 @@ import java.util.LinkedList;
 
 public class SnapshotCommandImpl {
 
-	private SnapshotCommandImpl(){}
+	private SnapshotCommandImpl() {
+	}
 
 	public static class Add extends SnapshotCommand.Add {
 
@@ -42,7 +43,7 @@ public class SnapshotCommandImpl {
 
 		@Override
 		public CommandResult execute() {
-			switch ( this.type().method() ){
+			switch ( this.type().method() ) {
 				case RANDOM:
 					return new CommandResult.Failed( "Cannot create a snapshot for the random flooder" );
 				case ON_THE_FLY:
@@ -74,7 +75,7 @@ public class SnapshotCommandImpl {
 
 		@Override
 		public CommandResult execute() {
-			switch ( this.type().method() ){
+			switch ( this.type().method() ) {
 				case RANDOM:
 					return new CommandResult.Failed( "Cannot delete a snapshot for the random flooder (there are none)" );
 				case ON_THE_FLY:

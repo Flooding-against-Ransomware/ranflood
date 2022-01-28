@@ -128,7 +128,7 @@ public class Snapshot implements Callable< Integer > {
 			System.out.println( "Requesting the list of snapshots." );
 			SnapshotCommand.List c = new SnapshotCommand.List();
 			java.util.List< RanFloodType > l = ZMQ_JSON_Client.INSTANCE().sendListCommand( c );
-			if( l.isEmpty() ){
+			if ( l.isEmpty() ) {
 				System.out.println( "There are no snapshots at the moment" );
 			} else {
 				System.out.println( l.stream()

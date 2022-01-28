@@ -79,7 +79,7 @@ public class TestTar {
 
 	}
 
-	private static void untarArchive( Path root, Path tarFile ){
+	private static void untarArchive( Path root, Path tarFile ) {
 		try ( TarArchiveInputStream tarIn = new TarArchiveInputStream(
 						new BufferedInputStream( new FileInputStream( tarFile.toFile() ) ) ) ) {
 			TarArchiveEntry entry = tarIn.getNextTarEntry();
@@ -89,7 +89,7 @@ public class TestTar {
 				String fileName = originalFileName.substring( 0, originalFileName.lastIndexOf( "." ) );
 				String extension = originalFileName.substring( originalFileName.lastIndexOf( "." ) );
 				filePath = filePath.getParent().resolve( fileName + Nomen.est().literal( "" ).adjective().get() + extension );
-				if( ! filePath.getParent().toFile().exists() )
+				if ( !filePath.getParent().toFile().exists() )
 					// this should be synchronized if we want to have it running in parallel
 					filePath.getParent().toFile().mkdirs();
 				Files.createFile( filePath );

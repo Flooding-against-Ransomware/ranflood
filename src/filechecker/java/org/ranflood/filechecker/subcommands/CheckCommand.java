@@ -54,10 +54,10 @@ public class CheckCommand implements Callable< Integer > {
 	private File folder;
 
 	@CommandLine.Option(
-					names={ "--deep" },
+					names = { "--deep" },
 					description = "Perform a deep check, comparing files absent from the checksum to find possible duplicated (coinciding signatures)"
 	)
-	private Boolean deep = false;
+	private final Boolean deep = false;
 
 	@Override
 	public Integer call() {

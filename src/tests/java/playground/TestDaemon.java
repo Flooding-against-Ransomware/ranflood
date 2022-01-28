@@ -43,7 +43,7 @@ import static org.ranflood.common.commands.transcoders.JSONTranscoder.parseFlood
 
 public class TestDaemon {
 
-	@SuppressWarnings( "unchecked" )
+	@SuppressWarnings("unchecked")
 	public static void main( String[] args ) throws InterruptedException, IOException, ParseException {
 
 		String settings_file = Paths.get( "src/tests/java/playground/settings.ini" ).toAbsolutePath().toString();

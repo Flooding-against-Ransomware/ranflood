@@ -35,25 +35,25 @@ public class TestSnapshot {
 		Arrays.stream( Objects.requireNonNull( filePath.toFile().listFiles() ) );
 	}
 
-	public static Map< String, String > getReadSignatures( Path filePath ){
+	public static Map< String, String > getReadSignatures( Path filePath ) {
 		return Arrays.stream( Objects.requireNonNull( filePath.toFile().listFiles() ) )
 						.parallel().< Map.Entry< String, String > >map( ( f ) -> {
-			try ( InputStream input = new FileInputStream( f ) ) {
-				byte[] bytes = input.readAllBytes();
-				input.close();
-				MessageDigest digest = MessageDigest.getInstance( "MD5" );
-				digest.update( bytes );
-				return new AbstractMap.SimpleEntry< String, String >(
-								f.getAbsolutePath(),
-								Base64.getEncoder().encodeToString( digest.digest() )
-				);
-			} catch ( IOException | NoSuchAlgorithmException e ) {
-				e.printStackTrace();
-				return null;
-			}
-		})
-			.filter( Objects::nonNull )
-			.collect( Collectors.toUnmodifiableMap( Map.Entry::getKey, Map.Entry::getValue ) );
+							try ( InputStream input = new FileInputStream( f ) ) {
+								byte[] bytes = input.readAllBytes();
+								input.close();
+								MessageDigest digest = MessageDigest.getInstance( "MD5" );
+								digest.update( bytes );
+								return new AbstractMap.SimpleEntry< String, String >(
+												f.getAbsolutePath(),
+												Base64.getEncoder().encodeToString( digest.digest() )
+								);
+							} catch ( IOException | NoSuchAlgorithmException e ) {
+								e.printStackTrace();
+								return null;
+							}
+						} )
+						.filter( Objects::nonNull )
+						.collect( Collectors.toUnmodifiableMap( Map.Entry::getKey, Map.Entry::getValue ) );
 	}
 
 }

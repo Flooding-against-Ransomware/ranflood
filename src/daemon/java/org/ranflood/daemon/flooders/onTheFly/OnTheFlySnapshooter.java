@@ -54,7 +54,7 @@ public class OnTheFlySnapshooter extends Snapshooter {
 	static void takeSnapshot( Path filePath ) throws SnapshotException {
 		log( "Taking ON_THE_FLY snapshot " + filePath );
 		File file = filePath.toFile();
-		if ( file.isDirectory() && ! Files.isSymbolicLink( file.toPath() ) && file.exists() ) {
+		if ( file.isDirectory() && !Files.isSymbolicLink( file.toPath() ) && file.exists() ) {
 			INSTANCE.signaturesDatabase.executeInTransaction( t -> {
 				final Store targetDB = INSTANCE.signaturesDatabase
 								.openStore( file.getAbsolutePath(), StoreConfig.WITHOUT_DUPLICATES, t );
@@ -69,7 +69,7 @@ public class OnTheFlySnapshooter extends Snapshooter {
 	static void removeSnapshot( Path filePath ) {
 		String key = filePath.toAbsolutePath().toString();
 		INSTANCE.signaturesDatabase.executeInTransaction( t ->
-			INSTANCE.signaturesDatabase.removeStore( key, t )
+						INSTANCE.signaturesDatabase.removeStore( key, t )
 		);
 	}
 
@@ -85,7 +85,7 @@ public class OnTheFlySnapshooter extends Snapshooter {
 		File folder = filepath.toFile();
 		Arrays.stream( Objects.requireNonNull( folder.listFiles() ) )
 						.filter( File::canRead )
-						.filter( f -> ! Files.isSymbolicLink( f.toPath() ) )
+						.filter( f -> !Files.isSymbolicLink( f.toPath() ) )
 						.forEach( f -> {
 							if ( f.isFile() ) {
 								try {
@@ -100,7 +100,7 @@ public class OnTheFlySnapshooter extends Snapshooter {
 									);
 								}
 							}
-							if( f.isDirectory() && ! INSTANCE.exclusionList.contains( f.getName() ) ){
+							if ( f.isDirectory() && !INSTANCE.exclusionList.contains( f.getName() ) ) {
 								recordSignatures( f.toPath(), db, transaction );
 							}
 						} );
@@ -108,7 +108,7 @@ public class OnTheFlySnapshooter extends Snapshooter {
 
 	static String getSnapshot( Path snapshotParent, Path filepath ) throws SnapshotException {
 		if ( filepath.toFile().isDirectory() ) {
-			throw new SnapshotException( "Snapshots correspond only to files, passed directory " + filepath.toAbsolutePath().toString() );
+			throw new SnapshotException( "Snapshots correspond only to files, passed directory " + filepath.toAbsolutePath() );
 		} else {
 			String dbKey = snapshotParent.toAbsolutePath().toString();
 			String key = filepath.toAbsolutePath().toString();

@@ -30,11 +30,11 @@ public class AbstractSnapshotFlooder extends AbstractFlooder {
 		throw new UnsupportedOperationException( "Flooders should override this method" );
 	}
 
-	public void removeSnapshot( Path filepath ){
+	public void removeSnapshot( Path filepath ) {
 		throw new UnsupportedOperationException( "Flooders should override this method" );
 	}
 
-	public List< Path > listSnapshots(){
+	public List< Path > listSnapshots() {
 		throw new UnsupportedOperationException( "Flooders should override this method" );
 	}
 

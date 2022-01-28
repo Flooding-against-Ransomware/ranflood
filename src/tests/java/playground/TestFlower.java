@@ -39,7 +39,7 @@ public class TestFlower {
 	public static void main( String[] args ) throws InterruptedException {
 
 
-		Observable.< Integer >create( TestFlower::startEmitter )
+		Observable.create( TestFlower::startEmitter )
 						.toFlowable( BackpressureStrategy.BUFFER )
 						.subscribeOn( Schedulers.computation() )
 						.map( Object::toString )
@@ -50,15 +50,14 @@ public class TestFlower {
 		t.shutdownNow();
 	}
 
-	public static void startEmitter( @NonNull ObservableEmitter< Integer > e ){
+	public static void startEmitter( @NonNull ObservableEmitter< Integer > e ) {
 		t.execute( () -> {
-				while( !t.isShutdown() ){
-					e.onNext( c.incrementAndGet() );
-				}
-				e.onComplete();
-		});
+			while ( !t.isShutdown() ) {
+				e.onNext( c.incrementAndGet() );
+			}
+			e.onComplete();
+		} );
 	}
-
 
 
 }

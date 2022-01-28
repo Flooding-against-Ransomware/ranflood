@@ -38,7 +38,7 @@ public class ShadowCopyFlooder extends AbstractSnapshotFlooder {
 	private final FloodMethod METHOD = FloodMethod.SHADOW_COPY;
 	private final Path archiveRoot;
 	private final Path archiveDatabase;
-	private final Set<String> exclusionList;
+	private final Set< String > exclusionList;
 
 	public ShadowCopyFlooder( Path archiveRoot, Path archiveDatabase, Set< String > exclusionList ) {
 		this.archiveRoot = archiveRoot;
@@ -89,6 +89,7 @@ public class ShadowCopyFlooder extends AbstractSnapshotFlooder {
 		return archiveDatabase;
 	}
 
-	public Set< String > exclusionList() { return exclusionList;
+	public Set< String > exclusionList() {
+		return exclusionList;
 	}
 }

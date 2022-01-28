@@ -36,7 +36,7 @@ public class AbstractFlooder {
 
 	private final ConcurrentHashMap< UUID, LabeledFloodTask > runningTasks;
 
-	public AbstractFlooder(){
+	public AbstractFlooder() {
 		runningTasks = new ConcurrentHashMap<>();
 	}
 
@@ -44,17 +44,17 @@ public class AbstractFlooder {
 		throw new UnsupportedOperationException( "Flooders should override this method" );
 	}
 
-	protected void addRunningTask( LabeledFloodTask t ){
+	protected void addRunningTask( LabeledFloodTask t ) {
 		runningTasks.put( t.label(), t );
 	}
 
-	public List< LabeledFloodTask > currentRunningTasksSnapshotList(){
+	public List< LabeledFloodTask > currentRunningTasksSnapshotList() {
 		return new LinkedList<>( runningTasks.values() );
 	}
 
 	public void stopFlood( UUID id ) throws FlooderException {
 		LabeledFloodTask task = runningTasks.remove( id );
-		if( task != null ){
+		if ( task != null ) {
 			RanFlood.daemon().floodTaskExecutor().removeTask( task.floodTask() );
 			log( "Removed flood task: " + id );
 		} else {
@@ -62,6 +62,7 @@ public class AbstractFlooder {
 		}
 	}
 
-	public void shutdown(){}
+	public void shutdown() {
+	}
 
 }

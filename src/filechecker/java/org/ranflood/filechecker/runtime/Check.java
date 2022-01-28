@@ -68,7 +68,7 @@ public class Check {
 									System.err.println( "Problem processing file: " + f + ", " + e.getMessage() );
 									return false;
 								}
-							} ).collect( Collectors.toList());
+							} ).collect( Collectors.toList() );
 			for ( Path f : files ) {
 				try {
 					String signature = getFileSignature( f );

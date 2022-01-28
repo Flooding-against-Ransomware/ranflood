@@ -56,27 +56,27 @@ public class ZMQ_JSON_Client {
 		socket.setReceiveTimeOut( timeout );
 	}
 
-	public static ZMQ_JSON_Client INSTANCE(){
+	public static ZMQ_JSON_Client INSTANCE() {
 		return INSTANCE;
 	}
 
-	public String sendCommand( SnapshotCommand.Add c ){
+	public String sendCommand( SnapshotCommand.Add c ) {
 		return _sendCommand( c );
 	}
 
-	public String sendCommand( SnapshotCommand.Remove c ){
+	public String sendCommand( SnapshotCommand.Remove c ) {
 		return _sendCommand( c );
 	}
 
-	public String sendCommand( FloodCommand.Start c ){
+	public String sendCommand( FloodCommand.Start c ) {
 		return _sendCommand( c );
 	}
 
-	public String sendCommand( FloodCommand.Stop c ){
+	public String sendCommand( FloodCommand.Stop c ) {
 		return _sendCommand( c );
 	}
 
-	@SuppressWarnings( "unchecked" )
+	@SuppressWarnings("unchecked")
 	public List< RanFloodType.Tagged > sendListCommand( FloodCommand.List c ) {
 		try {
 			return ( List< RanFloodType.Tagged > ) _sendList( JSONTranscoder.toJsonString( c ) );
@@ -86,7 +86,7 @@ public class ZMQ_JSON_Client {
 		return Collections.emptyList();
 	}
 
-	@SuppressWarnings( "unchecked" )
+	@SuppressWarnings("unchecked")
 	public List< RanFloodType > sendListCommand( SnapshotCommand.List c ) {
 		try {
 			return ( List< RanFloodType > ) _sendList( JSONTranscoder.toJsonString( c ) );
@@ -98,7 +98,7 @@ public class ZMQ_JSON_Client {
 
 	// UTILITY METHODS
 
-	private List< ? extends RanFloodType > _sendList( String listCommand ){
+	private List< ? extends RanFloodType > _sendList( String listCommand ) {
 		try {
 			String response = _rr( listCommand );
 			return JSONTranscoder.parseFloodList( response );
@@ -108,7 +108,7 @@ public class ZMQ_JSON_Client {
 		}
 	}
 
-	private String _sendCommand( Command<?> c ){
+	private String _sendCommand( Command< ? > c ) {
 		try {
 			return _rr( JSONTranscoder.toJsonString( c ) );
 		} catch ( ParseException | IOException e ) {
@@ -119,7 +119,7 @@ public class ZMQ_JSON_Client {
 	private String _rr( String s ) throws IOException {
 		socket.send( s );
 		byte[] response = socket.recv();
-		if( response != null ){
+		if ( response != null ) {
 			return new String( response, ZMQ.CHARSET );
 		} else {
 			throw new IOException( "Request timeout" );

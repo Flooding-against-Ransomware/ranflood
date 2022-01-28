@@ -62,12 +62,14 @@ public class ZMQ_JSON_Server {
 						try {
 							Command< ? > command = bindToImpl( JSONTranscoder.fromJson( request ) );
 							if ( command.isAsync() ) {
-								Object result = command.execute();
-								if ( result instanceof CommandResult.Successful ) {
-									log( ( ( CommandResult.Successful ) result ).message() );
-								} else {
-									error( ( ( CommandResult.Failed ) result ).message() );
-								}
+								RanFlood.daemon().executeCommand( () -> {
+									Object result = command.execute();
+									if ( result instanceof CommandResult.Successful ) {
+										log( ( ( CommandResult.Successful ) result ).message() );
+									} else {
+										error( ( ( CommandResult.Failed ) result ).message() );
+									}
+								} );
 								socket.send( JSONTranscoder.wrapSuccess( "Command " + command.name() + " issued." ) );
 							} else {
 								List< ? extends RanFloodType > l =

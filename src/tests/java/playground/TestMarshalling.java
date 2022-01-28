@@ -43,12 +43,12 @@ public class TestMarshalling {
 	public static void main( String[] args ) {
 
 		List< Command< ? > > l = List.of(
-			new SnapshotCommand.Add( new RanFloodType( FloodMethod.RANDOM, Path.of( "." ) ) ),
-			new SnapshotCommand.Remove( new RanFloodType( FloodMethod.RANDOM, Path.of( "." ) ) ),
-			new SnapshotCommand.List(),
-			new FloodCommand.Start( new RanFloodType( FloodMethod.RANDOM, Path.of( "." ) ) ),
-			new FloodCommand.Stop( FloodMethod.RANDOM, UUID.randomUUID().toString() ),
-			new FloodCommand.List()
+						new SnapshotCommand.Add( new RanFloodType( FloodMethod.RANDOM, Path.of( "." ) ) ),
+						new SnapshotCommand.Remove( new RanFloodType( FloodMethod.RANDOM, Path.of( "." ) ) ),
+						new SnapshotCommand.List(),
+						new FloodCommand.Start( new RanFloodType( FloodMethod.RANDOM, Path.of( "." ) ) ),
+						new FloodCommand.Stop( FloodMethod.RANDOM, UUID.randomUUID().toString() ),
+						new FloodCommand.List()
 		);
 
 		ExecutorService serverThread = Executors.newSingleThreadExecutor();
@@ -61,7 +61,7 @@ public class TestMarshalling {
 					System.out.println( "Server waiting for reception" );
 					byte[] message = socket.recv();
 					String request = new String( message, ZMQ.CHARSET );
-					if( request.equals( "close" ) ){
+					if ( request.equals( "close" ) ) {
 						context.close();
 					} else {
 						System.out.println( "Received \n" + request );
@@ -72,8 +72,7 @@ public class TestMarshalling {
 				}
 				context.destroy();
 				serverThread.shutdown();
-			}
-			catch ( ParseException e ) {
+			} catch ( ParseException e ) {
 				e.printStackTrace();
 			}
 		} );
@@ -94,7 +93,7 @@ public class TestMarshalling {
 					byte[] byteReply = socket.recv();
 					String response = new String( byteReply, ZMQ.CHARSET );
 					System.out.println( "Client received [" + response + "]" );
-				});
+				} );
 				socket.send( "close" );
 				socket.close();
 				context.destroy();

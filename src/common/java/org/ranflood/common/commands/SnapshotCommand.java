@@ -31,7 +31,8 @@ import static org.ranflood.common.RanFloodLogger.error;
 
 public class SnapshotCommand {
 
-	private SnapshotCommand(){}
+	private SnapshotCommand() {
+	}
 
 	public static class Add extends AbstractCommand< CommandResult > {
 

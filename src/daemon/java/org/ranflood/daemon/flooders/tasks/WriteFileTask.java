@@ -30,6 +30,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
+
 import static org.ranflood.common.RanFloodLogger.error;
 
 public class WriteFileTask implements FileTask {
@@ -59,8 +60,8 @@ public class WriteFileTask implements FileTask {
 		return () -> {
 			try {
 				File parentFolder = filePath.getParent().toFile();
-				if( !parentFolder.exists() ){
-					synchronized ( filePath ){
+				if ( !parentFolder.exists() ) {
+					synchronized ( filePath ) {
 						parentFolder.mkdirs();
 					}
 				}
@@ -68,7 +69,7 @@ public class WriteFileTask implements FileTask {
 				f.write( content );
 				f.close();
 			} catch ( IOException e ) {
-					error( e.getMessage() );
+				error( e.getMessage() );
 			}
 		};
 	}

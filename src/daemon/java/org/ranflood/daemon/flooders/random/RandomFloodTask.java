@@ -50,18 +50,18 @@ public class RandomFloodTask extends FloodTaskGenerator {
 	@Override
 	public List< WriteFileTask > getFileTasks() {
 		return IntStream.range( 0, 100 ).mapToObj( i -> {
-		Path filePath = Path.of(
-						this.filePath().toAbsolutePath() + File.separator
-										+ Nomen.randomName()
-										+ FILE_EXTESIONS.get( rng.nextInt( FILE_EXTESIONS.size() ) ) );
-		return new WriteFileTask( filePath, getCachedRandomBytes(), this.floodMethod() );
-		} ).collect( Collectors.toList());
+			Path filePath = Path.of(
+							this.filePath().toAbsolutePath() + File.separator
+											+ Nomen.randomName()
+											+ FILE_EXTESIONS.get( rng.nextInt( FILE_EXTESIONS.size() ) ) );
+			return new WriteFileTask( filePath, getCachedRandomBytes(), this.floodMethod() );
+		} ).collect( Collectors.toList() );
 	}
 
 	private static final ArrayList< String > FILE_EXTESIONS = new ArrayList<>(
-			Arrays.asList( ".doc", ".docx", ".odt", ".txt", ".pdf", ".xls", ".xlsx", ".ods",
-			".ppt", ".pptx", ".jpeg", ".jps", ".gif", ".png", ".mov", ".avi",
-			".mp4", ".mpeg", ".mp3", ".wav", ".ogg" )
+					Arrays.asList( ".doc", ".docx", ".odt", ".txt", ".pdf", ".xls", ".xlsx", ".ods",
+									".ppt", ".pptx", ".jpeg", ".jps", ".gif", ".png", ".mov", ".avi",
+									".mp4", ".mpeg", ".mp3", ".wav", ".ogg" )
 	);
 
 	private static final Random rng = new Random();
@@ -70,12 +70,12 @@ public class RandomFloodTask extends FloodTaskGenerator {
 	private static int cacheCursor = 0;
 	private static final int cache_value_max_usage = 8;
 
-	private static byte[] getCachedRandomBytes(){
+	private static byte[] getCachedRandomBytes() {
 		byte[] content;
 		randomCacheLock.lock();
 		cacheCursor = ( cacheCursor + 1 ) % randomCache.length;
-		if( randomCache[ cacheCursor ] == null
-						|| randomCache[ cacheCursor ].left().get() > cache_value_max_usage ){
+		if ( randomCache[ cacheCursor ] == null
+						|| randomCache[ cacheCursor ].left().get() > cache_value_max_usage ) {
 			int randomSize = rng.nextInt( Double.valueOf( Math.pow( 2, 22 ) ).intValue() )
 							+ Double.valueOf( Math.pow( 2, 7 ) ).intValue();
 			ByteBuffer b = ByteBuffer.allocate( randomSize );
@@ -86,7 +86,7 @@ public class RandomFloodTask extends FloodTaskGenerator {
 				seed ^= ( seed << 17 );
 				b.putLong( seed );
 			}
-			if( b.remaining() > 0 ){
+			if ( b.remaining() > 0 ) {
 				byte[] r = new byte[ b.remaining() ];
 				new Random().nextBytes( r );
 				b.put( r );

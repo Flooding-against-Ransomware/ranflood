@@ -34,13 +34,13 @@ public abstract class FloodTask {
 		this.floodMethod = floodMethod;
 	}
 
-	public Path filePath(){
+	public Path filePath() {
 		return filePath;
-	};
+	}
 
-	public FloodMethod floodMethod(){
+	public FloodMethod floodMethod() {
 		return floodMethod;
-	};
+	}
 
 	public abstract Runnable getRunnableTask();
 

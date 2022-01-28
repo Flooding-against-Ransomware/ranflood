@@ -36,7 +36,7 @@ public class TestClient {
 
 		String UUID = "3a586d04-9670-462f-8fb4-76809eb4d34a";
 
-		if( UUID.isEmpty() ){
+		if ( UUID.isEmpty() ) {
 			callClient( "flood", "start", "random", folder1 );
 			Thread.sleep( 1_000 );
 			callClient( "flood", "list" );
@@ -46,7 +46,7 @@ public class TestClient {
 
 	}
 
-	private static void callClient( String... s ){
+	private static void callClient( String... s ) {
 		RanFlood.run( s );
 	}
 

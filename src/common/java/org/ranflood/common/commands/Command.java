@@ -27,7 +27,7 @@ public interface Command< T > {
 
 	String name();
 
-	default boolean isAsync(){
+	default boolean isAsync() {
 		return true;
 	}
 

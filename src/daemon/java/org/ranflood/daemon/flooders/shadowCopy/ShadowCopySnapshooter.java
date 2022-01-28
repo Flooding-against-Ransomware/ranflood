@@ -110,7 +110,7 @@ public class ShadowCopySnapshooter extends Snapshooter {
 
 										@Override
 										public FileVisitResult visitFile( Path file, BasicFileAttributes attrs ) throws IOException {
-											if( ! Files.isSymbolicLink( file ) && file.toFile().canRead() ) {
+											if ( !Files.isSymbolicLink( file ) && file.toFile().canRead() ) {
 												TarArchiveEntry e = new TarArchiveEntry( file, filePath.relativize( file ).toString() );
 												try ( FileInputStream is = new FileInputStream( file.toFile() ) ) {
 													tarOut.putArchiveEntry( e );

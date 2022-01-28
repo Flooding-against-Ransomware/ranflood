@@ -23,7 +23,7 @@ package org.ranflood.common.commands;
 
 import org.ranflood.common.commands.types.RanFloodType;
 
-public abstract class AbstractCommand< T > implements Command< T >{
+public abstract class AbstractCommand< T > implements Command< T > {
 
 	private final RanFloodType type;
 	private final String name;

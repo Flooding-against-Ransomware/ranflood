@@ -34,7 +34,7 @@ public class RandomFlooder extends AbstractFlooder {
 	private final static FloodMethod METHOD = FloodMethod.RANDOM;
 
 	@Override
-	public UUID flood( Path targetFolder ){
+	public UUID flood( Path targetFolder ) {
 		RandomFloodTask t = new RandomFloodTask( targetFolder, METHOD );
 		UUID id = UUID.randomUUID();
 //		log( "Adding task: " + id );
