@@ -83,21 +83,6 @@ public class ShadowCopySnapshooter extends Snapshooter {
 				try ( TarArchiveOutputStream tarOut = new TarArchiveOutputStream(
 								new BufferedOutputStream( Files.newOutputStream( tarFile ) ) ) ) {
 					tarOut.setLongFileMode( TarArchiveOutputStream.LONGFILE_POSIX );
-//					Files.walk( filePath )
-//									.map( Path::toFile )
-//									.filter( file -> ! file.isDirectory() && ! Files.isSymbolicLink( file.toPath() ) )
-//									.forEach( f -> {
-//										TarArchiveEntry e = new TarArchiveEntry( f, filePath.relativize( f.toPath() ).toString() );
-//										try ( FileInputStream is = new FileInputStream( f ) ) {
-//											tarOut.putArchiveEntry( e );
-//											IOUtils.copy( is, tarOut );
-//											tarOut.closeArchiveEntry();
-//										} catch ( IOException exception ) {
-//											error( "Could not include file " + f.toPath().toAbsolutePath() + " in the archive: " +
-//															exception.getMessage()
-//											);
-//										}
-//									} );
 					Files.walkFileTree( filePath, new FileVisitor<>() {
 										@Override
 										public FileVisitResult preVisitDirectory( Path dir, BasicFileAttributes attrs ) throws IOException {

@@ -83,27 +83,35 @@ public class OnTheFlySnapshooter extends Snapshooter {
 
 	static private void recordSignatures( Path filepath, Store db, Transaction transaction ) {
 		File folder = filepath.toFile();
-		Arrays.stream( Objects.requireNonNull( folder.listFiles() ) )
-						.filter( File::canRead )
-						.filter( f -> !Files.isSymbolicLink( f.toPath() ) )
-						.forEach( f -> {
-							if ( f.isFile() ) {
-								try {
-									db.put( transaction,
-													StringBinding.stringToEntry( f.getAbsolutePath() ),
-													StringBinding.stringToEntry( OnTheFlySnapshooter.getFileSignature( f.toPath() ) )
-									);
-								} catch ( IOException | NoSuchAlgorithmException e ) {
-									error( "An error occurred when taking the signature for "
-													+ METHOD + " of " + f.getAbsolutePath()
-													+ " : " + e.getMessage()
-									);
+		try {
+			Arrays.stream( Objects.requireNonNull( folder.listFiles() ) )
+							.filter( File::canRead )
+							.filter( f -> !Files.isSymbolicLink( f.toPath() ) )
+							.forEach( f -> {
+								if ( f.isFile() ) {
+									try {
+										db.put( transaction,
+														StringBinding.stringToEntry( f.getAbsolutePath() ),
+														StringBinding.stringToEntry( OnTheFlySnapshooter.getFileSignature( f.toPath() ) )
+										);
+									} catch ( IOException | NoSuchAlgorithmException e ) {
+										error( "An error occurred when taking the signature for "
+														+ METHOD + " of " + f.getAbsolutePath()
+														+ " : " + e.getMessage()
+										);
+									}
 								}
-							}
-							if ( f.isDirectory() && !INSTANCE.exclusionList.contains( f.getName() ) ) {
-								recordSignatures( f.toPath(), db, transaction );
-							}
-						} );
+								if ( f.isDirectory() && !INSTANCE.exclusionList.contains( f.getName() ) ) {
+									recordSignatures( f.toPath(), db, transaction );
+								}
+							} );
+		} catch ( Exception e ){
+			error( "An error occurred when taking the signature for "
+							+ METHOD + " of some files in " + filepath
+							+ " : " + e.getMessage()
+			);
+		}
+
 	}
 
 	static String getSnapshot( Path snapshotParent, Path filepath ) throws SnapshotException {

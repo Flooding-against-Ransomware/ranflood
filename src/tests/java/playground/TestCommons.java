@@ -25,7 +25,7 @@ import java.nio.file.Paths;
 
 public class TestCommons {
 
-	public static final String settings_file = Paths.get( "C:\\Users\\thesave\\Desktop\\ranflood\\ranflood\\src\\tests\\java\\playground\\settings.ini" ).toAbsolutePath().toString();
+	public static final String settings_file = Paths.get( "/Users/thesave/projects/ranflood/src/tests/java/playground/settings.ini" ).toAbsolutePath().toString();
 
 	public static String[] getArgs() {
 		return new String[]{ settings_file };
