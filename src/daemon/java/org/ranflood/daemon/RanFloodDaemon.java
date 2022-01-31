@@ -135,6 +135,7 @@ public class RanFloodDaemon {
 		commandExecutor.shutdown();
 		scheduler.shutdown();
 		ON_THE_FLY_FLOODER.shutdown();
+		System.exit( 0 );
 	}
 
 	public void start() {

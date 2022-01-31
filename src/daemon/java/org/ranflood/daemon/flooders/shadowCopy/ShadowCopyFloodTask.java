@@ -75,6 +75,6 @@ public class ShadowCopyFloodTask extends FloodTaskGenerator {
 
 	@Override
 	public List< WriteFileTask > getFileTasks() {
-		return List.copyOf( tasks );
+		return tasks;
 	}
 }

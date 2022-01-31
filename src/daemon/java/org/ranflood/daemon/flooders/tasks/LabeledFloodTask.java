@@ -25,9 +25,9 @@ import java.util.UUID;
 
 public class LabeledFloodTask {
 	private final UUID label;
-	private final FloodTask floodTask;
+	private final FloodTaskGenerator floodTask;
 
-	public LabeledFloodTask( UUID label, FloodTask floodTask ) {
+	public LabeledFloodTask( UUID label, FloodTaskGenerator floodTask ) {
 		this.label = label;
 		this.floodTask = floodTask;
 	}
@@ -36,7 +36,7 @@ public class LabeledFloodTask {
 		return label;
 	}
 
-	public FloodTask floodTask() {
+	public FloodTaskGenerator floodTask() {
 		return floodTask;
 	}
 }

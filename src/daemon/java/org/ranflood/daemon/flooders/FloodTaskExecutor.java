@@ -21,13 +21,20 @@
 
 package org.ranflood.daemon.flooders;
 
+import static org.ranflood.common.RanFloodLogger.error;
 import static org.ranflood.common.RanFloodLogger.log;
 
+import org.ranflood.daemon.RanFlood;
 import org.ranflood.daemon.RanFloodDaemon;
+import org.ranflood.daemon.flooders.onTheFly.OnTheFlyFloodTask;
+import org.ranflood.daemon.flooders.random.RandomFloodTask;
+import org.ranflood.daemon.flooders.shadowCopy.ShadowCopyFloodTask;
 import org.ranflood.daemon.flooders.tasks.FileTask;
 import org.ranflood.daemon.flooders.tasks.FloodTask;
 import org.ranflood.daemon.flooders.tasks.FloodTaskGenerator;
+import org.ranflood.daemon.flooders.tasks.LabeledFloodTask;
 
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
@@ -39,23 +46,33 @@ public class FloodTaskExecutor {
 	static private final LinkedList< TaskStateManager > taskList = new LinkedList<>();
 	private final ReentrantLock taskListLock = new ReentrantLock();
 
+	private static class TaskStateException extends Exception {
+		public TaskStateException( String message ) {
+			super( message );
+		}
+	}
+
 	private static class TaskStateManager {
-		final private FloodTaskGenerator main;
+		final private LabeledFloodTask main;
 		final private List< FileTask > tasks;
 
-		public TaskStateManager( FloodTaskGenerator main ) {
+		public TaskStateManager( LabeledFloodTask main ) {
 			this.main = main;
 			this.tasks = new LinkedList<>();
 		}
 
-		public FileTask getNextTask() {
+		public FileTask getNextTask() throws TaskStateException {
 			if ( tasks.isEmpty() ) {
-				tasks.addAll( main.getFileTasks() );
+				tasks.addAll( main.floodTask().getFileTasks() );
 			}
-			return tasks.remove( 0 );
+			if( tasks.isEmpty() ){
+				throw new TaskStateException( "Cannot load new tasks");
+			} else {
+				return tasks.remove( 0 );
+			}
 		}
 
-		public FloodTaskGenerator main() {
+		public LabeledFloodTask main() {
 			return main;
 		}
 	}
@@ -64,7 +81,7 @@ public class FloodTaskExecutor {
 		return INSTANCE;
 	}
 
-	public void addTask( FloodTaskGenerator t ) {
+	public void addTask( LabeledFloodTask t ) {
 		taskListLock.lock();
 		taskList.add( new TaskStateManager( t ) );
 		taskListLock.unlock();
@@ -79,17 +96,32 @@ public class FloodTaskExecutor {
 			} else {
 				TaskStateManager t = taskList.remove( 0 );
 				taskListLock.unlock();
-				FileTask ft = t.getNextTask(); // getNextTask can be IO/computation heavy
-				taskListLock.lock();
-				taskList.add( t );
-				taskListLock.unlock();
-				signalExecution(); // we launch the next iteration
-				ft.getRunnableTask().run(); // we execute this FileTask
+				try {
+					FileTask ft = t.getNextTask(); // getNextTask can be IO/computation heavy
+					taskListLock.lock();
+					taskList.add( t );
+					taskListLock.unlock();
+					signalExecution(); // we launch the next iteration
+					ft.getRunnableTask().run(); // we execute this FileTask
+				} catch ( TaskStateException e ) {
+					log( "Task " + t.main.label() + " has 0 remaining tasks, stopping it" );
+					try {
+						if( t.main.floodTask() instanceof OnTheFlyFloodTask ){
+							RanFlood.daemon().onTheFlyFlooder().stopFlood( t.main.label() );
+						} else if( t.main.floodTask() instanceof ShadowCopyFloodTask ){
+							RanFlood.daemon().shadowCopyFlooder().stopFlood( t.main.label() );
+						} else if( t.main.floodTask() instanceof RandomFloodTask ){
+							RanFlood.daemon().randomFlooder().stopFlood( t.main.label() );
+						}
+					} catch ( FlooderException ex ) {
+						error( ex.getMessage() );
+					}
+				}
 			}
 		} );
 	}
 
-	public void removeTask( FloodTask t ) {
+	public void removeTask( LabeledFloodTask t ) {
 		taskListLock.lock();
 		taskList.removeIf( tsm -> tsm.main() == t );
 		taskListLock.unlock();

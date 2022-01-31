@@ -37,9 +37,9 @@ public class RandomFlooder extends AbstractFlooder {
 	public UUID flood( Path targetFolder ) {
 		RandomFloodTask t = new RandomFloodTask( targetFolder, METHOD );
 		UUID id = UUID.randomUUID();
-//		log( "Adding task: " + id );
-		addRunningTask( new LabeledFloodTask( id, t ) );
-		RanFlood.daemon().floodTaskExecutor().addTask( t );
+		LabeledFloodTask lft = new LabeledFloodTask( id, t );
+		addRunningTask( lft );
+		RanFlood.daemon().floodTaskExecutor().addTask( lft );
 		return id;
 	}
 

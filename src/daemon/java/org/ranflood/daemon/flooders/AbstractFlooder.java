@@ -55,7 +55,7 @@ public class AbstractFlooder {
 	public void stopFlood( UUID id ) throws FlooderException {
 		LabeledFloodTask task = runningTasks.remove( id );
 		if ( task != null ) {
-			RanFlood.daemon().floodTaskExecutor().removeTask( task.floodTask() );
+			RanFlood.daemon().floodTaskExecutor().removeTask( task );
 			log( "Removed flood task: " + id );
 		} else {
 			throw new FlooderException( "Could not find and remove task: " + id );
