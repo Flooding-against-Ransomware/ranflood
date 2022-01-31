@@ -49,16 +49,16 @@ public class SnapshotCommandImpl {
 				case ON_THE_FLY:
 					try {
 						RanFlood.daemon().onTheFlyFlooder().takeSnapshot( this.type().path() );
-						return new CommandResult.Successful( "Creation snapshot for the on-the-fly flooder" );
+						return new CommandResult.Successful( "Created snapshot for the on-the-fly flooder at " + this.type().path() );
 					} catch ( SnapshotException e ) {
 						return new CommandResult.Failed( "Could not issue the creation of a snapshot for the on-the-fly flooder: " + e.getMessage() );
 					}
 				case SHADOW_COPY:
 					try {
 						RanFlood.daemon().shadowCopyFlooder().takeSnapshot( this.type().path() );
-						return new CommandResult.Successful( "Creation snapshot for the shadow-copy flooder" );
+						return new CommandResult.Successful( "Created snapshot for the shadow-copy flooder at " + this.type().path() );
 					} catch ( SnapshotException e ) {
-						return new CommandResult.Failed( "Could not issue the creation of a snapshot for the on-the-fly flooder: " + e.getMessage() );
+						return new CommandResult.Failed( "Could not issue the creation of a snapshot for the shadow-copy flooder: " + e.getMessage() );
 					}
 				default:
 					return new CommandResult.Failed( "Unrecognized method: " + this.type().method().name() );

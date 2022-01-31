@@ -204,7 +204,25 @@ public class JSONTranscoder {
 		}
 	}
 
-	public static List< ? extends RanFloodType > parseFloodList( String list ) throws IOException {
+	public static List< ? extends RanFloodType > parseDaemonCommandList( String list ) throws IOException {
+		Json.Object object = Json.parse( list ).asObject();
+		Json.Array array = object.getArray( "list" );
+		return IntStream.range( 0, array.size() )
+						.mapToObj( i -> {
+							Json.Object e = array.getObject( i );
+							try {
+								FloodMethod m = FloodMethod.getMethod( e.getString( "method" ) );
+								Path p = Path.of( e.getString( "path" ) );
+								String id = e.getString( "id" );
+								return ( id == null ) ? new RanFloodType( m, p ) : new RanFloodType.Tagged( m, p, id );
+							} catch ( ParseException parseException ) {
+								parseException.printStackTrace();
+								return null;
+							}
+						} ).collect( Collectors.toList() );
+	}
+
+	public static List< ? extends RanFloodType > parseSnapshotList( String list ) throws IOException {
 		Json.Object object = Json.parse( list ).asObject();
 		Json.Array array = object.getArray( "list" );
 		return IntStream.range( 0, array.size() )

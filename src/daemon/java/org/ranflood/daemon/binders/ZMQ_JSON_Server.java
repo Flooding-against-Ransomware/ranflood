@@ -53,7 +53,7 @@ public class ZMQ_JSON_Server {
 		ZMQ.Socket socket = context.createSocket( SocketType.REP );
 		socket.bind( address );
 		log( "Server started at " + address + ", accepting requests from clients" );
-		RanFlood.daemon().executeCommand( () -> {
+		RanFlood.daemon().executeServer( () -> {
 			while ( !context.isClosed() ) {
 				try {
 					String request = new String( socket.recv(), ZMQ.CHARSET );

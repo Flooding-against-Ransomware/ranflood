@@ -39,7 +39,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import static org.ranflood.common.RanFloodLogger.log;
-import static org.ranflood.common.commands.transcoders.JSONTranscoder.parseFloodList;
+import static org.ranflood.common.commands.transcoders.JSONTranscoder.parseDaemonCommandList;
 
 public class TestDaemon {
 
@@ -67,7 +67,7 @@ public class TestDaemon {
 		// THIS SHOULD BE OK
 		String runningList = sendCommandList( new FloodCommand.List() );
 		log( runningList );
-		List< RanFloodType.Tagged > list = ( List< RanFloodType.Tagged > ) parseFloodList( runningList );
+		List< RanFloodType.Tagged > list = ( List< RanFloodType.Tagged > ) parseDaemonCommandList( runningList );
 
 		// THIS SHOULD BE OK
 		sendCommand( new FloodCommand.Stop(
@@ -97,7 +97,7 @@ public class TestDaemon {
 			log( "Retrieving list of running floods" );
 			runningList = sendCommandList( new FloodCommand.List() );
 			log( runningList );
-			list = ( List< RanFloodType.Tagged > ) parseFloodList( runningList );
+			list = ( List< RanFloodType.Tagged > ) parseDaemonCommandList( runningList );
 			Thread.sleep( 1000 );
 		} while ( list.isEmpty() );
 

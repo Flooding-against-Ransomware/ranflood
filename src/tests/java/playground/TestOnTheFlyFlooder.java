@@ -43,7 +43,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import static org.ranflood.common.RanFloodLogger.log;
-import static org.ranflood.common.commands.transcoders.JSONTranscoder.parseFloodList;
+import static org.ranflood.common.commands.transcoders.JSONTranscoder.parseDaemonCommandList;
 
 
 public class TestOnTheFlyFlooder {
@@ -89,7 +89,7 @@ public class TestOnTheFlyFlooder {
 			log( "Retrieving list of running floods" );
 			String runningList = sendCommandList( new FloodCommand.List() );
 			log( runningList );
-			list = ( List< RanFloodType.Tagged > ) parseFloodList( runningList );
+			list = ( List< RanFloodType.Tagged > ) parseDaemonCommandList( runningList );
 			Thread.sleep( 1000 );
 		} while ( list.isEmpty() );
 

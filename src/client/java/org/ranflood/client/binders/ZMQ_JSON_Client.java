@@ -101,7 +101,7 @@ public class ZMQ_JSON_Client {
 	private List< ? extends RanFloodType > _sendList( String listCommand ) {
 		try {
 			String response = _rr( listCommand );
-			return JSONTranscoder.parseFloodList( response );
+			return JSONTranscoder.parseDaemonCommandList( response );
 		} catch ( IOException e ) {
 			error( e.getMessage() );
 			return Collections.emptyList();

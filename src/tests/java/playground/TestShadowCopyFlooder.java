@@ -29,24 +29,18 @@ import org.ranflood.common.commands.transcoders.JSONTranscoder;
 import org.ranflood.common.commands.transcoders.ParseException;
 import org.ranflood.common.commands.types.RanFloodType;
 import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.RanFloodDaemon;
-import org.ranflood.daemon.flooders.FlooderException;
-import org.ranflood.daemon.flooders.SnapshotException;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 
 import static org.ranflood.common.RanFloodLogger.log;
-import static org.ranflood.common.commands.transcoders.JSONTranscoder.parseFloodList;
+import static org.ranflood.common.commands.transcoders.JSONTranscoder.parseDaemonCommandList;
 
 
 public class TestShadowCopyFlooder {
@@ -71,31 +65,35 @@ public class TestShadowCopyFlooder {
 		}
 
 		for ( Path filePath : filePaths ) {
-
 			sendCommand( new SnapshotCommand.Add(
 							new RanFloodType( FloodMethod.SHADOW_COPY, filePath ) )
 			);
-			Thread.sleep( 1000 );
+		}
 
-			log( sendCommandList( new SnapshotCommand.List() ) );
-			Thread.sleep( 1000 );
 
+		List< RanFloodType.Tagged > list;
+		do {
+			log( "Retrieving list of available snapshots" );
+			String runningList = sendCommandList( new SnapshotCommand.List() );
+			log( runningList );
+			list = ( List< RanFloodType.Tagged > ) parseDaemonCommandList( runningList );
+			Thread.sleep( 1000 );
+		} while ( list.size() < filePaths.size() );
+
+		for ( Path filePath : filePaths ) {
 			sendCommand( new FloodCommand.Start(
 							new RanFloodType( FloodMethod.SHADOW_COPY, filePath )
 			) );
-			Thread.sleep( 1000 );
 		}
+		Thread.sleep( 1000 );
 
-		// THIS SHOULD BE OK
-		List< RanFloodType.Tagged > list;
 		do {
 			log( "Retrieving list of running floods" );
 			String runningList = sendCommandList( new FloodCommand.List() );
 			log( runningList );
-			list = ( List< RanFloodType.Tagged > ) parseFloodList( runningList );
+			list = ( List< RanFloodType.Tagged > ) parseDaemonCommandList( runningList );
 			Thread.sleep( 1000 );
-		} while ( list.isEmpty() );
-
+		} while ( list.size() < filePaths.size() );
 
 		for ( RanFloodType.Tagged rftt : list ) {
 			// THIS SHOULD BE OK
@@ -106,64 +104,44 @@ public class TestShadowCopyFlooder {
 		}
 		Thread.sleep( 1000 );
 
-		sendString( "shutdown" );
+		RanFlood.daemon().shutdown();
+
+//		sendString( "shutdown" );
 
 //		Thread.sleep( 1000 );
 		//RanFlood.getDaemon().shutdown();
 	}
 
-	public static void _main( String[] args ) throws FlooderException, SnapshotException, InterruptedException {
-		RanFlood.main( TestCommons.getArgs() );
-		RanFloodDaemon daemon = RanFlood.daemon();
-		Path filePath1 = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/Other" );
-		Path filePath2 = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/Other 2" );
-
-//			if ( Arrays.stream( filePath.toFile().listFiles() ).filter( File::isDirectory ).count() < 1 ){
-//				createTestStructure( filePath );
-//			}
-
-		daemon.shadowCopyFlooder().takeSnapshot( filePath1 );
-		daemon.shadowCopyFlooder().takeSnapshot( filePath2 );
-
-		// WE LAUNCH THE ON_THE_FLY FLOODER
-		UUID id1 = daemon.shadowCopyFlooder().flood( filePath1 );
-		log( "Launched flooder: " + id1 );
-
-		Thread.sleep( 1000 );
-
-		UUID id2 = daemon.shadowCopyFlooder().flood( filePath2 );
-
-		Thread.sleep( 1000 );
-
-		log( "STOPPING" );
-		daemon.shadowCopyFlooder().stopFlood( id1 );
-		daemon.shadowCopyFlooder().stopFlood( id2 );
-
-		Thread.sleep( 1000 );
-
-		log( "REMOVING SNAPSHOTS" );
-		daemon.shadowCopyFlooder().removeSnapshot( filePath1 );
-		daemon.shadowCopyFlooder().removeSnapshot( filePath2 );
-		daemon.shutdown();
-
-	}
-
-	private static void createTestStructure( Path root ) {
+	private static void createTestStructure( Path root ) throws IOException, InterruptedException {
 		log( "Creating test folders structure" );
-		RanFloodDaemon daemon = RanFlood.daemon();
 		List< Path > l = Arrays.asList(
 						root.resolve( "Application Data" ), root.resolve( "Application Data" ).resolve( "Other" ),
 						root.resolve( "Other" ), root.resolve( "Other 2" )
 		);
 		l.forEach( f -> {
-			try {
-				UUID id = daemon.randomFlooder().flood( f );
-				Thread.sleep( 100 );
-				daemon.randomFlooder().stopFlood( id );
-			} catch ( InterruptedException | FlooderException e ) {
-				e.printStackTrace();
-			}
+			sendCommand( new FloodCommand.Start(
+							new RanFloodType( FloodMethod.RANDOM, f )
+			) );
 		} );
+		Thread.sleep( 1000 );
+		// THIS SHOULD BE OK
+		List< RanFloodType.Tagged > list;
+		do {
+			log( "Retrieving list of running floods" );
+			String runningList = sendCommandList( new FloodCommand.List() );
+			log( runningList );
+			list = ( List< RanFloodType.Tagged > ) parseDaemonCommandList( runningList );
+			Thread.sleep( 250 );
+		} while ( list.size() < l.size() );
+
+		for ( RanFloodType.Tagged rftt : list ) {
+			// THIS SHOULD BE OK
+			sendCommand( new FloodCommand.Stop(
+							rftt.method(),
+							rftt.id()
+			) );
+		}
+		Thread.sleep( 1000 );
 	}
 
 	private static void sendCommand( Command< ? > c ) {

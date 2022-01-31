@@ -46,7 +46,8 @@ import static org.ranflood.common.RanFloodLogger.log;
 public class RanFloodDaemon {
 
 	private final FloodTaskExecutor floodTaskExecutor = FloodTaskExecutor.getInstance();
-	private final ExecutorService commandExecutor = Executors.newFixedThreadPool( 2 * Runtime.getRuntime().availableProcessors() );
+	private static final ExecutorService serverExecutor = Executors.newFixedThreadPool( 1 );
+	private static final ExecutorService commandExecutor = Executors.newFixedThreadPool( 2 * Runtime.getRuntime().availableProcessors() );
 	private static final ExecutorService scheduler = Executors.newFixedThreadPool( 2 * Runtime.getRuntime().availableProcessors() );
 	private final RandomFlooder RANDOM_FLOODER = new RandomFlooder();
 	private final OnTheFlyFlooder ON_THE_FLY_FLOODER;
@@ -106,6 +107,10 @@ public class RanFloodDaemon {
 		commandExecutor.submit( r );
 	}
 
+	public void executeServer( Runnable r ){
+		serverExecutor.submit( r );
+	}
+
 	public FloodTaskExecutor floodTaskExecutor() {
 		return floodTaskExecutor;
 	}
@@ -126,6 +131,7 @@ public class RanFloodDaemon {
 		ZMQ_JSON_Server.shutdown();
 		floodTaskExecutor.shutdown();
 		emitter.onComplete();
+		serverExecutor.shutdown();
 		commandExecutor.shutdown();
 		scheduler.shutdown();
 		ON_THE_FLY_FLOODER.shutdown();
