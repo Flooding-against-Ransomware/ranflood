@@ -61,11 +61,17 @@ public class Flood implements Callable< Integer > {
 	)
 	static class List implements Callable< Integer > {
 
+		@CommandLine.Option(names = { "-t", "--timeout" }, description = "Set the call timeout of the client in seconds (default is 10)")
+		private Integer timeout = 10;
+
+		@CommandLine.Option(names = { "-a", "--address" }, description = "Set the address of the daemon (default is \"tcp://localhost:7890\")")
+		private String address = "tcp://localhost:7890";
+
 		@Override
 		public Integer call() {
 			System.out.println( "Requesting the list of the running floods." );
 			FloodCommand.List c = new FloodCommand.List();
-			java.util.List< RanFloodType.Tagged > l = ZMQ_JSON_Client.INSTANCE().sendListCommand( c );
+			java.util.List< RanFloodType.Tagged > l = new ZMQ_JSON_Client( address, timeout ).sendListCommand( c );
 			if ( l.isEmpty() ) {
 				System.out.println( "There are no running floods at the moment." );
 			} else {
@@ -90,6 +96,12 @@ public class Flood implements Callable< Integer > {
 		@CommandLine.Parameters(index = "1..*", arity = "1..*")
 		Collection< File > targetFolders;
 
+		@CommandLine.Option(names = { "-t", "--timeout" }, description = "Set the call timeout of the client in seconds (default is 10)")
+		private Integer timeout = 10;
+
+		@CommandLine.Option(names = { "-a", "--address" }, description = "Set the address of the daemon (default is \"tcp://localhost:7890\")")
+		private String address = "tcp://localhost:7890";
+
 		@Override
 		public Integer call() {
 			System.out.println( "Requesting the start of the flooding." );
@@ -98,7 +110,7 @@ public class Flood implements Callable< Integer > {
 				targetFolders.forEach( t -> {
 					FloodCommand.Start c =
 									new FloodCommand.Start( new RanFloodType( m, t.toPath().toAbsolutePath() ) );
-					System.out.println( ZMQ_JSON_Client.INSTANCE().sendCommand( c ) );
+					System.out.println( new ZMQ_JSON_Client( address, timeout ).sendCommand( c ) );
 				} );
 				return 0;
 			} catch ( ParseException e ) {
@@ -121,6 +133,12 @@ public class Flood implements Callable< Integer > {
 		@CommandLine.Parameters(index = "1", arity = "1")
 		Collection< String > ids;
 
+		@CommandLine.Option(names = { "-t", "--timeout" }, description = "Set the call timeout of the client in seconds (default is 10)")
+		private Integer timeout = 10;
+
+		@CommandLine.Option(names = { "-a", "--address" }, description = "Set the address of the daemon (default is \"tcp://localhost:7890\")")
+		private String address = "tcp://localhost:7890";
+
 		@Override
 		public Integer call() {
 			System.out.println( "Requesting the stop of the flooding." );
@@ -129,7 +147,7 @@ public class Flood implements Callable< Integer > {
 				ids.forEach( id -> {
 					FloodCommand.Stop c =
 									new FloodCommand.Stop( m, id );
-					System.out.println( ZMQ_JSON_Client.INSTANCE().sendCommand( c ) );
+					System.out.println( new ZMQ_JSON_Client( address, timeout ).sendCommand( c ) );
 				} );
 				return 0;
 			} catch ( ParseException e ) {

@@ -67,6 +67,12 @@ public class Snapshot implements Callable< Integer > {
 		@CommandLine.Parameters(index = "1..*", arity = "1..*")
 		Collection< File > targetFolders;
 
+		@CommandLine.Option(names = { "-t", "--timeout" }, description = "Set the call timeout of the client in seconds (default is 10)")
+		private Integer timeout = 10;
+
+		@CommandLine.Option(names = { "-a", "--address" }, description = "Set the address of the daemon (default is \"tcp://localhost:7890\")")
+		private String address = "tcp://localhost:7890";
+
 		@Override
 		public Integer call() {
 			System.out.println( "Requesting the taking of snapshots of the following folders." );
@@ -75,7 +81,7 @@ public class Snapshot implements Callable< Integer > {
 				targetFolders.forEach( t -> {
 					SnapshotCommand.Add c =
 									new SnapshotCommand.Add( new RanFloodType( m, t.toPath().toAbsolutePath() ) );
-					System.out.println( ZMQ_JSON_Client.INSTANCE().sendCommand( c ) );
+					System.out.println( new ZMQ_JSON_Client( address, timeout ).sendCommand( c ) );
 				} );
 				return 0;
 			} catch ( ParseException e ) {
@@ -98,6 +104,12 @@ public class Snapshot implements Callable< Integer > {
 		@CommandLine.Parameters(index = "1..*", arity = "1..*")
 		Collection< File > targetFolders;
 
+		@CommandLine.Option(names = { "-t", "--timeout" }, description = "Set the call timeout of the client in seconds (default is 10)")
+		private Integer timeout = 10;
+
+		@CommandLine.Option(names = { "-a", "--address" }, description = "Set the address of the daemon (default is \"tcp://localhost:7890\")")
+		private String address = "tcp://localhost:7890";
+
 		@Override
 		public Integer call() {
 			System.out.println( "Requesting the removal of snapshots of the following folders." );
@@ -106,7 +118,7 @@ public class Snapshot implements Callable< Integer > {
 				targetFolders.forEach( t -> {
 					SnapshotCommand.Remove c =
 									new SnapshotCommand.Remove( new RanFloodType( m, t.toPath().toAbsolutePath() ) );
-					System.out.println( ZMQ_JSON_Client.INSTANCE().sendCommand( c ) );
+					System.out.println( new ZMQ_JSON_Client( address, timeout ).sendCommand( c ) );
 				} );
 				return 0;
 			} catch ( ParseException e ) {
@@ -123,11 +135,17 @@ public class Snapshot implements Callable< Integer > {
 	)
 	static class List implements Callable< Integer > {
 
+		@CommandLine.Option(names = { "-t", "--timeout" }, description = "Set the call timeout of the client in seconds (default is 10)")
+		private Integer timeout = 10;
+
+		@CommandLine.Option(names = { "-a", "--address" }, description = "Set the address of the daemon (default is \"tcp://localhost:7890\")")
+		private String address = "tcp://localhost:7890";
+
 		@Override
 		public Integer call() {
 			System.out.println( "Requesting the list of snapshots." );
 			SnapshotCommand.List c = new SnapshotCommand.List();
-			java.util.List< RanFloodType > l = ZMQ_JSON_Client.INSTANCE().sendListCommand( c );
+			java.util.List< RanFloodType > l = new ZMQ_JSON_Client( address, timeout ).sendListCommand( c );
 			if ( l.isEmpty() ) {
 				System.out.println( "There are no snapshots at the moment" );
 			} else {

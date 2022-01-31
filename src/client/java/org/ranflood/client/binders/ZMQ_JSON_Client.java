@@ -41,24 +41,19 @@ import static org.ranflood.common.RanFloodLogger.log;
 
 public class ZMQ_JSON_Client {
 
-	private static final ZMQ_JSON_Client INSTANCE = new ZMQ_JSON_Client();
 	private final ZContext context;
 	private final ZMQ.Socket socket;
 
-	private ZMQ_JSON_Client() {
-		String address = "tcp://localhost:7890";
-		int timeout = 10_000;
+	public ZMQ_JSON_Client( String address, Integer s_timeout ) {
+		int timeout = s_timeout*1000;
 		context = new ZContext();
 		socket = context.createSocket( SocketType.REQ );
-		log( "Connecting to address: " + address + " [HARD-CODED, MAKE PARAMETRIC]" );
+		log( "Connecting to address: " + address );
 		socket.connect( address );
-		log( "Setting request timeout to: " + timeout + " [HARD-CODED, MAKE PARAMETRIC]" );
+		log( "Setting request timeout to: " + timeout );
 		socket.setReceiveTimeOut( timeout );
 	}
 
-	public static ZMQ_JSON_Client INSTANCE() {
-		return INSTANCE;
-	}
 
 	public String sendCommand( SnapshotCommand.Add c ) {
 		return _sendCommand( c );

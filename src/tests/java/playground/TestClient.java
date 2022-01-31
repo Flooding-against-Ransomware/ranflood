@@ -37,11 +37,11 @@ public class TestClient {
 		String UUID = "3a586d04-9670-462f-8fb4-76809eb4d34a";
 
 		if ( UUID.isEmpty() ) {
-			callClient( "flood", "start", "random", folder1 );
+			callClient( "-t", "20", "flood", "start", "random", folder1 );
 			Thread.sleep( 1_000 );
 			callClient( "flood", "list" );
 		} else {
-			callClient( "flood", "stop", "random", UUID );
+			callClient( "flood", "stop", "random", "-t", "20", "-a", "tcp://localhost:6789", UUID );
 		}
 
 	}
