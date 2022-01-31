@@ -53,7 +53,7 @@ public class OnTheFlyFloodTask extends FloodTaskGenerator {
 
 	@Override
 	public List< WriteFileTask > getFileTasks() {
-		return tasks;
+		return List.copyOf( tasks );
 	}
 
 	@Override

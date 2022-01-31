@@ -95,6 +95,8 @@ public class TestShadowCopyFlooder {
 			Thread.sleep( 1000 );
 		} while ( list.size() < filePaths.size() );
 
+		Thread.sleep( 4000 );
+
 		for ( RanFloodType.Tagged rftt : list ) {
 			// THIS SHOULD BE OK
 			sendCommand( new FloodCommand.Stop(

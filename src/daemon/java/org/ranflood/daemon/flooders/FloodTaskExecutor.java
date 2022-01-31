@@ -30,13 +30,14 @@ import org.ranflood.daemon.flooders.tasks.FloodTaskGenerator;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class FloodTaskExecutor {
 
 	static private final FloodTaskExecutor INSTANCE = new FloodTaskExecutor();
 	static private final LinkedList< TaskStateManager > taskList = new LinkedList<>();
-	private final ReentrantReadWriteLock taskListLock = new ReentrantReadWriteLock();
+	private final ReentrantLock taskListLock = new ReentrantLock();
 
 	private static class TaskStateManager {
 		final private FloodTaskGenerator main;
@@ -64,24 +65,24 @@ public class FloodTaskExecutor {
 	}
 
 	public void addTask( FloodTaskGenerator t ) {
-		taskListLock.writeLock().lock();
+		taskListLock.lock();
 		taskList.add( new TaskStateManager( t ) );
-		taskListLock.writeLock().unlock();
+		taskListLock.unlock();
 		signalExecution();
 	}
 
 	private void signalExecution() {
 		RanFloodDaemon.executeIORunnable( () -> {
-			taskListLock.writeLock().lock();
+			taskListLock.lock();
 			if ( taskList.isEmpty() ) {
-				taskListLock.writeLock().unlock();
+				taskListLock.unlock();
 			} else {
 				TaskStateManager t = taskList.remove( 0 );
-				taskListLock.writeLock().unlock();
+				taskListLock.unlock();
 				FileTask ft = t.getNextTask(); // getNextTask can be IO/computation heavy
-				taskListLock.writeLock().lock();
+				taskListLock.lock();
 				taskList.add( t );
-				taskListLock.writeLock().unlock();
+				taskListLock.unlock();
 				signalExecution(); // we launch the next iteration
 				ft.getRunnableTask().run(); // we execute this FileTask
 			}
@@ -89,9 +90,9 @@ public class FloodTaskExecutor {
 	}
 
 	public void removeTask( FloodTask t ) {
-		taskListLock.writeLock().lock();
+		taskListLock.lock();
 		taskList.removeIf( tsm -> tsm.main() == t );
-		taskListLock.writeLock().unlock();
+		taskListLock.unlock();
 	}
 
 	public void shutdown() {
