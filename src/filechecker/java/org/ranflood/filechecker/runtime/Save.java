@@ -24,6 +24,7 @@ package org.ranflood.filechecker.runtime;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
@@ -46,17 +47,16 @@ public class Save {
 							try {
 								return Files.isRegularFile( f, LinkOption.NOFOLLOW_LINKS );
 							} catch ( Exception e ) {
-								System.err.println( "Problem processing file: " + f + ", " + e.getMessage() );
+								System.err.println( "Error '" + e.getMessage() + "' with file " +  f.toAbsolutePath() + ", skipping it." );
 								return false;
 							}
 						} )
 						.forEach( f -> {
 							try {
 								report.put( folder.toPath().toAbsolutePath().relativize( f.toAbsolutePath() ).toString(), getFileSignature( f ) );
-							} catch ( IOException | NoSuchAlgorithmException e ) {
-								System.err.println( "Problem processing file: " + f + ", " + e.getMessage() );
-							}
-						} );
+							} catch ( Exception e ) {
+								System.err.println( "Error '" + e.getMessage() + "' with file " +  f.toAbsolutePath() + ", skipping it." );
+						} } );
 		String reportContent = report.entrySet().stream()
 						.map( e -> e.getKey() + "," + e.getValue() )
 						.collect( Collectors.joining( "\n" ) );

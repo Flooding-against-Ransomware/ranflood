@@ -54,7 +54,8 @@ public class Check {
 					checksumMap.remove( entry.getKey() );
 					reportContent.put( entry.getKey(), signature );
 				}
-			} catch ( IOException | NoSuchAlgorithmException ignored ) {
+			} catch ( Exception e ) {
+				System.err.println( "Error '" + e.getMessage() + "' with file " +  folder.toPath().resolve( Path.of( entry.getKey() ) ).toAbsolutePath() + ", skipping it." );
 			}
 		}
 		// if needed, and we did not find some files, we check if we can find them with the deep search
@@ -76,7 +77,8 @@ public class Check {
 						missingSignatures.remove( signature );
 						reportContent.put( folder.toPath().toAbsolutePath().relativize( f ).toString(), signature );
 					}
-				} catch ( IOException | NoSuchAlgorithmException ignored ) {
+				} catch ( Exception e ) {
+					System.err.println( "Error '" + e.getMessage() + "' with file " +  f.toAbsolutePath() + ", skipping it." );
 				}
 				if ( checksumMap.isEmpty() )
 					break;

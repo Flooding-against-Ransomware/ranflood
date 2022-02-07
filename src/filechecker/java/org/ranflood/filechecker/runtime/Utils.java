@@ -21,6 +21,7 @@
 
 package org.ranflood.filechecker.runtime;
 
+import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,13 +32,21 @@ import java.util.Base64;
 
 public class Utils {
 
-	public static String getFileSignature( Path filePath ) throws IOException, NoSuchAlgorithmException {
-		try ( InputStream input = new FileInputStream( filePath.toFile() ) ) {
+	public static class OutOfMemoryException extends Exception {
+		public OutOfMemoryException( String message ) {
+			super( message );
+		}
+	}
+
+	public static String getFileSignature( Path filePath ) throws IOException, NoSuchAlgorithmException, OutOfMemoryException {
+		try ( InputStream input = new BufferedInputStream( new FileInputStream( filePath.toFile() ) ) ) {
 			byte[] bytes = input.readAllBytes();
 			input.close();
 			MessageDigest digest = MessageDigest.getInstance( "SHA-1" );
 			digest.update( bytes );
 			return Base64.getEncoder().encodeToString( digest.digest() );
+		} catch ( OutOfMemoryError e ){
+			throw new OutOfMemoryException( e.getMessage() );
 		}
 	}
 
