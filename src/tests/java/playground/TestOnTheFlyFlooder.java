@@ -119,7 +119,7 @@ public class TestOnTheFlyFlooder {
 		l.forEach( f -> {
 			try {
 				UUID id = daemon.randomFlooder().flood( f );
-				Thread.sleep( 100 );
+				Thread.sleep( 200 );
 				daemon.randomFlooder().stopFlood( id );
 			} catch ( InterruptedException | FlooderException e ) {
 				e.printStackTrace();

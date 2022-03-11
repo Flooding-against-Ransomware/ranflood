@@ -32,16 +32,16 @@ import org.ranflood.daemon.flooders.tasks.WriteFileTask;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class RandomFloodTask extends FloodTaskGenerator {
+
+	private static final Map< String, String[] > signatures = new HashMap<>();
+	private static final ArrayList< String > FILE_EXTESIONS = new ArrayList<>();
 
 	public RandomFloodTask( Path filePath, FloodMethod floodMethod ) {
 		super( filePath, floodMethod );
@@ -50,19 +50,11 @@ public class RandomFloodTask extends FloodTaskGenerator {
 	@Override
 	public List< WriteFileTask > getFileTasks() {
 		return IntStream.range( 0, 100 ).mapToObj( i -> {
-			Path filePath = Path.of(
-							this.filePath().toAbsolutePath() + File.separator
-											+ Nomen.randomName()
-											+ FILE_EXTESIONS.get( rng.nextInt( FILE_EXTESIONS.size() ) ) );
-			return new WriteFileTask( filePath, getCachedRandomBytes(), this.floodMethod() );
+			String extension = FILE_EXTESIONS.get( rng.nextInt( FILE_EXTESIONS.size() ) );
+			Path filePath = Path.of( this.filePath().toAbsolutePath() + File.separator + Nomen.randomName() + extension );
+			return new WriteFileTask( filePath, getCachedRandomBytes( extension ), this.floodMethod() );
 		} ).collect( Collectors.toList() );
 	}
-
-	private static final ArrayList< String > FILE_EXTESIONS = new ArrayList<>(
-					Arrays.asList( ".doc", ".docx", ".odt", ".txt", ".pdf", ".xls", ".xlsx", ".ods",
-									".ppt", ".pptx", ".jpeg", ".jps", ".gif", ".png", ".mov", ".avi",
-									".mp4", ".mpeg", ".mp3", ".wav", ".ogg" )
-	);
 
 	private static final Random rng = new Random();
 	private static final ReentrantLock randomCacheLock = new ReentrantLock();
@@ -70,7 +62,7 @@ public class RandomFloodTask extends FloodTaskGenerator {
 	private static int cacheCursor = 0;
 	private static final int cache_value_max_usage = 8;
 
-	private static byte[] getCachedRandomBytes() {
+	private static byte[] getCachedRandomBytes( String extension ) {
 		byte[] content;
 		randomCacheLock.lock();
 		cacheCursor = ( cacheCursor + 1 ) % randomCache.length;
@@ -98,7 +90,13 @@ public class RandomFloodTask extends FloodTaskGenerator {
 			randomCache[ cacheCursor ].left().incrementAndGet();
 		}
 		randomCacheLock.unlock();
-		return content;
+		String[] signature = signatures.get( extension );
+		ByteBuffer b = ByteBuffer.allocate( content.length + ( int ) Math.ceil( signature.length ) );
+		Arrays.stream( signature ).forEach( s ->
+						b.put( ( byte ) Integer.parseInt( s, 16 ) )
+		);
+		b.put( ByteBuffer.wrap( content ) );
+		return b.array();
 	}
 
 	@Override
@@ -113,6 +111,37 @@ public class RandomFloodTask extends FloodTaskGenerator {
 //			WriteFileTask d = new WriteFileTask( filePath, getCachedRandomBytes(), this.floodMethod() );
 //			RanFloodDaemon.executeIORunnable( d.getRunnableTask() );
 //		};
+	}
+
+	public static String[] getChunks( String s, int c_size ){
+		return IntStream.iterate( 0, i -> i + c_size )
+						.limit( ( int ) Math.ceil( s.length() / c_size ) )
+						.mapToObj( i -> s.substring( i, Math.min( i + c_size, s.length() ) ) )
+						.toArray( String[]::new );
+	}
+
+	static {
+		signatures.put( ".avi", getChunks( "52494646", 2 ) );
+		signatures.put( ".doc", getChunks( "D0CF11E0A1B11AE1", 2 ) );
+		signatures.put( ".docx", getChunks( "504B030414000600", 2 ) );
+		signatures.put( ".gif", getChunks( "47494638", 2 ) );
+		signatures.put( ".jpeg", getChunks( "FFD8FFE0", 2 ) );
+		signatures.put( ".mov", getChunks( "6D6F6F76", 2 ) );
+		signatures.put( ".mp3", getChunks( "494433", 2 ) );
+		signatures.put( ".mp4", getChunks( "6674797069736F6D", 2 ) );
+		signatures.put( ".mpeg", getChunks( "000001B3", 2 ) );
+		signatures.put( ".ods", getChunks( "504B0304", 2 ) );
+		signatures.put( ".odt", getChunks( "504B0304", 2 ) );
+		signatures.put( ".ogg" , getChunks( "4F67675300020000", 2 ) );
+		signatures.put( ".pdf", getChunks( "255044462D312E36", 2 ) );
+		signatures.put( ".png", getChunks( "89504E470D0A1A0A", 2 ) );
+		signatures.put( ".ppt", getChunks( "D0CF11E0A1B11AE1", 2 ) );
+		signatures.put( ".pptx", getChunks( "504B0304", 2 ) );
+		signatures.put( ".txt", getChunks( "EFBBBF", 2 ) );
+		signatures.put( ".wav", getChunks( "52494646", 2 ) );
+		signatures.put( ".xls", getChunks( "D0CF11E0A1B11AE1", 2 ) );
+		signatures.put( ".xlsx", getChunks( "504B0304", 2 ) );
+		FILE_EXTESIONS.addAll( signatures.keySet() );
 	}
 
 }
