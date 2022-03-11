@@ -1,10 +1,6 @@
-@echo off
 setlocal enabledelayedexpansion
-::~
-
 set RANSOMWARE=%1
 set DETECTION=%2
-:: RANDOM ON_THE_FLY SHADOW_COPY
 set MODALITA=%3
 set FLOODFOLDER=%4
 set USAGE="start.bat <RansomwarePath> <SecondsDetection> <RANDOM | ON_THE_FLY | SHADOW_COPY> [FloodingFolder default: C:\Users\IEUser]"
@@ -31,100 +27,41 @@ if [%4]==[] (echo "FLOODFOLDER default: C:\Users\IEUser"
 set FLOODFOLDER=C:\Users\IEUser
 )
 
-
 set RANFLOOD=C:\"Program Files"\Ranflood
 set RANFLOOD_nq=%RANFLOOD:"=%
 set JDK=C:\"Program Files"\Java\jdk-11.0.12\bin
 set JDK_nq=%JDK:"=%
-
-
-:: ------------------------------------- Run Daemon -------------------------------------------
-
-start %RANFLOOD%/ranfloodd.exe "%RANFLOOD_nq%"/settings.ini
-
-timeout 4
-
-
-if [%MODALITA%]==[RANDOM] (goto:StartRansomware
-)
-
-
-:: --------------------------- Snapshot ----------------------------------------
-
-set startSnap=%time%
-:TakeSnapshot
-for /f "tokens=*" %%G in ('dir /B /S /A:D "%FLOODFOLDER%"') do (
-%RANFLOOD%/ranflood.exe snapshot take %MODALITA% %%G
-)
-%RANFLOOD%/ranflood.exe snapshot take %MODALITA% %FLOODFOLDER%
-
-:: %RANFLOOD%/ranflood.exe snapshot list
-
-:loopSnap
-set "output_cnt=0"
-for /F "delims=" %%f in ('%RANFLOOD%/ranflood.exe snapshot list') do (
-    set /a output_cnt+=1
-    set "output[!output_cnt!]=%%f"
-)
-
-
-for /L %%n in (1 1 !output_cnt!) do (
-if "[!output[%%n]!]"=="[%MODALITA% | %FLOODFOLDER%]" (
-goto :EndLoopSnap
-)
-)
-goto :loopSnap
-
-:EndLoopSnap
-echo Fine %startSnap% - %time%
-
 
 :: -------------------------------- Start Ransomware -----------------------------------------
 
 :StartRansomware
 set EXTENSION=%~x1
 set RANSOMWARENAME=%~n1
-::echo "%EXTENSION%"
-
-
 
 if [%EXTENSION%]==[] ( rename %RANSOMWARE% %RANSOMWARENAME%.exe
 start %RANSOMWARE%.exe	
 ) else ( start %RANSOMWARE% 
 )
 
-
 :: -------- DETECTION ------
-timeout %DETECTION%
+ping -n %DETECTION% 127.0.0.1 >NUL
 
+:: ------------------------------------- Run Daemon -------------------------------------------
+start /B %RANFLOOD%\ranfloodd.exe "%RANFLOOD_nq%"\settings.ini
+ping -n 4 127.0.0.1 >NUL
 
 ::------------------------------------- Flooding START --------------------------------------
 :StartFloodings
-%RANFLOOD%/ranflood.exe flood start %MODALITA% %FLOODFOLDER%
-for /f "tokens=*" %%G in ('dir /B /S /A:D "%FLOODFOLDER%"') do (
-%RANFLOOD%/ranflood.exe flood start %MODALITA% %%G
-)
-
-::timeout 30
-::shutdown /s
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-::
+%RANFLOOD%\ranflood.exe flood start %MODALITA% "C:\Users\IEUser\Desktop" -t 300
+%RANFLOOD%\ranflood.exe flood start %MODALITA% "C:\Users\IEUser\DOCUMENT" -t 300
+%RANFLOOD%\ranflood.exe flood start %MODALITA% "C:\Users\IEUser\Documents" -t 300
+%RANFLOOD%\ranflood.exe flood start %MODALITA% "C:\Users\IEUser\DOWNLOAD" -t 300
+%RANFLOOD%\ranflood.exe flood start %MODALITA% "C:\Users\IEUser\Downloads" -t 300
+%RANFLOOD%\ranflood.exe flood start %MODALITA% "C:\Users\IEUser\Music" -t 300
+%RANFLOOD%\ranflood.exe flood start %MODALITA% "C:\Users\IEUser\My Documents" -t 300
+%RANFLOOD%\ranflood.exe flood start %MODALITA% "C:\Users\IEUser\OneDrive" -t 300
+%RANFLOOD%\ranflood.exe flood start %MODALITA% "C:\Users\IEUser\Pictures" -t 300
+%RANFLOOD%\ranflood.exe flood start %MODALITA% "C:\Users\IEUser\PrintHood" -t 300
+%RANFLOOD%\ranflood.exe flood start %MODALITA% "C:\Users\IEUser\SAVED_GA" -t 300
+%RANFLOOD%\ranflood.exe flood start %MODALITA% "C:\Users\IEUser\SendTo" -t 300
+%RANFLOOD%\ranflood.exe flood start %MODALITA% "C:\Users\IEUser\Videos" -t 300
