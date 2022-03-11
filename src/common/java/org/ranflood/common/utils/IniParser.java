@@ -65,7 +65,7 @@ public class IniParser {
 
 	public Optional< String > getValue( String section, String key ) {
 		Map< String, String > kv = _entries.get( section );
-		if ( kv == null ) {
+		if ( kv == null || kv.isEmpty() ) {
 			return Optional.empty();
 		}
 		return Optional.of( kv.get( key ) );

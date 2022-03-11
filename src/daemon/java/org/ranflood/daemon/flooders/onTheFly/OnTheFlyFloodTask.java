@@ -21,11 +21,10 @@
 
 package org.ranflood.daemon.flooders.onTheFly;
 
-import org.ranflood.daemon.RanFloodDaemon;
+import org.ranflood.daemon.RanFlood;
 import org.ranflood.common.FloodMethod;
 import org.ranflood.daemon.flooders.FlooderException;
 import org.ranflood.daemon.flooders.SnapshotException;
-import org.ranflood.daemon.flooders.tasks.FloodTask;
 import org.ranflood.daemon.flooders.tasks.FloodTaskGenerator;
 import org.ranflood.daemon.flooders.tasks.WriteCopyFileTask;
 import org.ranflood.daemon.flooders.tasks.WriteFileTask;
@@ -39,21 +38,41 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class OnTheFlyFloodTask extends FloodTaskGenerator {
 
 	private final List< WriteFileTask > tasks;
+	private final ReentrantReadWriteLock lock;
+	private int taskListResponseRetriesCounter = 0;
 
 	public OnTheFlyFloodTask( Path filePath, FloodMethod floodMethod ) throws FlooderException {
 		super( filePath, floodMethod );
-		tasks = getWriteFileTasks( filePath(), filePath() );
+		lock = new ReentrantReadWriteLock();
+		tasks = new LinkedList<>();
+		loadWriteFileTasks( filePath(), filePath() );
 	}
 
 	@Override
 	public List< WriteFileTask > getFileTasks() {
-		return tasks;
+		int taskListResponseRetriesTimeout = 100; // milliseconds
+		int maxTaskListResponseRetries = 5;
+		if ( taskListResponseRetriesCounter > 0 ) {
+			try {
+				Thread.sleep( taskListResponseRetriesTimeout );
+			} catch ( InterruptedException e ) {
+				e.printStackTrace();
+			}
+		}
+		lock.readLock().lock();
+		List< WriteFileTask > t = new LinkedList<>( tasks );
+		lock.readLock().unlock();
+		if ( t.isEmpty() && taskListResponseRetriesCounter < maxTaskListResponseRetries ) {
+			taskListResponseRetriesCounter++;
+			// we retry to
+			return getFileTasks();
+		}
+		return t;
 	}
 
 	@Override
@@ -65,7 +84,7 @@ public class OnTheFlyFloodTask extends FloodTaskGenerator {
 //						);
 	}
 
-	private List< WriteFileTask > getWriteFileTasks( Path parentFilePath, Path filePath ) throws FlooderException {
+	private void loadWriteFileTasks( Path parentFilePath, Path filePath ) throws FlooderException {
 		File file = filePath.toFile();
 		try {
 			if ( file.isFile() ) {
@@ -75,25 +94,24 @@ public class OnTheFlyFloodTask extends FloodTaskGenerator {
 				}
 				if ( OnTheFlySnapshooter.getBytesSignature( bytes ).equals(
 								OnTheFlySnapshooter.getSnapshot( parentFilePath, filePath ) ) ) {
-					return Collections.singletonList( new WriteCopyFileTask(
-									filePath, bytes, floodMethod() )
-					);
+					lock.writeLock().lock();
+					tasks.add( new WriteCopyFileTask( filePath, bytes, floodMethod() ) );
+					lock.writeLock().unlock();
 				}
 			} else { //
-				return Arrays.stream( Objects.requireNonNull( file.listFiles() ) )
-								.parallel()
-								.flatMap( f -> {
-									try {
-										return getWriteFileTasks( parentFilePath, f.toPath() ).stream();
-									} catch ( FlooderException e ) {
-										error( "Error in instantiating writing task for "
-														+ f.toPath().toAbsolutePath() + " in " + parentFilePath.toAbsolutePath()
-														+ ": " + e.getMessage()
-										);
-										return Stream.empty();
-									}
-								} )
-								.collect( Collectors.toList() );
+				Arrays.stream( Objects.requireNonNull( file.listFiles() ) )
+								.forEach( f ->
+												RanFlood.daemon().executeCommand( () -> {
+													try {
+														loadWriteFileTasks( parentFilePath, f.toPath() );
+													} catch ( FlooderException e ) {
+														error( "Error in instantiating writing task for "
+																		+ f.toPath().toAbsolutePath() + " in " + parentFilePath.toAbsolutePath()
+																		+ ": " + e.getMessage()
+														);
+													}
+												} )
+								);
 			}
 		} catch ( IOException e ) {
 			throw new FlooderException(
@@ -106,8 +124,6 @@ public class OnTheFlyFloodTask extends FloodTaskGenerator {
 		} catch ( SnapshotException e ) {
 			throw new FlooderException( "Could not find a snapshot of file " + file.getAbsolutePath() );
 		}
-
-		return Collections.emptyList();
 	}
 
 }

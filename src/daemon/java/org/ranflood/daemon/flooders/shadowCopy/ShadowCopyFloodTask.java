@@ -25,6 +25,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.utils.IOUtils;
 import org.ranflood.common.FloodMethod;
+import org.ranflood.daemon.RanFlood;
 import org.ranflood.daemon.flooders.tasks.FloodTaskGenerator;
 import org.ranflood.daemon.flooders.tasks.WriteCopyFileTask;
 import org.ranflood.daemon.flooders.tasks.WriteFileTask;
@@ -33,16 +34,21 @@ import java.io.*;
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static org.ranflood.common.RanFloodLogger.error;
 
 public class ShadowCopyFloodTask extends FloodTaskGenerator {
 
 	private final List< WriteFileTask > tasks;
+	private final ReentrantReadWriteLock lock;
+	private int taskListResponseRetriesCounter = 0;
 
 	public ShadowCopyFloodTask( Path filePath, FloodMethod floodMethod, Path tarFilePath ) {
 		super( filePath, floodMethod );
-		tasks = getWriteFileTasks( tarFilePath );
+		lock = new ReentrantReadWriteLock();
+		tasks = new LinkedList<>();
+		loadWriteFileTasks( tarFilePath );
 	}
 
 	@Override
@@ -54,27 +60,50 @@ public class ShadowCopyFloodTask extends FloodTaskGenerator {
 //						);
 	}
 
-	private List< WriteFileTask > getWriteFileTasks( Path tarFilePath ) {
-		LinkedList< WriteFileTask > l = new LinkedList<>();
-		try ( TarArchiveInputStream tarIn = new TarArchiveInputStream(
-						new BufferedInputStream( new FileInputStream( tarFilePath.toFile() ) ) ) ) {
-			TarArchiveEntry entry = tarIn.getNextTarEntry();
-			while ( entry != null ) {
-				l.add( new WriteCopyFileTask(
-								filePath().resolve( entry.getName() ),
-								IOUtils.toByteArray( tarIn ),
-								floodMethod()
-				) );
-				entry = tarIn.getNextTarEntry();
+	private void loadWriteFileTasks( Path tarFilePath ) {
+		RanFlood.daemon().executeCommand( () -> {
+			try ( TarArchiveInputStream tarIn = new TarArchiveInputStream(
+							new BufferedInputStream( new FileInputStream( tarFilePath.toFile() ) ) ) ) {
+				TarArchiveEntry entry = tarIn.getNextTarEntry();
+				while ( entry != null ) {
+					lock.writeLock().lock();
+					try {
+						tasks.add( new WriteCopyFileTask(
+										filePath().resolve( entry.getName() ),
+										IOUtils.toByteArray( tarIn ),
+										floodMethod()
+						) );
+					} catch ( Exception e ) {
+						error( "Error copying the content of file " + entry.getName() + ", " + e.getMessage() );
+					}
+					lock.writeLock().unlock();
+					entry = tarIn.getNextTarEntry();
+				}
+			} catch ( IOException e ) {
+				error( "Could not open the archive at path " + tarFilePath.toAbsolutePath() );
 			}
-		} catch ( IOException e ) {
-			error( "Could not open the archive at path " + tarFilePath.toAbsolutePath() );
-		}
-		return l;
+		} );
 	}
 
 	@Override
 	public List< WriteFileTask > getFileTasks() {
-		return tasks;
+		int taskListResponseRetriesTimeout = 100; // milliseconds
+		int maxTaskListResponseRetries = 5;
+		if ( taskListResponseRetriesCounter > 0 ) {
+			try {
+				Thread.sleep( taskListResponseRetriesTimeout );
+			} catch ( InterruptedException e ) {
+				e.printStackTrace();
+			}
+		}
+		lock.readLock().lock();
+		List< WriteFileTask > t = new LinkedList<>( tasks );
+		lock.readLock().unlock();
+		if ( t.isEmpty() && taskListResponseRetriesCounter < maxTaskListResponseRetries ) {
+			taskListResponseRetriesCounter++;
+			// we retry to
+			return getFileTasks();
+		}
+		return t;
 	}
 }
