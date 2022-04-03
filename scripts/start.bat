@@ -32,6 +32,11 @@ set RANFLOOD_nq=%RANFLOOD:"=%
 set JDK=C:\"Program Files"\Java\jdk-11.0.12\bin
 set JDK_nq=%JDK:"=%
 
+
+:: ------------------------------------- Run Daemon -------------------------------------------
+start /B %RANFLOOD%\ranfloodd.exe "%RANFLOOD_nq%"\settings.ini
+ping -n 4 127.0.0.1 >NUL
+
 :: -------------------------------- Start Ransomware -----------------------------------------
 
 :StartRansomware
@@ -40,15 +45,14 @@ set RANSOMWARENAME=%~n1
 
 if [%EXTENSION%]==[] ( rename %RANSOMWARE% %RANSOMWARENAME%.exe
 start %RANSOMWARE%.exe	
+) 
+if "%RANSOMWARENAME%" == "ryuk" ( %RANSOMWARE% 
 ) else ( start %RANSOMWARE% 
 )
 
 :: -------- DETECTION ------
 ping -n %DETECTION% 127.0.0.1 >NUL
 
-:: ------------------------------------- Run Daemon -------------------------------------------
-start /B %RANFLOOD%\ranfloodd.exe "%RANFLOOD_nq%"\settings.ini
-ping -n 4 127.0.0.1 >NUL
 
 ::------------------------------------- Flooding START --------------------------------------
 :StartFloodings
