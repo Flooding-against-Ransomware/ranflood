@@ -23,13 +23,14 @@ package org.ranflood.daemon.flooders.tasks;
 
 import org.ranflood.common.FloodMethod;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousFileChannel;
+import java.nio.channels.ByteChannel;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 import static org.ranflood.common.RanFloodLogger.error;
 
@@ -66,7 +67,9 @@ public class WriteFileTask implements FileTask {
 					}
 				}
 				FileOutputStream f = new FileOutputStream( filePath.toAbsolutePath().toString() );
-				f.write( content );
+				BufferedOutputStream bout = new BufferedOutputStream( f );
+				bout.write( content );
+				bout.close();
 				f.close();
 			} catch ( IOException e ) {
 				error( e.getMessage() );

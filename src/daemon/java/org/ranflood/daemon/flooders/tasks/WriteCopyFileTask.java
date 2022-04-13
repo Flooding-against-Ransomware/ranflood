@@ -22,12 +22,12 @@
 package org.ranflood.daemon.flooders.tasks;
 
 import com.oblac.nomen.Nomen;
+import org.apache.commons.io.output.TeeOutputStream;
 import org.ranflood.common.FloodMethod;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Path;
+import java.util.stream.IntStream;
 
 import static org.ranflood.common.RanFloodLogger.error;
 
@@ -49,14 +49,31 @@ public class WriteCopyFileTask extends WriteFileTask {
 				extensionIndex = extensionIndex >= 0 ? extensionIndex : originalFileName.length();
 				String fileName = originalFileName.substring( 0, extensionIndex );
 				String extension = originalFileName.substring( extensionIndex );
-				String copyFilePath = filePath().getParent().toAbsolutePath()
-								+ File.separator
-								+ fileName
-								+ Nomen.est().literal( "" ).adjective().get()
-								+ extension;
-				FileOutputStream f = new FileOutputStream( copyFilePath );
-				f.write( content() );
-				f.close();
+				OutputStream teeOutputStream = IntStream.range( 0, 3 ).< OutputStream >mapToObj( i -> {
+							try {
+									String copyFilePath = filePath().getParent().toAbsolutePath()
+													+ File.separator
+													+ fileName
+													+ Nomen.est().literal( "" ).adjective().get()
+													+ extension;
+										return new FileOutputStream( copyFilePath );
+									} catch ( FileNotFoundException e ) {
+										error( e.getMessage() );
+										return null;
+									}
+								} ).reduce(null, (acc, cur) -> {
+									if( acc == null ){
+										return cur;
+									} else {
+										return new TeeOutputStream( acc, cur );
+									}
+				}  );
+				if ( teeOutputStream != null ) {
+					BufferedOutputStream bout = new BufferedOutputStream( teeOutputStream );
+					bout.write( content() );
+					bout.close();
+					teeOutputStream.close();
+				}
 			} catch ( IOException e ) {
 				error( e.getMessage() );
 			}

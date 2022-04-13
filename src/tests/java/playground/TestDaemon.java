@@ -52,11 +52,11 @@ public class TestDaemon {
 
 		Path folder1 = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder1" );
 
-		// THIS MUST RETURN AN ERROR
-		sendCommand( new SnapshotCommand.Add(
-						new RanFloodType( FloodMethod.RANDOM, folder1 ) )
-		);
-		Thread.sleep( 1000 );
+//		// THIS MUST RETURN AN ERROR
+//		sendCommand( new SnapshotCommand.Add(
+//						new RanFloodType( FloodMethod.RANDOM, folder1 ) )
+//		);
+//		Thread.sleep( 1000 );
 
 		// THIS SHOULD BE OK
 		sendCommand( new FloodCommand.Start(
@@ -69,12 +69,13 @@ public class TestDaemon {
 		log( runningList );
 		List< RanFloodType.Tagged > list = ( List< RanFloodType.Tagged > ) parseDaemonCommandList( runningList );
 
+		Thread.sleep( 2000 );
+
 		// THIS SHOULD BE OK
 		sendCommand( new FloodCommand.Stop(
 						list.get( 0 ).method(),
 						list.get( 0 ).id()
 		) );
-		Thread.sleep( 1000 );
 
 		// THIS SHOULD BE OK
 		sendCommand( new SnapshotCommand.Add(
@@ -82,15 +83,18 @@ public class TestDaemon {
 		) );
 		Thread.sleep( 1000 );
 
-		// THIS SHOULD RETURN THE SNAPSHOT WE MADE
-		log( sendCommandList( new SnapshotCommand.List() ) );
-		Thread.sleep( 1000 );
+		do {
+			log( "Retrieving list of taken snapshots" );
+			String snapshotList = sendCommandList( new SnapshotCommand.List() );
+			log( snapshotList );
+			list = ( List< RanFloodType.Tagged > ) parseDaemonCommandList( runningList );
+			Thread.sleep( 1000 );
+		} while ( list.isEmpty() );
 
 		// THIS SHOULD BE OK
 		sendCommand( new FloodCommand.Start(
 						new RanFloodType( FloodMethod.ON_THE_FLY, folder1 )
 		) );
-		Thread.sleep( 1000 );
 
 		// THIS SHOULD BE OK
 		do {
@@ -98,8 +102,10 @@ public class TestDaemon {
 			runningList = sendCommandList( new FloodCommand.List() );
 			log( runningList );
 			list = ( List< RanFloodType.Tagged > ) parseDaemonCommandList( runningList );
-			Thread.sleep( 1000 );
+			Thread.sleep( 500 );
 		} while ( list.isEmpty() );
+
+		Thread.sleep( 5000 );
 
 		// THIS SHOULD BE OK
 		sendCommand( new FloodCommand.Stop(
