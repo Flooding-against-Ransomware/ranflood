@@ -44,19 +44,20 @@ configurations {
 }
 
 dependencies {
-    common 'com.republicate:essential-json:2.6.3'
-    common 'org.slf4j:slf4j-simple:1.7.33'
+    common 'com.republicate:essential-json:2.6.4'
+    common 'org.slf4j:slf4j-simple:1.7.36'
     common  'org.zeromq:jeromq:0.5.2'
 
-    clientAnnotationProcessor 'info.picocli:picocli-codegen:4.6.2'
+    clientAnnotationProcessor 'info.picocli:picocli-codegen:4.6.3'
     client 'info.picocli:picocli:4.6.2'
 //    client 'info.picocli:picocli-codegen:4.6.1'
 
-    daemon 'io.reactivex.rxjava3:rxjava:3.1.3'
+    daemon 'io.reactivex.rxjava3:rxjava:3.1.4'
     daemon 'com.oblac:nomen-est-omen:2.1.0'
     daemon 'org.jetbrains.xodus:xodus-openAPI:1.3.232'
     daemon 'org.jetbrains.xodus:xodus-environment:1.3.232'
     daemon 'org.apache.commons:commons-compress:1.21'
+    daemon 'commons-io:commons-io:2.11.0'
 }
 
 //tasks.withType(JavaCompile) {
