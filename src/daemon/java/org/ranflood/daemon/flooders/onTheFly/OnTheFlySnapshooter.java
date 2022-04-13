@@ -55,7 +55,7 @@ public class OnTheFlySnapshooter extends Snapshooter {
 		log( "Taking ON_THE_FLY snapshot " + filePath );
 		File file = filePath.toFile();
 		if ( file.isDirectory() && !Files.isSymbolicLink( file.toPath() ) && file.exists() ) {
-			INSTANCE.signaturesDatabase.executeInTransaction( t -> {
+			INSTANCE.signaturesDatabase.executeInExclusiveTransaction( t -> {
 				final Store targetDB = INSTANCE.signaturesDatabase
 								.openStore( file.getAbsolutePath(), StoreConfig.WITHOUT_DUPLICATES, t );
 				recordSignatures( filePath, targetDB, t );
@@ -68,14 +68,14 @@ public class OnTheFlySnapshooter extends Snapshooter {
 
 	static void removeSnapshot( Path filePath ) {
 		String key = filePath.toAbsolutePath().toString();
-		INSTANCE.signaturesDatabase.executeInTransaction( t ->
+		INSTANCE.signaturesDatabase.executeInExclusiveTransaction( t ->
 						INSTANCE.signaturesDatabase.removeStore( key, t )
 		);
 	}
 
 	static List< Path > listSnapshots() {
 		final LinkedList< Path > l = new LinkedList<>();
-		INSTANCE.signaturesDatabase.executeInTransaction( t ->
+		INSTANCE.signaturesDatabase.executeInExclusiveTransaction( t ->
 						INSTANCE.signaturesDatabase.getAllStoreNames( t ).forEach( s -> l.add( Path.of( s ) ) )
 		);
 		return l;

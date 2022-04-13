@@ -122,7 +122,7 @@ public class ShadowCopySnapshooter extends Snapshooter {
 									}
 					);
 					tarOut.flush();
-					INSTANCE.archiveDatabase.executeInTransaction( t -> {
+					INSTANCE.archiveDatabase.executeInExclusiveTransaction( t -> {
 						final Store targetDB = INSTANCE.archiveDatabase
 										.openStore( archiveDatabaseName, StoreConfig.WITHOUT_DUPLICATES, t );
 						targetDB.put( t,
@@ -142,7 +142,7 @@ public class ShadowCopySnapshooter extends Snapshooter {
 
 	static void removeSnapshot( Path filePath ) {
 		AtomicReference< Optional< String > > archiveName = new AtomicReference<>();
-		INSTANCE.archiveDatabase.executeInTransaction( t -> {
+		INSTANCE.archiveDatabase.executeInExclusiveTransaction( t -> {
 			final Store targetDB = INSTANCE.archiveDatabase
 							.openStore( archiveDatabaseName, StoreConfig.WITHOUT_DUPLICATES, t );
 			ByteIterable b = targetDB.get( t, StringBinding.stringToEntry( filePath.toAbsolutePath().toString() ) );
@@ -161,7 +161,7 @@ public class ShadowCopySnapshooter extends Snapshooter {
 				if ( tarFile.toFile().exists() ) {
 					Files.delete( tarFile );
 					if ( archiveName.get().isPresent() ) {
-						INSTANCE.archiveDatabase.executeInTransaction( t -> {
+						INSTANCE.archiveDatabase.executeInExclusiveTransaction( t -> {
 							final Store targetDB = INSTANCE.archiveDatabase
 											.openStore( archiveDatabaseName, StoreConfig.WITHOUT_DUPLICATES, t );
 							targetDB.delete( t, StringBinding.stringToEntry( filePath.toAbsolutePath().toString() ) );
@@ -179,7 +179,7 @@ public class ShadowCopySnapshooter extends Snapshooter {
 
 	static List< Path > listSnapshots() {
 		final LinkedList< Path > l = new LinkedList<>();
-		INSTANCE.archiveDatabase.executeInTransaction( t -> {
+		INSTANCE.archiveDatabase.executeInExclusiveTransaction( t -> {
 			final Store targetDB = INSTANCE.archiveDatabase
 							.openStore( archiveDatabaseName, StoreConfig.WITHOUT_DUPLICATES, t );
 			Cursor c = targetDB.openCursor( t );
