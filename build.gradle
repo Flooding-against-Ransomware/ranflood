@@ -30,7 +30,7 @@ plugins {
 
 group 'org.ranflood'
 
-def version = '0.5.7-BETA'
+def version = '0.5.8-BETA'
 
 repositories {
     mavenCentral()
@@ -138,6 +138,7 @@ task clientJar ( type: Jar ) {
     from {
         sourceSets.client.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 task daemonJar ( type: Jar ) {
@@ -155,6 +156,7 @@ task daemonJar ( type: Jar ) {
     from {
         sourceSets.daemon.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
+	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 
@@ -184,9 +186,11 @@ task daemonNativeImage {
         nativeImage.setJarFile project.provider( () -> daemonJar.archiveFile.get().asFile ) as Provider< File >
         graal {
             mainClass "org.ranflood.daemon.RanFlood"
-            graalVersion "21.0.0.2"
-            javaVersion "11"
-            outputName "ranfloodd"
+//            graalVersion "21.0.0.2"
+//            javaVersion "11"
+			graalVersion "22.0.0.2"
+            javaVersion "17"
+			outputName "ranfloodd"
             option '--no-fallback'
             option "-H:IncludeResources=.*/*.properties"
             option "-cp"
@@ -206,9 +210,11 @@ task clientNativeImage {
         nativeImage.setJarFile project.provider( () -> clientJar.archiveFile.get().asFile ) as Provider< File >
         graal {
             mainClass "org.ranflood.client.RanFlood"
-            graalVersion "21.0.0.2"
-            javaVersion "11"
-            outputName "ranflood"
+            //graalVersion "21.0.0.2"
+            //javaVersion "11"
+            graalVersion "22.0.0.2"
+			javaVersion "17"
+			outputName "ranflood"
             option '--no-fallback'
             option "-H:IncludeResources=.*/*.properties"
             option "-cp"
