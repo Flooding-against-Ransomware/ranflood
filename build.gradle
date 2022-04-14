@@ -30,7 +30,7 @@ plugins {
 
 group 'org.ranflood'
 
-def version = '0.5.8-BETA'
+def version = '0.5.9-BETA'
 
 repositories {
     mavenCentral()

@@ -42,9 +42,11 @@ public class RandomFloodTask extends FloodTaskGenerator {
 
 	private static final Map< String, String[] > signatures = new HashMap<>();
 	private static final ArrayList< String > FILE_EXTESIONS = new ArrayList<>();
+	private final RandomFlooder flooder;
 
-	public RandomFloodTask( Path filePath, FloodMethod floodMethod ) {
+	public RandomFloodTask( RandomFlooder flooder, Path filePath, FloodMethod floodMethod ) {
 		super( filePath, floodMethod );
+		this.flooder = flooder;
 	}
 
 	@Override
@@ -62,14 +64,16 @@ public class RandomFloodTask extends FloodTaskGenerator {
 	private static int cacheCursor = 0;
 	private static final int cache_value_max_usage = 8;
 
-	private static byte[] getCachedRandomBytes( String extension ) {
+	private byte[] getCachedRandomBytes( String extension ) {
 		byte[] content;
 		randomCacheLock.lock();
 		cacheCursor = ( cacheCursor + 1 ) % randomCache.length;
 		if ( randomCache[ cacheCursor ] == null
 						|| randomCache[ cacheCursor ].left().get() > cache_value_max_usage ) {
-			int randomSize = rng.nextInt( Double.valueOf( Math.pow( 2, 22 ) ).intValue() )
-							+ Double.valueOf( Math.pow( 2, 7 ) ).intValue();
+			int randomSize = Math.max(
+							rng.nextInt( Double.valueOf( flooder.maxSize() ).intValue() ),
+							Long.BYTES
+			);
 			ByteBuffer b = ByteBuffer.allocate( randomSize );
 			long seed = System.nanoTime();
 			for ( int i = 0; i < b.capacity() / Long.BYTES; i++ ) {

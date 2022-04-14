@@ -28,14 +28,36 @@ import org.ranflood.daemon.flooders.tasks.LabeledFloodTask;
 
 import java.nio.file.Path;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class RandomFlooder extends AbstractFlooder {
 
 	private final static FloodMethod METHOD = FloodMethod.RANDOM;
+	private final double maxSize;
+
+	public RandomFlooder() {
+		this.maxSize = Math.pow( 10, 20.6 ); // ~4 MB
+	}
+
+	public double maxSize() {
+		return maxSize;
+	}
+
+	public RandomFlooder( String maxSizeOption ) {
+		Matcher m = Pattern.compile( "(\\d+)\\s*([mkMK])[bB]" ).matcher( maxSizeOption );
+		if ( m.matches() ){
+			int base = Integer.parseInt( m.group( 1 ) );
+			int exp = m.group( 2 ).equalsIgnoreCase( "K" ) ? 3 : 6;
+			maxSize = base * Math.pow( 10, exp );
+		} else {
+			throw new RuntimeException( "MaxFileSize option " + maxSizeOption + "does not conform to the expected format: \\d+\\s*[mkMK][bB]" );
+		}
+	}
 
 	@Override
 	public UUID flood( Path targetFolder ) {
-		RandomFloodTask t = new RandomFloodTask( targetFolder, METHOD );
+		RandomFloodTask t = new RandomFloodTask( this, targetFolder, METHOD );
 		UUID id = UUID.randomUUID();
 		LabeledFloodTask lft = new LabeledFloodTask( id, t );
 		addRunningTask( lft );

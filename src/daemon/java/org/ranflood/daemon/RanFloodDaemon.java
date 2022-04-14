@@ -49,7 +49,7 @@ public class RanFloodDaemon {
 	private static final ExecutorService serverExecutor = Executors.newFixedThreadPool( 1 );
 	private static final ExecutorService commandExecutor = Executors.newFixedThreadPool( 2 * Runtime.getRuntime().availableProcessors() );
 	private static final ExecutorService scheduler = Executors.newFixedThreadPool( 2 * Runtime.getRuntime().availableProcessors() );
-	private final RandomFlooder RANDOM_FLOODER = new RandomFlooder();
+	private final RandomFlooder RANDOM_FLOODER;
 	private final OnTheFlyFlooder ON_THE_FLY_FLOODER;
 	private final ShadowCopyFlooder SHADOW_COPY_FLOODER;
 	static private Emitter< Runnable > emitter;
@@ -70,6 +70,8 @@ public class RanFloodDaemon {
 		} catch ( IOException e ) {
 			throw new IOException( "Cloud not find setting file at: " + settingsFilePath.toAbsolutePath() );
 		}
+		Optional< String > random_opt_max_size = settings.getValue( "RandomFlooder", "MaxFileSize" );
+		RANDOM_FLOODER = random_opt_max_size.isEmpty() ? new RandomFlooder() : new RandomFlooder( random_opt_max_size.get() );
 		Optional< String > on_the_fly_opt_signature_db = settings.getValue( "OnTheFlyFlooder", "Signature_DB" );
 		Optional< String > on_the_fly_opt_exclude_folder_names = settings.getValue( "OnTheFlyFlooder", "ExcludeFolderNames" );
 		ON_THE_FLY_FLOODER = new OnTheFlyFlooder(
