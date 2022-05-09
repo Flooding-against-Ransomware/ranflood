@@ -1,0 +1,100 @@
+\documentclass{article}
+
+\usepackage{units}
+\usepackage{tikz}
+\usetikzlibrary{arrows,shapes.geometric,decorations.pathreplacing,positioning,arrows.meta}
+
+
+\usepackage{pgf}
+\usepackage{pgfplots}
+\definecolor{barBackground}{RGB}{203,75,22}
+\definecolor{barColor}{RGB}{38,139,210}
+\definecolor{barColor2}{RGB}{133,153,0}
+\newlength{\MAX}
+\newcommand{\cEntry}[1]{\raisebox{.35em}{#1}}
+\newcommand*\CChartP[4]{%
+  \pgfkeys{/pgf/fpu=true,/pgf/fpu/output format=fixed}
+  \setlength{\MAX}{#1}%
+  \pgfmathparse{#3/#2}%
+  \rlap{\textcolor{barBackground}{\rule{\MAX}{2em}}}%
+  \rlap{\textcolor{barColor}{\rule{\pgfmathresult\MAX}{2em}}}%
+  \cEntry{\textbf{\textcolor{white}{\makebox[\MAX]{\hfil#3#4\hfil}}}}
+}
+\newcommand*\CChartPP[5]{%
+  \pgfkeys{/pgf/fpu=true,/pgf/fpu/output format=fixed}
+  \setlength{\MAX}{#1}%
+  \rlap{\textcolor{barBackground}{\rule{\MAX}{1.3em}}}%
+  \pgfmathsetmacro\total{(#3+#4)/#2}%
+  \pgfmathsetmacro\perctotal{\total*100}%
+  \pgfmathsetmacro\secondperc{(#4/#2)*100}%
+  \pgfmathtruncatemacro\secondthou{\secondperc*10}%
+  \ifthenelse{\secondthou>0}{%
+    \rlap{\textcolor{barColor2}{\rule{\total\MAX}{1.3em}}
+    \raisebox{1.6em}{\scalebox{.7}{%
+        \ifthenelse{\secondthou>900}{\hspace{-2em}}{}
+        \textcolor{barColor2}{\(\mathbf{\pgfmathprintnumber[fixed, precision=1]{\secondperc}#5}\)}%
+        }}%
+    }%
+  }{}%
+  \pgfmathsetmacro\first{#3/#2}%
+  \pgfmathsetmacro\firstperc{\first*100}%
+  \pgfmathtruncatemacro\firstthou{\first*1000}%
+  \ifthenelse{\firstthou>0}{%
+  \rlap{%
+    \textcolor{barColor}{\rule{\first\MAX}{1.3em}}%
+      \ifthenelse{\secondthou>0}{
+      \raisebox{-.7em}{\resizebox{!}{.5em}{%
+        \ifthenelse{\firstthou>900}{\hspace{-2em}}{\hspace{-1em}}
+        \textcolor{barColor}{\(\mathbf{\pgfmathprintnumber[fixed, precision=1]{\firstperc}#5}\)}%
+        }}%
+      }{}%
+  }}{\rlap{}}%
+  \cEntry{\textbf{\textcolor{white}{\makebox[\MAX]{\hfil\(\mathbf{\pgfmathprintnumber[fixed, precision=1]{\perctotal}#5}\)\hfil}}}\vspace{4em}}
+}
+\newcommand*\CChart[3]{\CChartP{#1}{#2}{#3}{}}
+
+\begin{document}
+
+\newcommand{\CCa}[2]{\CChartPP{.20\textwidth}{100}{#1}{#2}{\%}}
+\newcommand{\CCb}[2]{\CChartPP{.20\textwidth}{100}{#1}{#2}{\%}}
+\newcommand{\CCc}[2]{\CChartPP{.20\textwidth}{100}{#1}{#2}{\%}}
+\newcommand{\CCd}[2]{\CChartPP{.20\textwidth}{100}{#1}{#2}{\%}}
+
+\section*{30 Seconds Delay}
+\begin{tabular}{@{} l c c c c c @{}} & None & Random & On-The-Fly & Shadow \\[.5em]
+\\[1.5em]\cEntry{Grandcrab} & \CCa{100}{0} & \CCb{100}{0} & \CCc{100}{0} & \CCd{100}{0}
+\\[1.5em]\cEntry{LockBit} & \CCa{9}{0} & \CCb{9}{0} & \CCc{9}{0} & \CCd{9}{30}
+\\[1.5em]\cEntry{Phobos} & \CCa{0}{0} & \CCb{25}{0} & \CCc{50}{0} & \CCd{6}{21}
+\\[1.5em]\cEntry{Ryuk} & \CCa{100}{0} & \CCb{100}{0} & \CCc{100}{0} & \CCd{100}{0}
+\\[1.5em]\cEntry{Vipasana} & \CCa{100}{0} & \CCb{100}{0} & \CCc{100}{0} & \CCd{100}{0}
+\\[1.5em]\cEntry{WannaCry} & \CCa{51}{0} & \CCb{63}{0} & \CCc{98}{0} & \CCd{95}{1}
+\end{tabular}
+\section*{60 Seconds Delay}
+\begin{tabular}{@{} l c c c c c @{}} & None & Random & On-The-Fly & Shadow \\[.5em]
+\\[1.5em]\cEntry{Grandcrab} & \CCa{100}{0} & \CCb{100}{0} & \CCc{100}{0} & \CCd{100}{0}
+\\[1.5em]\cEntry{LockBit} & \CCa{9}{0} & \CCb{9}{0} & \CCc{9}{0} & \CCd{9}{29}
+\\[1.5em]\cEntry{Phobos} & \CCa{0}{0} & \CCb{31}{0} & \CCc{50}{0} & \CCd{16}{17}
+\\[1.5em]\cEntry{Ryuk} & \CCa{100}{0} & \CCb{100}{0} & \CCc{100}{0} & \CCd{100}{0}
+\\[1.5em]\cEntry{Vipasana} & \CCa{100}{0} & \CCb{100}{0} & \CCc{100}{0} & \CCd{100}{0}
+\\[1.5em]\cEntry{WannaCry} & \CCa{51}{0} & \CCb{82}{0} & \CCc{100}{0} & \CCd{93}{0}
+\end{tabular}
+\section*{180 Seconds Delay}
+\begin{tabular}{@{} l c c c c c @{}} & None & Random & On-The-Fly & Shadow \\[.5em]
+\\[1.5em]\cEntry{Grandcrab} & \CCa{100}{0} & \CCb{100}{0} & \CCc{100}{0} & \CCd{100}{0}
+\\[1.5em]\cEntry{LockBit} & \CCa{9}{0} & \CCb{9}{0} & \CCc{9}{0} & \CCd{9}{16}
+\\[1.5em]\cEntry{Phobos} & \CCa{0}{0} & \CCb{75}{0} & \CCc{1}{1} & \CCd{0}{12}
+\\[1.5em]\cEntry{Ryuk} & \CCa{100}{0} & \CCb{100}{0} & \CCc{100}{0} & \CCd{100}{0}
+\\[1.5em]\cEntry{Vipasana} & \CCa{100}{0} & \CCb{100}{0} & \CCc{100}{0} & \CCd{100}{0}
+\\[1.5em]\cEntry{WannaCry} & \CCa{51}{0} & \CCb{82}{0} & \CCc{71}{0} & \CCd{86}{2}
+\end{tabular}
+\section*{300 Seconds Delay}
+\begin{tabular}{@{} l c c c c c @{}} & None & Random & On-The-Fly & Shadow \\[.5em]
+\\[1.5em]\cEntry{Grandcrab} & \CCa{100}{0} & \CCb{100}{0} & \CCc{100}{0} & \CCd{100}{0}
+\\[1.5em]\cEntry{LockBit} & \CCa{9}{0} & \CCb{9}{0} & \CCc{9}{0} & \CCd{9}{0}
+\\[1.5em]\cEntry{Phobos} & \CCa{0}{0} & \CCb{33}{0} & \CCc{0}{0} & \CCd{0}{12}
+\\[1.5em]\cEntry{Ryuk} & \CCa{100}{0} & \CCb{100}{0} & \CCc{100}{0} & \CCd{100}{0}
+\\[1.5em]\cEntry{Vipasana} & \CCa{100}{0} & \CCb{100}{0} & \CCc{100}{0} & \CCd{100}{0}
+\\[1.5em]\cEntry{WannaCry} & \CCa{51}{0} & \CCb{80}{0} & \CCc{62}{0} & \CCd{64}{6}
+\end{tabular}
+
+\end{document}
