@@ -10,6 +10,7 @@ reports = load_reports()
 missing_tests = Array.new
 results = Hash.new
 detailed_report = ARGV[ 0 ] == "debug"
+single_page = ARGV[ 0 ] == "single_page"
 
 times.each do | time |
   results[ time ] = Array.new
@@ -52,24 +53,51 @@ if detailed_report
     end
   end
 else
-  results.each do | time, rows |
-    puts "\\section*{#{time} Seconds Delay}"
+  if single_page
     puts "\\begin{tabular}{@{} l c c c c c @{}} & None & Random & On-The-Fly & Shadow \\\\[.5em]"
+    # puts "\\section*{#{time} Seconds Delay}"
     ransomwares.each do | ransomware |
-      if ( missing_tests.select{ | item | item[ :time ] == time && item[ :ransomware ] == ransomware } ).empty?
+      if ( missing_tests.select{ | item | item[ :ransomware ] == ransomware } ).empty?
+      row = "\\\\[1.5em]\\cEntry{#{ransomware}}"
+      results.each do | time, rows |
         none = rows.select{   | item | item[ :modality ] == "NONE"        && item[ :ransomware ] == ransomware }[ 0 ][ :rep ]
         random = rows.select{ | item | item[ :modality ] == "RANDOM"      && item[ :ransomware ] == ransomware }[ 0 ][ :rep ]
         otf = rows.select{    | item | item[ :modality ] == "ON_THE_FLY"  && item[ :ransomware ] == ransomware }[ 0 ][ :rep ]
         shadow = rows.select{   | item | item[ :modality ] == "SHADOW_COPY" && item[ :ransomware ] == ransomware }[ 0 ][ :rep ]
-        row = "\\\\[1.5em]\\cEntry{#{ransomware}}"
         row += " & \\CCa{#{none[ :saved_perc ]}}{#{none[ :copies_perc ]}}"
         row += " & \\CCb{#{random[ :saved_perc ]}}{#{random[ :copies_perc ]}}"
         row += " & \\CCc{#{otf[ :saved_perc ]}}{#{otf[ :copies_perc ]}}"
         row += " & \\CCd{#{shadow[ :saved_perc ]}}{#{shadow[ :copies_perc ]}}"
-        puts row
+        if time != "300"
+          row += "\n \\\\ "
+        else
+          row += "\n"
+        end
+      end
+      puts row
       end
     end
     puts "\\end{tabular}"
+  else
+    results.each do | time, rows |
+      puts "\\section*{#{time} Seconds Delay}"
+      puts "\\begin{tabular}{@{} l c c c c c @{}} & None & Random & On-The-Fly & Shadow \\\\[.5em]"
+      ransomwares.each do | ransomware |
+        if ( missing_tests.select{ | item | item[ :time ] == time && item[ :ransomware ] == ransomware } ).empty?
+          none = rows.select{   | item | item[ :modality ] == "NONE"        && item[ :ransomware ] == ransomware }[ 0 ][ :rep ]
+          random = rows.select{ | item | item[ :modality ] == "RANDOM"      && item[ :ransomware ] == ransomware }[ 0 ][ :rep ]
+          otf = rows.select{    | item | item[ :modality ] == "ON_THE_FLY"  && item[ :ransomware ] == ransomware }[ 0 ][ :rep ]
+          shadow = rows.select{   | item | item[ :modality ] == "SHADOW_COPY" && item[ :ransomware ] == ransomware }[ 0 ][ :rep ]
+          row = "\\\\[1.5em]\\cEntry{#{ransomware}}"
+          row += " & \\CCa{#{none[ :saved_perc ]}}{#{none[ :copies_perc ]}}"
+          row += " & \\CCb{#{random[ :saved_perc ]}}{#{random[ :copies_perc ]}}"
+          row += " & \\CCc{#{otf[ :saved_perc ]}}{#{otf[ :copies_perc ]}}"
+          row += " & \\CCd{#{shadow[ :saved_perc ]}}{#{shadow[ :copies_perc ]}}"
+          puts row
+        end
+      end
+      puts "\\end{tabular}"
+    end
   end
 end
 
