@@ -1,17 +1,21 @@
 END { 
 times = [ "30", "60", "180", "300" ]
-modalities = [ "NONE", "RANDOM", "ON_THE_FLY", "SHADOW_COPY" ]
+modalities = [ "NONE" , "RANDOM", "ON_THE_FLY", "SHADOW_COPY" ]
 ransomwares = [ "Globeimposter", "Grandcrab", "LockBit", "Phobos", "Ryuk", "Unlock92", "Vipasana", "WannaCry", "Xorist" ]
 
-baseprofile = read_report( "tests/profile.base" )
-reports = load_reports()
-
+folder = ARGV[0]
+if folder == nil or not File.directory? folder
+  abort( "'#{folder}' is not a folder, provide a path to an existing tests folder" )
+end
+baseprofile = read_report( "#{folder}/profile.base" )
+reports = load_reports( folder )
 
 missing_tests = Array.new
 results = Hash.new
-detailed_report = ARGV[ 0 ] == "debug"
-single_page = ARGV[ 0 ] == "single_page"
+detailed_report = ARGV[ 1 ] == "debug"
+single_page = ARGV[ 1 ] == "single_page"
 
+labels = [ :lost, :saved, :copies ]
 times.each do | time |
   results[ time ] = Array.new
   modalities.each do | modality |
@@ -19,33 +23,28 @@ times.each do | time |
       if reports[ time ][ modality ][ ransomware ].nil? 
         missing_tests.push( { :time => time, :modality => modality, :ransomware => ransomware } )
       else
-        ag_rep = Hash.new
-        ag_rep[ :lost ] = []
-        ag_rep[ :saved ] = []
-        ag_rep[ :copies ] = []
+        ag_rep = { :lost => [], :saved => [], :copies => [] }
         reports[ time ][ modality ][ ransomware ].each do | report |
           comp = compare( baseprofile, report )
-          ag_rep[ :lost ].push( comp[ :lost ] )
-          ag_rep[ :saved ].push( comp[ :saved ] )
-          ag_rep[ :copies ].push( comp[ :copies ] )
+          labels.each do | label |
+            ag_rep[ label ].push( comp[ label ] )
+          end
         end
-        [ :lost, :saved, :copies ].each do | label |
-          avg = ag_rep[ label ].reduce(0){ |a,i| a + i } / ag_rep[ label ].size
-          std_label = "#{label.to_s}_std"
-          std = Math.sqrt( ag_rep[ label ].reduce(0){ |a,i| a + ( i - avg ).abs() } / ag_rep[ label ].size )
-          ag_rep[ label ] = avg
-          ag_rep[ std_label.to_sym ] = std
+        labels.each do | label |
+          data = ag_rep[ label ]
+          size = data.size
+          data.map!( &:to_f )
+          mean = data.reduce( &:+ ) / size
+          sum_sqr = data.map{ | x | x * x }.reduce( &:+ )
+          std_dev = Math.sqrt( ( sum_sqr - size * mean * mean ) / ( size - 1) )
+          ag_rep[ extSym( label, :avg ) ] = mean
+          ag_rep[ extSym( label, :std_dev ) ] = std_dev
         end
-        ag_rep[ :total ] = ag_rep[ :lost ] + ag_rep[ :saved ] + ag_rep[ :copies ]
-        [ :lost, :saved, :copies ].each do | label |
-          std_label = "#{label.to_s}_std"
-          ag_rep[ "#{std_label}_perc".to_sym ] = ag_rep[ label ] == 0 ? 0 :
-          # ( ( ag_rep[ label ].fdiv( ag_rep[ :total ] ) ) * 100 ) < 15 ? 0 : 
-          ( ( ag_rep[ std_label.to_sym ] / ag_rep[ label ] ) * 100 ).round()
+        ag_rep[ :total ] = ag_rep[ :lost_avg ] + ag_rep[ :saved_avg ] + ag_rep[ :copies_avg ]
+        labels.each do | label |
+          ag_rep[ extSym( label, :perc_avg ) ] = ( ag_rep[ extSym( label, :avg ) ].fdiv( ag_rep[ :total ] ) * 100 ).round()
+          ag_rep[ extSym( label, :perc_std_dev ) ] = ( ag_rep[ extSym( label, :std_dev ) ].fdiv( ag_rep[ :total ] ) * 100 ).round()
         end
-        ag_rep[ :lost_perc ] =   ( ag_rep[ :lost ].fdiv( ag_rep[ :total ] ) * 100   ).round()
-        ag_rep[ :saved_perc ] =  ( ag_rep[ :saved ].fdiv( ag_rep[ :total ] ) * 100  ).round()
-        ag_rep[ :copies_perc ] = ( ag_rep[ :copies ].fdiv( ag_rep[ :total ] ) * 100 ).round()
         results[ time ].push( { :modality => modality, :ransomware => ransomware, :rep => ag_rep } )
       end
     end
@@ -53,12 +52,27 @@ times.each do | time |
 end
 
 if detailed_report
+  max_st_dev = Array.new
   results.each do | time, rows |
     rows.each do | row |
       puts "#{time}, #{row[:modality]}, #{row[:ransomware]}"
       puts row[ :rep ]
+      labels.each do | label |
+        if row[ :rep ][ extSym( label, :perc_std_dev ) ] > 10
+          m = Hash.new
+          m[ :name ] = "#{time}, #{row[:modality]}, #{row[:ransomware]}"
+          m[ :measure ] = label
+          m[ :std_dev ] = row[ :rep ][ extSym( label, :std_dev ) ]
+          m[ :perc_std_dev ] = row[ :rep ][ extSym( label, :perc_std_dev ) ]
+          max_st_dev.push( m )
+        end
+      end
     end
   end
+  max_st_dev = max_st_dev.sort_by{ | m | m[ :perc_std_dev ] }
+  puts "\nST DEVS"
+  puts max_st_dev
+  puts "\n"
 else
   if single_page
     puts "\\begin{tabular}{@{} l c c c c c @{}} & None & Random & On-The-Fly & Shadow \\\\[.5em]"
@@ -71,10 +85,10 @@ else
         random = rows.select{ | item | item[ :modality ] == "RANDOM"      && item[ :ransomware ] == ransomware }[ 0 ][ :rep ]
         otf = rows.select{    | item | item[ :modality ] == "ON_THE_FLY"  && item[ :ransomware ] == ransomware }[ 0 ][ :rep ]
         shadow = rows.select{   | item | item[ :modality ] == "SHADOW_COPY" && item[ :ransomware ] == ransomware }[ 0 ][ :rep ]
-        row += " & \\CCa{#{none[ :saved_perc ]}}{#{none[ :copies_perc ]}}"
-        row += " & \\CCb{#{random[ :saved_perc ]}}{#{random[ :copies_perc ]}}"
-        row += " & \\CCc{#{otf[ :saved_perc ]}}{#{otf[ :copies_perc ]}}"
-        row += " & \\CCd{#{shadow[ :saved_perc ]}}{#{shadow[ :copies_perc ]}}"
+        row += " & \\CCa{#{none[ :saved_perc_avg ]}}{#{none[ :copies_perc_avg ]}}"
+        row += " & \\CCb{#{random[ :saved_perc_avg ]}}{#{random[ :copies_perc_avg ]}}"
+        row += " & \\CCc{#{otf[ :saved_perc_avg ]}}{#{otf[ :copies_perc_avg ]}}"
+        row += " & \\CCd{#{shadow[ :saved_perc_avg ]}}{#{shadow[ :copies_perc_avg ]}}"
         if time != "300"
           row += "\n \\\\ "
         else
@@ -96,10 +110,10 @@ else
           otf = rows.select{    | item | item[ :modality ] == "ON_THE_FLY"  && item[ :ransomware ] == ransomware }[ 0 ][ :rep ]
           shadow = rows.select{   | item | item[ :modality ] == "SHADOW_COPY" && item[ :ransomware ] == ransomware }[ 0 ][ :rep ]
           row = "\\\\[1.5em]\\cEntry{#{ransomware}}"
-          row += " & \\CCa{#{none[ :saved_perc ]}}{#{none[ :copies_perc ]}}"
-          row += " & \\CCb{#{random[ :saved_perc ]}}{#{random[ :copies_perc ]}}"
-          row += " & \\CCc{#{otf[ :saved_perc ]}}{#{otf[ :copies_perc ]}}"
-          row += " & \\CCd{#{shadow[ :saved_perc ]}}{#{shadow[ :copies_perc ]}}"
+          row += " & \\CCa{#{none[ :saved_perc_avg ]}}{#{none[ :copies_perc_avg ]}}"
+          row += " & \\CCb{#{random[ :saved_perc_avg ]}}{#{random[ :copies_perc_avg ]}}"
+          row += " & \\CCc{#{otf[ :saved_perc_avg ]}}{#{otf[ :copies_perc_avg ]}}"
+          row += " & \\CCd{#{shadow[ :saved_perc_avg ]}}{#{shadow[ :copies_perc_avg ]}}"
           puts row
         end
       end
@@ -177,9 +191,9 @@ def show_loading( counter, index, total )
   end
 end
 
-def load_reports()
+def load_reports( folder )
   reports = Hash.new
-  files = Dir.glob( "tests/*.report" )
+  files = Dir.glob( "#{folder}/*.report" )
   counter = { :c => -1 }
   files.each_with_index do | file, index |
     show_loading( counter, index, files.size )
@@ -198,4 +212,8 @@ def getOrAddKey( hash, key, default )
     hash[ key ] = default
   end
   return hash[ key ]
+end
+
+def extSym( symbol, suffix )
+  "#{symbol.to_s}_#{suffix.to_s}".to_sym
 end
