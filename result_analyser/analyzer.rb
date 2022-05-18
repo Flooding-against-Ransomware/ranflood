@@ -19,23 +19,33 @@ times.each do | time |
       if reports[ time ][ modality ][ ransomware ].nil? 
         missing_tests.push( { :time => time, :modality => modality, :ransomware => ransomware } )
       else
-        ag_rep = nil
+        ag_rep = Hash.new
+        ag_rep[ :lost ] = []
+        ag_rep[ :saved ] = []
+        ag_rep[ :copies ] = []
         reports[ time ][ modality ][ ransomware ].each do | report |
           comp = compare( baseprofile, report )
-          if ag_rep.nil?
-            ag_rep = comp
-            ag_rep[ :count ] = 1
-          else
-            ag_rep[ :lost ] += comp[ :lost ]
-            ag_rep[ :saved ] += comp[ :saved ]
-            ag_rep[ :copies ] += comp[ :copies ]
-            ag_rep[ :count ] += 1
-          end
+          ag_rep[ :lost ].push( comp[ :lost ] )
+          ag_rep[ :saved ].push( comp[ :saved ] )
+          ag_rep[ :copies ].push( comp[ :copies ] )
         end
-        ag_rep[ :lost ] = ag_rep[ :lost ] / ag_rep[ :count ]
-        ag_rep[ :saved ] = ag_rep[ :saved ] / ag_rep[ :count ]
-        ag_rep[ :copies ] = ag_rep[ :copies ] / ag_rep[ :count ]
+        [ :lost, :saved, :copies ].each do | label |
+          avg = ag_rep[ label ]
+            .reduce(0){ |a,i| a + i } / ag_rep[ label ].size
+          std_label = "#{label.to_s}_std"
+          std = Math.sqrt( ag_rep[ label ]
+            .reduce(0){ |a,i| a + ( i - avg ).abs() } / ag_rep[ label ].size )
+          ag_rep[ label ] = avg
+          ag_rep[ std_label.to_sym ] = std
+        end
         ag_rep[ :total ] = ag_rep[ :lost ] + ag_rep[ :saved ] + ag_rep[ :copies ]
+        puts ag_rep[ :total ]
+        [ :lost, :saved, :copies ].each do | label |
+          std_label = "#{label.to_s}_std"
+          ag_rep[ "#{std_label}_perc".to_sym ] = 
+          ( ( ag_rep[ label ].fdiv( ag_rep[ :total ] ) ) * 100 ) < 15 ? 
+            0 : ( ( ag_rep[ std_label.to_sym ] / ag_rep[ label ] ) * 100 ).round()
+        end
         ag_rep[ :lost_perc ] = ( ag_rep[ :lost ].fdiv( ag_rep[ :total ] ) * 100 ).round()
         ag_rep[ :saved_perc ] = ( ag_rep[ :saved ].fdiv( ag_rep[ :total ] ) * 100 ).round()
         ag_rep[ :copies_perc ] = ( ag_rep[ :copies ].fdiv( ag_rep[ :total ] ) * 100 ).round()
