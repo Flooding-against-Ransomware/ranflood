@@ -30,24 +30,21 @@ times.each do | time |
           ag_rep[ :copies ].push( comp[ :copies ] )
         end
         [ :lost, :saved, :copies ].each do | label |
-          avg = ag_rep[ label ]
-            .reduce(0){ |a,i| a + i } / ag_rep[ label ].size
+          avg = ag_rep[ label ].reduce(0){ |a,i| a + i } / ag_rep[ label ].size
           std_label = "#{label.to_s}_std"
-          std = Math.sqrt( ag_rep[ label ]
-            .reduce(0){ |a,i| a + ( i - avg ).abs() } / ag_rep[ label ].size )
+          std = Math.sqrt( ag_rep[ label ].reduce(0){ |a,i| a + ( i - avg ).abs() } / ag_rep[ label ].size )
           ag_rep[ label ] = avg
           ag_rep[ std_label.to_sym ] = std
         end
         ag_rep[ :total ] = ag_rep[ :lost ] + ag_rep[ :saved ] + ag_rep[ :copies ]
-        puts ag_rep[ :total ]
         [ :lost, :saved, :copies ].each do | label |
           std_label = "#{label.to_s}_std"
-          ag_rep[ "#{std_label}_perc".to_sym ] = 
-          ( ( ag_rep[ label ].fdiv( ag_rep[ :total ] ) ) * 100 ) < 15 ? 
-            0 : ( ( ag_rep[ std_label.to_sym ] / ag_rep[ label ] ) * 100 ).round()
+          ag_rep[ "#{std_label}_perc".to_sym ] = ag_rep[ label ] == 0 ? 0 :
+          # ( ( ag_rep[ label ].fdiv( ag_rep[ :total ] ) ) * 100 ) < 15 ? 0 : 
+          ( ( ag_rep[ std_label.to_sym ] / ag_rep[ label ] ) * 100 ).round()
         end
-        ag_rep[ :lost_perc ] = ( ag_rep[ :lost ].fdiv( ag_rep[ :total ] ) * 100 ).round()
-        ag_rep[ :saved_perc ] = ( ag_rep[ :saved ].fdiv( ag_rep[ :total ] ) * 100 ).round()
+        ag_rep[ :lost_perc ] =   ( ag_rep[ :lost ].fdiv( ag_rep[ :total ] ) * 100   ).round()
+        ag_rep[ :saved_perc ] =  ( ag_rep[ :saved ].fdiv( ag_rep[ :total ] ) * 100  ).round()
         ag_rep[ :copies_perc ] = ( ag_rep[ :copies ].fdiv( ag_rep[ :total ] ) * 100 ).round()
         results[ time ].push( { :modality => modality, :ransomware => ransomware, :rep => ag_rep } )
       end
