@@ -1,5 +1,6 @@
 require "bundler/setup"
 require "sorbet-runtime"
+require "descriptive-statistics"
 
 class Main
   extend T::Sig
@@ -8,19 +9,21 @@ class Main
   def self.main
     times = ["30", "60", "180", "300"]
     modalities = ["NONE", "RANDOM", "ON_THE_FLY", "SHADOW_COPY"]
-    ransomwares = ["Globeimposter", "Grandcrab", "LockBit", "Phobos", "Ryuk", "Unlock92", "Vipasana", "WannaCry", "Xorist"]
+    ransomwares = [ "Globeimposter", "Grandcrab", "LockBit", "Phobos", "Ryuk", "Unlock92", "Vipasana", "WannaCry", "Xorist" ]
 
     folder = ARGV[0]
     if folder == nil or not File.directory? folder
       abort("'#{folder}' is not a folder, provide a path to an existing tests folder")
     end
+    detailed_report = ARGV[1] == "debug"
+    single_page = ARGV[1] == "single_page"
+    $reset_cache = ARGV[1] == "reset_cache" || ARGV[2] == "reset_cache"
+
     baseprofile = read_report("#{folder}/profile.base")
     reports = load_reports(folder)
 
     missing_tests = Array.new
     results = Hash.new
-    detailed_report = ARGV[1] == "debug"
-    single_page = ARGV[1] == "single_page"
 
     labels = [:lost, :saved, :copies]
     times.each do |time|
@@ -39,13 +42,14 @@ class Main
             end
             labels.each do |label|
               data = ag_rep[label]
-              size = data.size
-              data.map!(&:to_f)
-              mean = data.reduce(&:+) / size
-              sum_sqr = data.map { |x| x * x }.reduce(&:+)
-              std_dev = Math.sqrt((sum_sqr - size * mean * mean) / (size - 1))
-              ag_rep[extSym(label, :avg)] = mean
-              ag_rep[extSym(label, :std_dev)] = std_dev
+              # size = data.size
+              # data.map!(&:to_f)
+              # mean = data.reduce(&:+) / size
+              # sum_sqr = data.map { |x| x * x }.reduce(&:+)
+              # std_dev = Math.sqrt((sum_sqr - size * mean * mean) / (size - 1))
+              data.extend( DescriptiveStatistics )
+              ag_rep[extSym(label, :avg)] = data.mean
+              ag_rep[extSym(label, :std_dev)] = data.standard_deviation
             end
             ag_rep[:total] = ag_rep[:lost_avg] + ag_rep[:saved_avg] + ag_rep[:copies_avg]
             labels.each do |label|
@@ -65,21 +69,34 @@ class Main
           puts "#{time}, #{row[:modality]}, #{row[:ransomware]}"
           puts row[:rep]
           labels.each do |label|
-            if row[:rep][extSym(label, :perc_std_dev)] > 10
               m = Hash.new
               m[:name] = "#{time}, #{row[:modality]}, #{row[:ransomware]}"
+              m[:ransomware] = row[:ransomware]
               m[:measure] = label
               m[:std_dev] = row[:rep][extSym(label, :std_dev)]
               m[:perc_std_dev] = row[:rep][extSym(label, :perc_std_dev)]
               max_st_dev.push(m)
-            end
           end
         end
       end
-      max_st_dev = max_st_dev.sort_by { |m| m[:perc_std_dev] }
-      puts "\nST DEVS"
       puts max_st_dev
-      puts "\n"
+      ransomwares.each do | r |
+        acc = Array.new
+        max_st_dev.select{ | m | m[ :ransomware ] == r }.each do | m |
+          acc.push( m[ :perc_std_dev ] )
+        end
+        # size = acc.size
+        # acc.map!(&:to_f)
+        # mean = acc.reduce(&:+) / size
+        # sum_sqr = acc.map { |x| x * x }.reduce(&:+)
+        # std_dev = Math.sqrt((sum_sqr - size * mean * mean) / (size - 1))
+        acc.extend(DescriptiveStatistics)
+        puts "#{r}, #{acc.mean}, #{acc.standard_deviation}"
+      end
+      # max_st_dev = max_st_dev.sort_by { |m| m[:perc_std_dev] }
+      # puts "\nST DEVS"
+      # puts max_st_dev
+      # puts "\n"
     else
       if single_page
         puts "\\begin{tabular}{@{} l c c c c c @{}} & None & Random & On-The-Fly & Shadow \\\\[.5em]"
@@ -196,21 +213,33 @@ class Main
     end
   end
 
+  $cachefile = "tests.cache"
+
   sig { params( folder: String ).returns( Hash ) }
   def self.load_reports(folder)
-    reports = Hash.new
-    files = Dir.glob("#{folder}/*.report")
-    counter = { :c => -1 }
-    files.each_with_index do |file, index|
-      show_loading(counter, index, files.size)
-      split = File.basename(file).split("-")
-      time_h = getOrAddKey(reports, split[1], Hash.new)
-      modality_h = getOrAddKey(time_h, split[2], Hash.new)
-      ransomware_a = getOrAddKey(modality_h, split[0], Array.new)
-      ransomware_a.push(read_report(file))
+    if $reset_cache and File.exists? $cachefile
+      File.delete( $cachefile )
     end
-    puts ""
-    return reports
+    if File.exist? $cachefile
+      puts "loading from cache #{$cachefile}"
+      File.open( $cachefile, "r" ){ | f | return Marshal.load( f ) }
+    else
+      puts "loading from source #{folder}"
+      reports = Hash.new
+      files = Dir.glob("#{folder}/*.report")
+      counter = { :c => -1 }
+      files.each_with_index do |file, index|
+        show_loading(counter, index, files.size)
+        split = File.basename(file).split("-")
+        time_h = getOrAddKey(reports, split[1], Hash.new)
+        modality_h = getOrAddKey(time_h, split[2], Hash.new)
+        ransomware_a = getOrAddKey(modality_h, split[0], Array.new)
+        ransomware_a.push(read_report(file))
+      end
+      File.open( $cachefile, "w" ){ | f | Marshal.dump( reports, f ) }
+      puts ""
+      return reports
+    end
   end
 
   sig do 

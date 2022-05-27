@@ -1,12 +1,14 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    descriptive-statistics (2.2.0)
     sorbet-runtime (0.5.10028)
 
 PLATFORMS
   x86_64-darwin-19
 
 DEPENDENCIES
+  descriptive-statistics (~> 2.2)
   sorbet-runtime (~> 0.5.10028)
 
 BUNDLED WITH
