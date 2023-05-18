@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use or refer to this software, please cite it using the reference below."
+url: "https://github.com/Flooding-against-Ransomware/ranflood"
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Davide"
+    given-names: "Berardi"
+    orcid: "https://orcid.org/0000-0002-2473-2439"
+  - family-names: "Saverio"
+    given-names: "Giallorenzo"
+    orcid: "https://orcid.org/0000-0002-3658-6395"
+  - family-names: "Andrea"
+    given-names: "Melis"
+    orcid: "https://orcid.org/0000-0002-0101-2551"
+  - family-names: "Simone"
+    given-names: "Melloni"
+    orcid: "https://orcid.org/0000-0002-9535-8747"
+  - family-names: "Loris"
+    given-names: "Onori"
+  - family-names: "Marco"
+    given-names: "Prandini"
+    orcid: "https://orcid.org/0000-0002-3962-5513"
+  title: "Data Flooding against Ransomware: Concepts and Implementations"
+  doi: "10.1016/j.cose.2023.103295"
+  journal: "Computers & Security"
+  year: 2023
