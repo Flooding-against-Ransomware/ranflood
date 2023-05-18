@@ -9,6 +9,14 @@ The user interacts with the client to issue commands to the daemon.
 The daemon should run as a service (always on, restarted if it crashes, etc.). The daemon accepts as parameter a path to a `setting.ini` file which reports where to store the on-the-fly and shadow-copy DBs and archives and sets its request address (the default is `localhost:7890`). 
 The playground folder in this repo includes an [exemplary setting.ini](https://github.com/thesave/ranflood/blob/master/src/tests/java/playground/settings.ini) file.
 
+## To Do
+
+- [ ] Export the following components in separate repositories
+  - [ ] [FileChecker](/master/src/filechecker/java/org/ranflood/filechecker) and [analyser](/master/result_analyser)
+  - [ ] Rig [management](/master/management-scripts) and [testing](/master/scripts) scripts
+  - [ ] [Ransomware Samples](resources/ransomwares)
+
+
 ## Cite this repository
 
 If you use this software in your work, please cite it using the following metadata.
