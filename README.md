@@ -2,7 +2,7 @@
 
 <img src="icon.png?raw=true" width="33%">
 
-RanFlood consists in two programs: a client and a daemon.
+Ranflood consists in two programs: a client and a daemon.
 
 The user interacts with the client to issue commands to the daemon.
 
