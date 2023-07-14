@@ -8,7 +8,7 @@ The user interacts with the client to issue commands to the daemon.
 
 The daemon should run as a service (always on, restarted if it crashes, etc.). The daemon accepts as parameter a path to a `setting.ini` file which reports where to store the on-the-fly and shadow-copy DBs and archives and sets its request address (the default is `localhost:7890`).
 
-For instance, a `setting.ini` file for a Windows installation
+For instance, an example `setting.ini` file for a Windows installation is
 
 ```[RandomFlooder]
 MaxFileSize = 768 KB
