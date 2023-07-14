@@ -10,7 +10,7 @@ The daemon should run as a service (always on, restarted if it crashes, etc.). T
 
 For instance, a `setting.ini` file for a Windows installation
 
-[RandomFlooder]
+```[RandomFlooder]
 MaxFileSize = 768 KB
 [OnTheFlyFlooder]
 Signature_DB = C:\Users\thesave\Desktop\ranflood_testsite\signatures.db
@@ -21,6 +21,7 @@ ArchiveRoot = C:\Users\thesave\Desktop\ranflood_testsite\archives
 ExcludeFolderNames = Application Data, OtherFolder
 [ZMQ_JSON_Server]
 address = tcp://localhost:7890
+```
 
 The playground folder in this repo includes an [illustrative setting.ini](https://github.com/thesave/ranflood/blob/master/src/tests/java/playground/settings.ini) file for linux/macOS.
 
