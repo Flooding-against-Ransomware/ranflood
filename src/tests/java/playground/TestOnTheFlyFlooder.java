@@ -27,9 +27,9 @@ import org.ranflood.common.commands.FloodCommand;
 import org.ranflood.common.commands.SnapshotCommand;
 import org.ranflood.common.commands.transcoders.JSONTranscoder;
 import org.ranflood.common.commands.transcoders.ParseException;
-import org.ranflood.common.commands.types.RanFloodType;
-import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.RanFloodDaemon;
+import org.ranflood.common.commands.types.RanfloodType;
+import org.ranflood.daemon.Ranflood;
+import org.ranflood.daemon.RanfloodDaemon;
 import org.ranflood.daemon.flooders.FlooderException;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import static org.ranflood.common.RanFloodLogger.log;
+import static org.ranflood.common.RanfloodLogger.log;
 import static org.ranflood.common.commands.transcoders.JSONTranscoder.parseDaemonCommandList;
 
 
@@ -50,7 +50,7 @@ public class TestOnTheFlyFlooder {
 
 	public static void main( String[] args ) throws InterruptedException, IOException {
 
-		RanFlood.main( TestCommons.getArgs() );
+		Ranflood.main( TestCommons.getArgs() );
 		Thread.sleep( 1000 );
 		List< Path > filePaths = List.of(
 						Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/Other" ),
@@ -70,7 +70,7 @@ public class TestOnTheFlyFlooder {
 		for ( Path filePath : filePaths ) {
 
 			sendCommand( new SnapshotCommand.Add(
-							new RanFloodType( FloodMethod.ON_THE_FLY, filePath ) )
+							new RanfloodType( FloodMethod.ON_THE_FLY, filePath ) )
 			);
 			Thread.sleep( 1000 );
 
@@ -78,23 +78,23 @@ public class TestOnTheFlyFlooder {
 			Thread.sleep( 1000 );
 
 			sendCommand( new FloodCommand.Start(
-							new RanFloodType( FloodMethod.ON_THE_FLY, filePath )
+							new RanfloodType( FloodMethod.ON_THE_FLY, filePath )
 			) );
 			Thread.sleep( 1000 );
 		}
 
 		// THIS SHOULD BE OK
-		List< RanFloodType.Tagged > list;
+		List< RanfloodType.Tagged > list;
 		do {
 			log( "Retrieving list of running floods" );
 			String runningList = sendCommandList( new FloodCommand.List() );
 			log( runningList );
-			list = ( List< RanFloodType.Tagged > ) parseDaemonCommandList( runningList );
+			list = ( List< RanfloodType.Tagged > ) parseDaemonCommandList( runningList );
 			Thread.sleep( 1000 );
 		} while ( list.isEmpty() );
 
 
-		for ( RanFloodType.Tagged rftt : list ) {
+		for ( RanfloodType.Tagged rftt : list ) {
 			// THIS SHOULD BE OK
 			sendCommand( new FloodCommand.Stop(
 							rftt.method(),
@@ -106,12 +106,12 @@ public class TestOnTheFlyFlooder {
 		sendString( "shutdown" );
 
 //		Thread.sleep( 1000 );
-		//RanFlood.getDaemon().shutdown();
+		//Ranflood.getDaemon().shutdown();
 	}
 
 	private static void createTestStructure( Path root ) {
 		log( "Creating test folders structure" );
-		RanFloodDaemon daemon = RanFlood.daemon();
+		RanfloodDaemon daemon = Ranflood.daemon();
 		List< Path > l = Arrays.asList(
 						root.resolve( "Application Data" ), root.resolve( "Application Data" ).resolve( "Other" ),
 						root.resolve( "Other" ), root.resolve( "Other 2" )

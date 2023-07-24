@@ -40,10 +40,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-import static org.ranflood.common.RanFloodLogger.error;
-import static org.ranflood.common.RanFloodLogger.log;
+import static org.ranflood.common.RanfloodLogger.error;
+import static org.ranflood.common.RanfloodLogger.log;
 
-public class RanFloodDaemon {
+public class RanfloodDaemon {
 
 	private final FloodTaskExecutor floodTaskExecutor = FloodTaskExecutor.getInstance();
 	private static final ExecutorService serverExecutor = Executors.newFixedThreadPool( 1 );
@@ -64,7 +64,7 @@ public class RanFloodDaemon {
 
 	IniParser settings = null;
 
-	public RanFloodDaemon( Path settingsFilePath ) throws IOException {
+	public RanfloodDaemon( Path settingsFilePath ) throws IOException {
 		try {
 			settings = new IniParser( settingsFilePath.toAbsolutePath().toString() );
 		} catch ( IOException e ) {
@@ -98,7 +98,7 @@ public class RanFloodDaemon {
 						} ) ),
 						Arrays.stream( shadow_copy_opt_exclude_folder_names.orElse( "" ).split( "," ) ).map( String::trim ).collect( Collectors.toSet() )
 		);
-		log( "Ranflood Daemon (ranfloodd) version " + RanFlood.version() + " started." );
+		log( "Ranflood Daemon (ranfloodd) version " + Ranflood.version() + " started." );
 	}
 
 	public static void executeIORunnable( Runnable r ) {

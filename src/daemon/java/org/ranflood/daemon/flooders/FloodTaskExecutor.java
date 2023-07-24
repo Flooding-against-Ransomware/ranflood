@@ -21,24 +21,20 @@
 
 package org.ranflood.daemon.flooders;
 
-import static org.ranflood.common.RanFloodLogger.error;
-import static org.ranflood.common.RanFloodLogger.log;
+import static org.ranflood.common.RanfloodLogger.error;
+import static org.ranflood.common.RanfloodLogger.log;
 
-import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.RanFloodDaemon;
+import org.ranflood.daemon.Ranflood;
+import org.ranflood.daemon.RanfloodDaemon;
 import org.ranflood.daemon.flooders.onTheFly.OnTheFlyFloodTask;
 import org.ranflood.daemon.flooders.random.RandomFloodTask;
 import org.ranflood.daemon.flooders.shadowCopy.ShadowCopyFloodTask;
 import org.ranflood.daemon.flooders.tasks.FileTask;
-import org.ranflood.daemon.flooders.tasks.FloodTask;
-import org.ranflood.daemon.flooders.tasks.FloodTaskGenerator;
 import org.ranflood.daemon.flooders.tasks.LabeledFloodTask;
 
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class FloodTaskExecutor {
 
@@ -89,7 +85,7 @@ public class FloodTaskExecutor {
 	}
 
 	private void signalExecution() {
-		RanFloodDaemon.executeIORunnable( () -> {
+		RanfloodDaemon.executeIORunnable( () -> {
 			taskListLock.lock();
 			if ( taskList.isEmpty() ) {
 				taskListLock.unlock();
@@ -107,11 +103,11 @@ public class FloodTaskExecutor {
 					log( "Task " + t.main.label() + " has 0 remaining tasks, stopping it" );
 					try {
 						if( t.main.floodTask() instanceof OnTheFlyFloodTask ){
-							RanFlood.daemon().onTheFlyFlooder().stopFlood( t.main.label() );
+							Ranflood.daemon().onTheFlyFlooder().stopFlood( t.main.label() );
 						} else if( t.main.floodTask() instanceof ShadowCopyFloodTask ){
-							RanFlood.daemon().shadowCopyFlooder().stopFlood( t.main.label() );
+							Ranflood.daemon().shadowCopyFlooder().stopFlood( t.main.label() );
 						} else if( t.main.floodTask() instanceof RandomFloodTask ){
-							RanFlood.daemon().randomFlooder().stopFlood( t.main.label() );
+							Ranflood.daemon().randomFlooder().stopFlood( t.main.label() );
 						}
 					} catch ( FlooderException ex ) {
 						error( ex.getMessage() );

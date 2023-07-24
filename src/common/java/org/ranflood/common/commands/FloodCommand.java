@@ -21,7 +21,7 @@
 
 package org.ranflood.common.commands;
 
-import org.ranflood.common.commands.types.RanFloodType;
+import org.ranflood.common.commands.types.RanfloodType;
 import org.ranflood.common.commands.types.CommandResult;
 import org.ranflood.common.FloodMethod;
 
@@ -32,7 +32,7 @@ public class FloodCommand {
 
 	public static class Start extends AbstractCommand< CommandResult > {
 
-		public Start( RanFloodType type ) {
+		public Start( RanfloodType type ) {
 			super( type, "Flood start" );
 		}
 
@@ -68,10 +68,10 @@ public class FloodCommand {
 
 	}
 
-	public static class List implements Command< java.util.List< RanFloodType.Tagged > > {
+	public static class List implements Command< java.util.List< RanfloodType.Tagged > > {
 
 		@Override
-		public java.util.List< RanFloodType.Tagged > execute() {
+		public java.util.List< RanfloodType.Tagged > execute() {
 			throw new UnsupportedOperationException( "Execution is not implemented by the AbstractCommand class" );
 		}
 

@@ -23,9 +23,7 @@ package org.ranflood.daemon.flooders.random;
 
 import com.oblac.nomen.Nomen;
 import org.ranflood.common.utils.Pair;
-import org.ranflood.daemon.RanFloodDaemon;
 import org.ranflood.common.FloodMethod;
-import org.ranflood.daemon.flooders.tasks.FloodTask;
 import org.ranflood.daemon.flooders.tasks.FloodTaskGenerator;
 import org.ranflood.daemon.flooders.tasks.WriteFileTask;
 
@@ -113,7 +111,7 @@ public class RandomFloodTask extends FloodTaskGenerator {
 //											+ FILE_EXTESIONS.get( rng.nextInt( FILE_EXTESIONS.size() ) )
 //			);
 //			WriteFileTask d = new WriteFileTask( filePath, getCachedRandomBytes(), this.floodMethod() );
-//			RanFloodDaemon.executeIORunnable( d.getRunnableTask() );
+//			RanfloodDaemon.executeIORunnable( d.getRunnableTask() );
 //		};
 	}
 

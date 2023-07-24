@@ -21,19 +21,19 @@
 
 package org.ranflood.common.commands;
 
-import org.ranflood.common.commands.types.RanFloodType;
+import org.ranflood.common.commands.types.RanfloodType;
 
 public abstract class AbstractCommand< T > implements Command< T > {
 
-	private final RanFloodType type;
+	private final RanfloodType type;
 	private final String name;
 
-	public AbstractCommand( RanFloodType type, String name ) {
+	public AbstractCommand( RanfloodType type, String name ) {
 		this.type = type;
 		this.name = name;
 	}
 
-	public RanFloodType type() {
+	public RanfloodType type() {
 		return type;
 	}
 

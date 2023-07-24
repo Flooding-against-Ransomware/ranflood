@@ -24,8 +24,8 @@ package org.ranflood.daemon.commands;
 import org.ranflood.common.FloodMethod;
 import org.ranflood.common.commands.SnapshotCommand;
 import org.ranflood.common.commands.types.CommandResult;
-import org.ranflood.common.commands.types.RanFloodType;
-import org.ranflood.daemon.RanFlood;
+import org.ranflood.common.commands.types.RanfloodType;
+import org.ranflood.daemon.Ranflood;
 import org.ranflood.daemon.flooders.SnapshotException;
 
 import java.util.LinkedList;
@@ -37,7 +37,7 @@ public class SnapshotCommandImpl {
 
 	public static class Add extends SnapshotCommand.Add {
 
-		public Add( RanFloodType type ) {
+		public Add( RanfloodType type ) {
 			super( type );
 		}
 
@@ -48,14 +48,14 @@ public class SnapshotCommandImpl {
 					return new CommandResult.Failed( "Cannot create a snapshot for the random flooder" );
 				case ON_THE_FLY:
 					try {
-						RanFlood.daemon().onTheFlyFlooder().takeSnapshot( this.type().path() );
+						Ranflood.daemon().onTheFlyFlooder().takeSnapshot( this.type().path() );
 						return new CommandResult.Successful( "Created snapshot for the on-the-fly flooder at " + this.type().path() );
 					} catch ( SnapshotException e ) {
 						return new CommandResult.Failed( "Could not issue the creation of a snapshot for the on-the-fly flooder: " + e.getMessage() );
 					}
 				case SHADOW_COPY:
 					try {
-						RanFlood.daemon().shadowCopyFlooder().takeSnapshot( this.type().path() );
+						Ranflood.daemon().shadowCopyFlooder().takeSnapshot( this.type().path() );
 						return new CommandResult.Successful( "Created snapshot for the shadow-copy flooder at " + this.type().path() );
 					} catch ( SnapshotException e ) {
 						return new CommandResult.Failed( "Could not issue the creation of a snapshot for the shadow-copy flooder: " + e.getMessage() );
@@ -69,7 +69,7 @@ public class SnapshotCommandImpl {
 
 	public static class Remove extends SnapshotCommand.Remove {
 
-		public Remove( RanFloodType type ) {
+		public Remove( RanfloodType type ) {
 			super( type );
 		}
 
@@ -79,10 +79,10 @@ public class SnapshotCommandImpl {
 				case RANDOM:
 					return new CommandResult.Failed( "Cannot delete a snapshot for the random flooder (there are none)" );
 				case ON_THE_FLY:
-					RanFlood.daemon().onTheFlyFlooder().removeSnapshot( this.type().path() );
+					Ranflood.daemon().onTheFlyFlooder().removeSnapshot( this.type().path() );
 					return new CommandResult.Successful( "Issued the removal of the snapshot of the on-the-fly flooder" );
 				case SHADOW_COPY:
-					RanFlood.daemon().shadowCopyFlooder().removeSnapshot( this.type().path() );
+					Ranflood.daemon().shadowCopyFlooder().removeSnapshot( this.type().path() );
 					return new CommandResult.Successful( "Issued the removal of the snapshot of the shadow-copy flooder" );
 				default:
 					return new CommandResult.Failed( "Unrecognized method: " + this.type().method().name() );
@@ -94,12 +94,12 @@ public class SnapshotCommandImpl {
 	public static class List extends SnapshotCommand.List {
 
 		@Override
-		public java.util.List< RanFloodType > execute() {
-			LinkedList< RanFloodType > l = new LinkedList<>();
-			RanFlood.daemon().onTheFlyFlooder().listSnapshots()
-							.forEach( p -> l.add( new RanFloodType( FloodMethod.ON_THE_FLY, p ) ) );
-			RanFlood.daemon().shadowCopyFlooder().listSnapshots()
-							.forEach( p -> l.add( new RanFloodType( FloodMethod.SHADOW_COPY, p ) ) );
+		public java.util.List< RanfloodType > execute() {
+			LinkedList< RanfloodType > l = new LinkedList<>();
+			Ranflood.daemon().onTheFlyFlooder().listSnapshots()
+							.forEach( p -> l.add( new RanfloodType( FloodMethod.ON_THE_FLY, p ) ) );
+			Ranflood.daemon().shadowCopyFlooder().listSnapshots()
+							.forEach( p -> l.add( new RanfloodType( FloodMethod.SHADOW_COPY, p ) ) );
 			return l;
 		}
 

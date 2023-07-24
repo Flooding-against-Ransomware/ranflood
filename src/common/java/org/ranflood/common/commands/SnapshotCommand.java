@@ -21,13 +21,10 @@
 
 package org.ranflood.common.commands;
 
-import org.ranflood.common.commands.types.RanFloodType;
+import org.ranflood.common.commands.types.RanfloodType;
 import org.ranflood.common.commands.types.CommandResult;
-import org.ranflood.common.FloodMethod;
 
-import java.util.LinkedList;
-
-import static org.ranflood.common.RanFloodLogger.error;
+import static org.ranflood.common.RanfloodLogger.error;
 
 public class SnapshotCommand {
 
@@ -36,7 +33,7 @@ public class SnapshotCommand {
 
 	public static class Add extends AbstractCommand< CommandResult > {
 
-		public Add( RanFloodType type ) {
+		public Add( RanfloodType type ) {
 			super( type, "Snapshot add" );
 		}
 
@@ -44,16 +41,16 @@ public class SnapshotCommand {
 
 	public static class Remove extends AbstractCommand< CommandResult > {
 
-		public Remove( RanFloodType type ) {
+		public Remove( RanfloodType type ) {
 			super( type, "Snapshot remove" );
 		}
 
 	}
 
-	public static class List implements Command< java.util.List< RanFloodType > > {
+	public static class List implements Command< java.util.List< RanfloodType > > {
 
 		@Override
-		public java.util.List< RanFloodType > execute() {
+		public java.util.List< RanfloodType > execute() {
 			error( "Unsupported exception" );
 			throw new UnsupportedOperationException( "Execution is not implemented by the AbstractCommand class" );
 		}

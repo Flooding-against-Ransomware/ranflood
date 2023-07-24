@@ -27,8 +27,8 @@ import org.ranflood.common.commands.FloodCommand;
 import org.ranflood.common.commands.SnapshotCommand;
 import org.ranflood.common.commands.transcoders.JSONTranscoder;
 import org.ranflood.common.commands.transcoders.ParseException;
-import org.ranflood.common.commands.types.RanFloodType;
-import org.ranflood.daemon.RanFlood;
+import org.ranflood.common.commands.types.RanfloodType;
+import org.ranflood.daemon.Ranflood;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
@@ -39,7 +39,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import static org.ranflood.common.RanFloodLogger.log;
+import static org.ranflood.common.RanfloodLogger.log;
 import static org.ranflood.common.commands.transcoders.JSONTranscoder.parseDaemonCommandList;
 
 
@@ -47,7 +47,7 @@ public class TestShadowCopyFlooder {
 
 	public static void main( String[] args ) throws InterruptedException, IOException {
 
-		RanFlood.main( TestCommons.getArgs() );
+		Ranflood.main( TestCommons.getArgs() );
 		Thread.sleep( 1000 );
 		List< Path > filePaths = List.of(
 						Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/Other" ),
@@ -66,23 +66,23 @@ public class TestShadowCopyFlooder {
 
 		for ( Path filePath : filePaths ) {
 			sendCommand( new SnapshotCommand.Add(
-							new RanFloodType( FloodMethod.SHADOW_COPY, filePath ) )
+							new RanfloodType( FloodMethod.SHADOW_COPY, filePath ) )
 			);
 		}
 
 
-		List< RanFloodType.Tagged > list;
+		List< RanfloodType.Tagged > list;
 		do {
 			log( "Retrieving list of available snapshots" );
 			String runningList = sendCommandList( new SnapshotCommand.List() );
 			log( runningList );
-			list = ( List< RanFloodType.Tagged > ) parseDaemonCommandList( runningList );
+			list = ( List< RanfloodType.Tagged > ) parseDaemonCommandList( runningList );
 			Thread.sleep( 1000 );
 		} while ( list.size() < filePaths.size() );
 
 		for ( Path filePath : filePaths ) {
 			sendCommand( new FloodCommand.Start(
-							new RanFloodType( FloodMethod.SHADOW_COPY, filePath )
+							new RanfloodType( FloodMethod.SHADOW_COPY, filePath )
 			) );
 		}
 		Thread.sleep( 1000 );
@@ -91,13 +91,13 @@ public class TestShadowCopyFlooder {
 			log( "Retrieving list of running floods" );
 			String runningList = sendCommandList( new FloodCommand.List() );
 			log( runningList );
-			list = ( List< RanFloodType.Tagged > ) parseDaemonCommandList( runningList );
+			list = ( List< RanfloodType.Tagged > ) parseDaemonCommandList( runningList );
 			Thread.sleep( 1000 );
 		} while ( list.size() < filePaths.size() );
 
 		Thread.sleep( 5000 );
 
-		for ( RanFloodType.Tagged rftt : list ) {
+		for ( RanfloodType.Tagged rftt : list ) {
 			// THIS SHOULD BE OK
 			sendCommand( new FloodCommand.Stop(
 							rftt.method(),
@@ -106,12 +106,12 @@ public class TestShadowCopyFlooder {
 		}
 		Thread.sleep( 1000 );
 
-		RanFlood.daemon().shutdown();
+		Ranflood.daemon().shutdown();
 
 //		sendString( "shutdown" );
 
 //		Thread.sleep( 1000 );
-		//RanFlood.getDaemon().shutdown();
+		//Ranflood.getDaemon().shutdown();
 	}
 
 	private static void createTestStructure( Path root ) throws IOException, InterruptedException {
@@ -122,21 +122,21 @@ public class TestShadowCopyFlooder {
 		);
 		l.forEach( f -> {
 			sendCommand( new FloodCommand.Start(
-							new RanFloodType( FloodMethod.RANDOM, f )
+							new RanfloodType( FloodMethod.RANDOM, f )
 			) );
 		} );
 		Thread.sleep( 1000 );
 		// THIS SHOULD BE OK
-		List< RanFloodType.Tagged > list;
+		List< RanfloodType.Tagged > list;
 		do {
 			log( "Retrieving list of running floods" );
 			String runningList = sendCommandList( new FloodCommand.List() );
 			log( runningList );
-			list = ( List< RanFloodType.Tagged > ) parseDaemonCommandList( runningList );
+			list = ( List< RanfloodType.Tagged > ) parseDaemonCommandList( runningList );
 			Thread.sleep( 250 );
 		} while ( list.size() < l.size() );
 
-		for ( RanFloodType.Tagged rftt : list ) {
+		for ( RanfloodType.Tagged rftt : list ) {
 			// THIS SHOULD BE OK
 			sendCommand( new FloodCommand.Stop(
 							rftt.method(),

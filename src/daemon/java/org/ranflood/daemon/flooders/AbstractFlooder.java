@@ -21,7 +21,7 @@
 
 package org.ranflood.daemon.flooders;
 
-import org.ranflood.daemon.RanFlood;
+import org.ranflood.daemon.Ranflood;
 import org.ranflood.daemon.flooders.tasks.LabeledFloodTask;
 
 import java.nio.file.Path;
@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.ranflood.common.RanFloodLogger.log;
+import static org.ranflood.common.RanfloodLogger.log;
 
 public class AbstractFlooder {
 
@@ -55,7 +55,7 @@ public class AbstractFlooder {
 	public void stopFlood( UUID id ) throws FlooderException {
 		LabeledFloodTask task = runningTasks.remove( id );
 		if ( task != null ) {
-			RanFlood.daemon().floodTaskExecutor().removeTask( task );
+			Ranflood.daemon().floodTaskExecutor().removeTask( task );
 			log( "Removed flood task: " + id );
 		} else {
 			throw new FlooderException( "Could not find and remove task: " + id );

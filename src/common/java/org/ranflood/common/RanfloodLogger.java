@@ -25,7 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.impl.SimpleLogger;
 
-public class RanFloodLogger {
+public class RanfloodLogger {
 
 	static private final Logger logger;
 
@@ -35,7 +35,7 @@ public class RanFloodLogger {
 //		System.setProperty( SimpleLogger.DATE_TIME_FORMAT_KEY, "| yyyy-MM-dd'T'HH:mm:ss" );
 		System.setProperty( SimpleLogger.DATE_TIME_FORMAT_KEY, "|" );
 		System.setProperty( SimpleLogger.LOG_FILE_KEY, "System.out" );
-		logger = LoggerFactory.getLogger( "RanFlood" );
+		logger = LoggerFactory.getLogger( "Ranflood" );
 	}
 
 	public static void log( String s ) {

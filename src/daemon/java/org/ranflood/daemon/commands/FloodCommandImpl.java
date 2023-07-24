@@ -23,9 +23,9 @@ package org.ranflood.daemon.commands;
 
 import org.ranflood.common.commands.FloodCommand;
 import org.ranflood.common.commands.types.CommandResult;
-import org.ranflood.common.commands.types.RanFloodType;
+import org.ranflood.common.commands.types.RanfloodType;
 import org.ranflood.common.FloodMethod;
-import org.ranflood.daemon.RanFlood;
+import org.ranflood.daemon.Ranflood;
 import org.ranflood.daemon.flooders.FlooderException;
 
 import java.util.UUID;
@@ -39,7 +39,7 @@ public class FloodCommandImpl {
 
 	public static class Start extends FloodCommand.Start {
 
-		public Start( RanFloodType type ) {
+		public Start( RanfloodType type ) {
 			super( type );
 		}
 
@@ -48,18 +48,18 @@ public class FloodCommandImpl {
 			String id;
 			switch ( this.type().method() ) {
 				case RANDOM:
-					id = RanFlood.daemon().randomFlooder().flood( this.type().path() ).toString();
+					id = Ranflood.daemon().randomFlooder().flood( this.type().path() ).toString();
 					return new CommandResult.Successful( "Launched " + this.type().method() + " flood, ID: " + id );
 				case ON_THE_FLY:
 					try {
-						id = RanFlood.daemon().onTheFlyFlooder().flood( this.type().path() ).toString();
+						id = Ranflood.daemon().onTheFlyFlooder().flood( this.type().path() ).toString();
 						return new CommandResult.Successful( "Launched " + this.type().method() + " flood, ID: " + id );
 					} catch ( FlooderException e ) {
 						return new CommandResult.Failed( "Error in launching " + this.type().method() + " flood: " + e.getMessage() );
 					}
 				case SHADOW_COPY:
 					try {
-						id = RanFlood.daemon().shadowCopyFlooder().flood( this.type().path() ).toString();
+						id = Ranflood.daemon().shadowCopyFlooder().flood( this.type().path() ).toString();
 						return new CommandResult.Successful( "Launched " + this.type().method() + " flood, ID: " + id );
 					} catch ( FlooderException e ) {
 						return new CommandResult.Failed( "Error in launching " + this.type().method() + " flood: " + e.getMessage() );
@@ -82,21 +82,21 @@ public class FloodCommandImpl {
 			switch ( this.method() ) {
 				case RANDOM:
 					try {
-						RanFlood.daemon().randomFlooder().stopFlood( UUID.fromString( this.id() ) );
+						Ranflood.daemon().randomFlooder().stopFlood( UUID.fromString( this.id() ) );
 						return new CommandResult.Successful( "Stopped " + this.method() + " flood, ID: " + id() );
 					} catch ( FlooderException e ) {
 						return new CommandResult.Failed( "Error trying to stop " + this.method() + " flood, ID: " + id() );
 					}
 				case ON_THE_FLY:
 					try {
-						RanFlood.daemon().onTheFlyFlooder().stopFlood( UUID.fromString( this.id() ) );
+						Ranflood.daemon().onTheFlyFlooder().stopFlood( UUID.fromString( this.id() ) );
 						return new CommandResult.Successful( "Stopped " + this.method() + " flood, ID: " + this.id() );
 					} catch ( FlooderException e ) {
 						return new CommandResult.Failed( "Error trying to stop " + this.method() + " flood, ID: " + this.id() );
 					}
 				case SHADOW_COPY:
 					try {
-						RanFlood.daemon().shadowCopyFlooder().stopFlood( UUID.fromString( this.id() ) );
+						Ranflood.daemon().shadowCopyFlooder().stopFlood( UUID.fromString( this.id() ) );
 						return new CommandResult.Successful( "Stopped " + this.method() + " flood, ID: " + this.id() );
 					} catch ( FlooderException e ) {
 						return new CommandResult.Failed( "Error trying to stop " + this.method() + " flood, ID: " + this.id() );
@@ -115,16 +115,16 @@ public class FloodCommandImpl {
 	public static class List extends FloodCommand.List {
 
 		@Override
-		public java.util.List< RanFloodType.Tagged > execute() {
+		public java.util.List< RanfloodType.Tagged > execute() {
 			return Stream.concat( Stream.concat(
-											RanFlood.daemon().randomFlooder()
+											Ranflood.daemon().randomFlooder()
 															.currentRunningTasksSnapshotList().stream(),
-											RanFlood.daemon().onTheFlyFlooder()
+											Ranflood.daemon().onTheFlyFlooder()
 															.currentRunningTasksSnapshotList().stream()
 							),
-							RanFlood.daemon().shadowCopyFlooder()
+							Ranflood.daemon().shadowCopyFlooder()
 											.currentRunningTasksSnapshotList().stream()
-			).map( t -> new RanFloodType.Tagged(
+			).map( t -> new RanfloodType.Tagged(
 											t.floodTask().floodMethod(),
 											t.floodTask().filePath().toAbsolutePath(),
 											t.label().toString()

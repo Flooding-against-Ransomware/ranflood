@@ -25,7 +25,7 @@ import org.ranflood.client.binders.ZMQ_JSON_Client;
 import org.ranflood.common.FloodMethod;
 import org.ranflood.common.commands.SnapshotCommand;
 import org.ranflood.common.commands.transcoders.ParseException;
-import org.ranflood.common.commands.types.RanFloodType;
+import org.ranflood.common.commands.types.RanfloodType;
 import picocli.CommandLine;
 
 import java.io.File;
@@ -34,7 +34,7 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 import static org.ranflood.client.subcommands.Utils.getMethod;
-import static org.ranflood.common.RanFloodLogger.error;
+import static org.ranflood.common.RanfloodLogger.error;
 
 @CommandLine.Command(
 				name = "snapshot",
@@ -80,7 +80,7 @@ public class Snapshot implements Callable< Integer > {
 				FloodMethod m = getMethod( method );
 				targetFolders.forEach( t -> {
 					SnapshotCommand.Add c =
-									new SnapshotCommand.Add( new RanFloodType( m, t.toPath().toAbsolutePath() ) );
+									new SnapshotCommand.Add( new RanfloodType( m, t.toPath().toAbsolutePath() ) );
 					System.out.println( new ZMQ_JSON_Client( address, timeout ).sendCommand( c ) );
 				} );
 				return 0;
@@ -117,7 +117,7 @@ public class Snapshot implements Callable< Integer > {
 				FloodMethod m = getMethod( method );
 				targetFolders.forEach( t -> {
 					SnapshotCommand.Remove c =
-									new SnapshotCommand.Remove( new RanFloodType( m, t.toPath().toAbsolutePath() ) );
+									new SnapshotCommand.Remove( new RanfloodType( m, t.toPath().toAbsolutePath() ) );
 					System.out.println( new ZMQ_JSON_Client( address, timeout ).sendCommand( c ) );
 				} );
 				return 0;
@@ -145,7 +145,7 @@ public class Snapshot implements Callable< Integer > {
 		public Integer call() {
 			System.out.println( "Requesting the list of snapshots." );
 			SnapshotCommand.List c = new SnapshotCommand.List();
-			java.util.List< RanFloodType > l = new ZMQ_JSON_Client( address, timeout ).sendListCommand( c );
+			java.util.List< RanfloodType > l = new ZMQ_JSON_Client( address, timeout ).sendListCommand( c );
 			if ( l.isEmpty() ) {
 				System.out.println( "There are no snapshots at the moment" );
 			} else {

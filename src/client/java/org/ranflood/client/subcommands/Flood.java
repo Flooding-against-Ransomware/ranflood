@@ -25,7 +25,7 @@ import org.ranflood.client.binders.ZMQ_JSON_Client;
 import org.ranflood.common.FloodMethod;
 import org.ranflood.common.commands.FloodCommand;
 import org.ranflood.common.commands.transcoders.ParseException;
-import org.ranflood.common.commands.types.RanFloodType;
+import org.ranflood.common.commands.types.RanfloodType;
 import picocli.CommandLine;
 
 import java.io.File;
@@ -34,7 +34,7 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 import static org.ranflood.client.subcommands.Utils.getMethod;
-import static org.ranflood.common.RanFloodLogger.error;
+import static org.ranflood.common.RanfloodLogger.error;
 
 @CommandLine.Command(
 				name = "flood",
@@ -71,7 +71,7 @@ public class Flood implements Callable< Integer > {
 		public Integer call() {
 			System.out.println( "Requesting the list of the running floods." );
 			FloodCommand.List c = new FloodCommand.List();
-			java.util.List< RanFloodType.Tagged > l = new ZMQ_JSON_Client( address, timeout ).sendListCommand( c );
+			java.util.List< RanfloodType.Tagged > l = new ZMQ_JSON_Client( address, timeout ).sendListCommand( c );
 			if ( l.isEmpty() ) {
 				System.out.println( "There are no running floods at the moment." );
 			} else {
@@ -109,7 +109,7 @@ public class Flood implements Callable< Integer > {
 				FloodMethod m = getMethod( method );
 				targetFolders.forEach( t -> {
 					FloodCommand.Start c =
-									new FloodCommand.Start( new RanFloodType( m, t.toPath().toAbsolutePath() ) );
+									new FloodCommand.Start( new RanfloodType( m, t.toPath().toAbsolutePath() ) );
 					System.out.println( new ZMQ_JSON_Client( address, timeout ).sendCommand( c ) );
 				} );
 				return 0;

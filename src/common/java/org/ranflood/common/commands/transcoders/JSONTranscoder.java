@@ -24,7 +24,7 @@ package org.ranflood.common.commands.transcoders;
 import com.republicate.json.Json;
 import org.ranflood.common.commands.Command;
 import org.ranflood.common.commands.FloodCommand;
-import org.ranflood.common.commands.types.RanFloodType;
+import org.ranflood.common.commands.types.RanfloodType;
 import org.ranflood.common.commands.SnapshotCommand;
 import org.ranflood.common.FloodMethod;
 
@@ -37,7 +37,7 @@ import java.util.stream.IntStream;
 
 public class JSONTranscoder {
 
-	public static String wrapListRanFloodType( List< ? extends RanFloodType > l ) {
+	public static String wrapListRanfloodType( List< ? extends RanfloodType > l ) {
 		Json.Object o = new Json.Object();
 		Json.Array a = new Json.Array();
 		l.forEach( i -> a.add( ranFloodTypeToJson( i ) ) );
@@ -97,12 +97,12 @@ public class JSONTranscoder {
 		return obj;
 	}
 
-	private static < T extends RanFloodType > Json.Object ranFloodTypeToJson( T t ) {
+	private static < T extends RanfloodType > Json.Object ranFloodTypeToJson( T t ) {
 		Json.Object parameters = new Json.Object();
 		parameters.put( "method", t.method().name() );
 		parameters.put( "path", t.path().toAbsolutePath().toString() );
-		if ( t instanceof RanFloodType.Tagged ) {
-			parameters.put( "id", ( ( RanFloodType.Tagged ) t ).id() );
+		if ( t instanceof RanfloodType.Tagged ) {
+			parameters.put( "id", ( ( RanfloodType.Tagged ) t ).id() );
 		}
 		return parameters;
 	}
@@ -148,9 +148,9 @@ public class JSONTranscoder {
 	private Command< ? > parseSnapshotCommand( Json.Object jsonObject, String subcommand ) throws ParseException {
 		switch ( subcommand ) {
 			case "add":
-				return new SnapshotCommand.Add( parseRanFloodType( getJsonObject( jsonObject, "parameters" ) ) );
+				return new SnapshotCommand.Add( parseRanfloodType( getJsonObject( jsonObject, "parameters" ) ) );
 			case "remove":
-				return new SnapshotCommand.Remove( parseRanFloodType( getJsonObject( jsonObject, "parameters" ) ) );
+				return new SnapshotCommand.Remove( parseRanfloodType( getJsonObject( jsonObject, "parameters" ) ) );
 			case "list":
 				return new SnapshotCommand.List();
 			default:
@@ -161,7 +161,7 @@ public class JSONTranscoder {
 	private Command< ? > parseFloodCommand( Json.Object jsonObject, String subcommand ) throws ParseException {
 		switch ( subcommand ) {
 			case "start":
-				return new FloodCommand.Start( parseRanFloodType( getJsonObject( jsonObject, "parameters" ) ) );
+				return new FloodCommand.Start( parseRanfloodType( getJsonObject( jsonObject, "parameters" ) ) );
 			case "stop":
 				return new FloodCommand.Stop(
 								FloodMethod.getMethod( getString( getJsonObject( jsonObject, "parameters" ), "method" ) ),
@@ -174,13 +174,13 @@ public class JSONTranscoder {
 	}
 
 	@SuppressWarnings("unchecked")
-	public < T extends RanFloodType > T parseRanFloodType( Json.Object jsonObject ) throws ParseException {
+	public < T extends RanfloodType > T parseRanfloodType( Json.Object jsonObject ) throws ParseException {
 		Path path = Path.of( getString( jsonObject, "path" ) );
 		FloodMethod method = FloodMethod.getMethod( getString( jsonObject, "method" ) );
 		String id = jsonObject.getString( "id" );
 		return ( T ) ( id == null ?
-						new RanFloodType( method, path )
-						: new RanFloodType.Tagged( method, path, id )
+						new RanfloodType( method, path )
+						: new RanfloodType.Tagged( method, path, id )
 		);
 	}
 
@@ -204,7 +204,7 @@ public class JSONTranscoder {
 		}
 	}
 
-	public static List< ? extends RanFloodType > parseDaemonCommandList( String list ) throws IOException {
+	public static List< ? extends RanfloodType > parseDaemonCommandList( String list ) throws IOException {
 		Json.Object object = Json.parse( list ).asObject();
 		Json.Array array = object.getArray( "list" );
 		return IntStream.range( 0, array.size() )
@@ -214,7 +214,7 @@ public class JSONTranscoder {
 								FloodMethod m = FloodMethod.getMethod( e.getString( "method" ) );
 								Path p = Path.of( e.getString( "path" ) );
 								String id = e.getString( "id" );
-								return ( id == null ) ? new RanFloodType( m, p ) : new RanFloodType.Tagged( m, p, id );
+								return ( id == null ) ? new RanfloodType( m, p ) : new RanfloodType.Tagged( m, p, id );
 							} catch ( ParseException parseException ) {
 								parseException.printStackTrace();
 								return null;
@@ -222,7 +222,7 @@ public class JSONTranscoder {
 						} ).collect( Collectors.toList() );
 	}
 
-	public static List< ? extends RanFloodType > parseSnapshotList( String list ) throws IOException {
+	public static List< ? extends RanfloodType > parseSnapshotList( String list ) throws IOException {
 		Json.Object object = Json.parse( list ).asObject();
 		Json.Array array = object.getArray( "list" );
 		return IntStream.range( 0, array.size() )
@@ -232,7 +232,7 @@ public class JSONTranscoder {
 								FloodMethod m = FloodMethod.getMethod( e.getString( "method" ) );
 								Path p = Path.of( e.getString( "path" ) );
 								String id = e.getString( "id" );
-								return ( id == null ) ? new RanFloodType( m, p ) : new RanFloodType.Tagged( m, p, id );
+								return ( id == null ) ? new RanfloodType( m, p ) : new RanfloodType.Tagged( m, p, id );
 							} catch ( ParseException parseException ) {
 								parseException.printStackTrace();
 								return null;

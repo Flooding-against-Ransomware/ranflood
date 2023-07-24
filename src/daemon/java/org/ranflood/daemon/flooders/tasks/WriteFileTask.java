@@ -24,15 +24,9 @@ package org.ranflood.daemon.flooders.tasks;
 import org.ranflood.common.FloodMethod;
 
 import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousFileChannel;
-import java.nio.channels.ByteChannel;
-import java.nio.channels.FileChannel;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 
-import static org.ranflood.common.RanFloodLogger.error;
+import static org.ranflood.common.RanfloodLogger.error;
 
 public class WriteFileTask implements FileTask {
 	private final Path filePath;

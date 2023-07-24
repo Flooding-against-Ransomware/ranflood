@@ -21,8 +21,8 @@
 
 package playground;
 
-import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.RanFloodDaemon;
+import org.ranflood.daemon.Ranflood;
+import org.ranflood.daemon.RanfloodDaemon;
 import org.ranflood.daemon.flooders.FlooderException;
 
 import java.nio.file.Path;
@@ -31,8 +31,8 @@ import java.util.UUID;
 public class TestRandomFlooder {
 
 	public static void main( String[] args ) throws FlooderException {
-		RanFlood.main( TestCommons.getArgs() );
-		RanFloodDaemon daemon = RanFlood.daemon();
+		Ranflood.main( TestCommons.getArgs() );
+		RanfloodDaemon daemon = Ranflood.daemon();
 		UUID id1 = daemon.randomFlooder().flood( Path.of( "C:\\Users\\thesave\\Desktop\\ranflood_testsite\\attackedFolder\\folder1" ) );
 		try {
 			Thread.sleep( 2000 );

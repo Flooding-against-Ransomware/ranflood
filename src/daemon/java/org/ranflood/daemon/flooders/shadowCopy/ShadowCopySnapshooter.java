@@ -28,7 +28,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.utils.IOUtils;
 import org.ranflood.common.FloodMethod;
-import org.ranflood.daemon.RanFlood;
+import org.ranflood.daemon.Ranflood;
 import org.ranflood.daemon.flooders.Snapshooter;
 import org.ranflood.daemon.flooders.SnapshotException;
 
@@ -39,8 +39,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.ranflood.common.RanFloodLogger.error;
-import static org.ranflood.common.RanFloodLogger.log;
+import static org.ranflood.common.RanfloodLogger.error;
+import static org.ranflood.common.RanfloodLogger.log;
 
 public class ShadowCopySnapshooter extends Snapshooter {
 
@@ -52,8 +52,8 @@ public class ShadowCopySnapshooter extends Snapshooter {
 	private final static String archiveDatabaseName = "archives";
 
 	private ShadowCopySnapshooter() {
-		this.archiveRoot = RanFlood.daemon().shadowCopyFlooder().archiveRoot();
-		this.exclusionList = RanFlood.daemon().shadowCopyFlooder().exclusionList();
+		this.archiveRoot = Ranflood.daemon().shadowCopyFlooder().archiveRoot();
+		this.exclusionList = Ranflood.daemon().shadowCopyFlooder().exclusionList();
 		if ( !archiveRoot.toFile().exists() ) {
 			try {
 				Files.createDirectories( archiveRoot );
@@ -61,7 +61,7 @@ public class ShadowCopySnapshooter extends Snapshooter {
 				error( "Could not create the SHADOW_COPY archive folder at: " + archiveRoot + ": " + exception.getMessage() );
 			}
 		}
-		archiveDatabase = Environments.newInstance( RanFlood.daemon().shadowCopyFlooder().archiveDatabase().toFile() );
+		archiveDatabase = Environments.newInstance( Ranflood.daemon().shadowCopyFlooder().archiveDatabase().toFile() );
 	}
 
 	static void takeSnapshot( Path filePath ) throws SnapshotException {

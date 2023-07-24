@@ -22,22 +22,17 @@
 package playground;
 
 import com.oblac.nomen.Nomen;
-import jetbrains.exodus.util.IOUtil;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.compress.utils.IOUtils;
-import org.ranflood.daemon.RanFlood;
-import org.ranflood.daemon.RanFloodDaemon;
+import org.ranflood.daemon.Ranflood;
+import org.ranflood.daemon.RanfloodDaemon;
 import org.ranflood.daemon.flooders.FlooderException;
 
 import java.io.*;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -102,15 +97,15 @@ public class TestTar {
 	}
 
 	private static void generateRandomFolderStructure() {
-		RanFlood.main( TestCommons.getArgs() );
-		RanFloodDaemon daemon = RanFlood.daemon();
+		Ranflood.main( TestCommons.getArgs() );
+		RanfloodDaemon daemon = Ranflood.daemon();
 		Path root = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/" );
 		Arrays.asList( "folder1", "folder1/folder2", "folder3", "folder4" )
 						.forEach( p -> randomFlood( daemon, root.resolve( p ), 250 ) );
 		daemon.shutdown();
 	}
 
-	private static void randomFlood( RanFloodDaemon daemon, Path target, long timeout ) {
+	private static void randomFlood( RanfloodDaemon daemon, Path target, long timeout ) {
 		UUID id = daemon.randomFlooder().flood( target );
 		try {
 			Thread.sleep( timeout );

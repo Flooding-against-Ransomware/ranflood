@@ -60,7 +60,7 @@ public class ServerBinder {
 				ZMQ.Socket socket = context.createSocket( SocketType.REQ );
 				socket.connect( "tcp://localhost:7890" );
 				System.out.println( "Client started, sending request to server" );
-				socket.send( "RanFlood".getBytes( ZMQ.CHARSET ) );
+				socket.send( "Ranflood".getBytes( ZMQ.CHARSET ) );
 				System.out.println( "Client sent request" );
 				byte[] byteReply = socket.recv();
 				String response = new String( byteReply, ZMQ.CHARSET );

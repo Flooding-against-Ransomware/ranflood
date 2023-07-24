@@ -19,18 +19,42 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package playground;
+package org.ranflood.common.commands.types;
 
-import org.ranflood.daemon.RanFlood;
+import org.ranflood.common.FloodMethod;
 
-import java.io.IOException;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 
-public class StartRanFloodDaemon {
+public class RanfloodType {
 
-	public static void main( String[] args ) throws IOException {
-		String settings_file = Paths.get( "src/test/java/playground/settings.ini" ).toAbsolutePath().toString();
-		RanFlood.main( new String[]{ settings_file } );
+	final private FloodMethod method;
+	final private Path path;
+
+	public RanfloodType( FloodMethod method, Path path ) {
+		this.method = method;
+		this.path = path;
+	}
+
+	public FloodMethod method() {
+		return method;
+	}
+
+	public Path path() {
+		return path;
+	}
+
+	public static class Tagged extends RanfloodType {
+
+		private final String id;
+
+		public Tagged( FloodMethod method, Path path, String id ) {
+			super( method, path );
+			this.id = id;
+		}
+
+		public String id() {
+			return id;
+		}
 	}
 
 }

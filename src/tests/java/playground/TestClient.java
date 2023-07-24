@@ -21,7 +21,7 @@
 
 package playground;
 
-import org.ranflood.client.RanFlood;
+import org.ranflood.client.Ranflood;
 
 public class TestClient {
 
@@ -47,7 +47,7 @@ public class TestClient {
 	}
 
 	private static void callClient( String... s ) {
-		RanFlood.run( s );
+		Ranflood.run( s );
 	}
 
 }

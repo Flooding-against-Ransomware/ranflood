@@ -24,7 +24,7 @@ package org.ranflood.daemon.flooders.onTheFly;
 import jetbrains.exodus.ByteIterable;
 import jetbrains.exodus.bindings.StringBinding;
 import jetbrains.exodus.env.*;
-import org.ranflood.daemon.RanFlood;
+import org.ranflood.daemon.Ranflood;
 import org.ranflood.common.FloodMethod;
 import org.ranflood.daemon.flooders.Snapshooter;
 import org.ranflood.daemon.flooders.SnapshotException;
@@ -35,8 +35,8 @@ import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-import static org.ranflood.common.RanFloodLogger.error;
-import static org.ranflood.common.RanFloodLogger.log;
+import static org.ranflood.common.RanfloodLogger.error;
+import static org.ranflood.common.RanfloodLogger.log;
 
 public class OnTheFlySnapshooter extends Snapshooter {
 
@@ -47,8 +47,8 @@ public class OnTheFlySnapshooter extends Snapshooter {
 
 	private OnTheFlySnapshooter() {
 		signaturesDatabase = Environments
-						.newInstance( RanFlood.daemon().onTheFlyFlooder().snapshotDBPath().toFile() );
-		exclusionList = RanFlood.daemon().onTheFlyFlooder().exclusionList();
+						.newInstance( Ranflood.daemon().onTheFlyFlooder().snapshotDBPath().toFile() );
+		exclusionList = Ranflood.daemon().onTheFlyFlooder().exclusionList();
 	}
 
 	static void takeSnapshot( Path filePath ) throws SnapshotException {

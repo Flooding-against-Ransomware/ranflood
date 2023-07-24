@@ -21,7 +21,7 @@
 
 package org.ranflood.daemon.flooders.random;
 
-import org.ranflood.daemon.RanFlood;
+import org.ranflood.daemon.Ranflood;
 import org.ranflood.daemon.flooders.AbstractFlooder;
 import org.ranflood.common.FloodMethod;
 import org.ranflood.daemon.flooders.tasks.LabeledFloodTask;
@@ -61,7 +61,7 @@ public class RandomFlooder extends AbstractFlooder {
 		UUID id = UUID.randomUUID();
 		LabeledFloodTask lft = new LabeledFloodTask( id, t );
 		addRunningTask( lft );
-		RanFlood.daemon().floodTaskExecutor().addTask( lft );
+		Ranflood.daemon().floodTaskExecutor().addTask( lft );
 		return id;
 	}
 

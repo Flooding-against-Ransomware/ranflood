@@ -23,12 +23,12 @@ package playground;
 
 import org.ranflood.common.commands.Command;
 import org.ranflood.common.commands.FloodCommand;
-import org.ranflood.common.commands.types.RanFloodType;
+import org.ranflood.common.commands.types.RanfloodType;
 import org.ranflood.common.commands.SnapshotCommand;
 import org.ranflood.common.commands.transcoders.JSONTranscoder;
 import org.ranflood.common.commands.transcoders.ParseException;
 import org.ranflood.common.FloodMethod;
-import org.ranflood.daemon.RanFlood;
+import org.ranflood.daemon.Ranflood;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
@@ -38,7 +38,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-import static org.ranflood.common.RanFloodLogger.log;
+import static org.ranflood.common.RanfloodLogger.log;
 import static org.ranflood.common.commands.transcoders.JSONTranscoder.parseDaemonCommandList;
 
 public class TestDaemon {
@@ -47,27 +47,27 @@ public class TestDaemon {
 	public static void main( String[] args ) throws InterruptedException, IOException, ParseException {
 
 		String settings_file = Paths.get( "src/tests/java/playground/settings.ini" ).toAbsolutePath().toString();
-		RanFlood.main( new String[]{ settings_file } );
+		Ranflood.main( new String[]{ settings_file } );
 		Thread.sleep( 1000 );
 
 		Path folder1 = Path.of( "/Users/thesave/Desktop/ranflood_testsite/attackedFolder/folder1" );
 
 //		// THIS MUST RETURN AN ERROR
 //		sendCommand( new SnapshotCommand.Add(
-//						new RanFloodType( FloodMethod.RANDOM, folder1 ) )
+//						new RanfloodType( FloodMethod.RANDOM, folder1 ) )
 //		);
 //		Thread.sleep( 1000 );
 
 		// THIS SHOULD BE OK
 		sendCommand( new FloodCommand.Start(
-						new RanFloodType( FloodMethod.RANDOM, folder1 ) )
+						new RanfloodType( FloodMethod.RANDOM, folder1 ) )
 		);
 		Thread.sleep( 1000 );
 
 		// THIS SHOULD BE OK
 		String runningList = sendCommandList( new FloodCommand.List() );
 		log( runningList );
-		List< RanFloodType.Tagged > list = ( List< RanFloodType.Tagged > ) parseDaemonCommandList( runningList );
+		List< RanfloodType.Tagged > list = ( List< RanfloodType.Tagged > ) parseDaemonCommandList( runningList );
 
 		Thread.sleep( 2000 );
 
@@ -79,7 +79,7 @@ public class TestDaemon {
 
 		// THIS SHOULD BE OK
 		sendCommand( new SnapshotCommand.Add(
-						new RanFloodType( FloodMethod.ON_THE_FLY, folder1 )
+						new RanfloodType( FloodMethod.ON_THE_FLY, folder1 )
 		) );
 		Thread.sleep( 1000 );
 
@@ -87,13 +87,13 @@ public class TestDaemon {
 			log( "Retrieving list of taken snapshots" );
 			String snapshotList = sendCommandList( new SnapshotCommand.List() );
 			log( snapshotList );
-			list = ( List< RanFloodType.Tagged > ) parseDaemonCommandList( runningList );
+			list = ( List< RanfloodType.Tagged > ) parseDaemonCommandList( runningList );
 			Thread.sleep( 1000 );
 		} while ( list.isEmpty() );
 
 		// THIS SHOULD BE OK
 		sendCommand( new FloodCommand.Start(
-						new RanFloodType( FloodMethod.ON_THE_FLY, folder1 )
+						new RanfloodType( FloodMethod.ON_THE_FLY, folder1 )
 		) );
 
 		// THIS SHOULD BE OK
@@ -101,7 +101,7 @@ public class TestDaemon {
 			log( "Retrieving list of running floods" );
 			runningList = sendCommandList( new FloodCommand.List() );
 			log( runningList );
-			list = ( List< RanFloodType.Tagged > ) parseDaemonCommandList( runningList );
+			list = ( List< RanfloodType.Tagged > ) parseDaemonCommandList( runningList );
 			Thread.sleep( 500 );
 		} while ( list.isEmpty() );
 
@@ -117,7 +117,7 @@ public class TestDaemon {
 		sendString( "shutdown" );
 
 //		Thread.sleep( 1000 );
-		//RanFlood.getDaemon().shutdown();
+		//Ranflood.getDaemon().shutdown();
 	}
 
 	private static void sendCommand( Command< ? > c ) {

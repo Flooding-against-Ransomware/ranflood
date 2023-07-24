@@ -40,7 +40,7 @@ configurations {
     common
     client.extendsFrom common
     daemon.extendsFrom common
-    clientAnnotationProcessor
+    _clientAnnotationProcessor
 }
 
 dependencies {
@@ -48,7 +48,7 @@ dependencies {
     common 'org.slf4j:slf4j-simple:1.7.36'
     common  'org.zeromq:jeromq:0.5.2'
 
-    clientAnnotationProcessor 'info.picocli:picocli-codegen:4.6.3'
+    _clientAnnotationProcessor 'info.picocli:picocli-codegen:4.6.3'
     client 'info.picocli:picocli:4.6.2'
 //    client 'info.picocli:picocli-codegen:4.6.1'
 
@@ -73,7 +73,7 @@ sourceSets {
     }
     client {
         java.srcDir 'src/client/java/'
-        runtimeClasspath += compileClasspath += configurations.client + configurations.clientAnnotationProcessor + sourceSets.common.output
+        runtimeClasspath += compileClasspath += configurations.client + configurations._clientAnnotationProcessor + sourceSets.common.output
     }
     daemon {
         java.srcDir 'src/daemon/java'
@@ -101,7 +101,7 @@ tasks.withType( JavaCompile ) {
     // To enable argument names in reporting and debugging
     options.compilerArgs += "-parameters"
     // To enable picocli's annotation processor for GraalVM configurations
-//    options.compilerArgs += [ "-Aproject=org.ranflood/RanFlood" ]
+//    options.compilerArgs += [ "-Aproject=org.ranflood/Ranflood" ]
 //    println options.compilerArgs
 }
 
@@ -131,7 +131,7 @@ task clientJar ( type: Jar ) {
     manifest {
         attributes "Implementation-Title": "Ranflood Client Jar Package",
                 "Implementation-Version": version,
-                'Main-Class': 'org.ranflood.client.RanFlood'
+                'Main-Class': 'org.ranflood.client.Ranflood'
     }
     archiveBaseName.set( "ranflood" )
     from sourceSets.client.output
@@ -149,7 +149,7 @@ task daemonJar ( type: Jar ) {
     manifest {
         attributes "Implementation-Title": "Ranflood Daemon Jar Package",
                 "Implementation-Version": version,
-                'Main-Class': 'org.ranflood.daemon.RanFlood'
+                'Main-Class': 'org.ranflood.daemon.Ranflood'
     }
     archiveBaseName.set( "ranfloodd" )
     from sourceSets.daemon.output
@@ -185,7 +185,7 @@ task daemonNativeImage {
 //      nativeImage.jarFile.set( daemonJar.archiveFile.get().asFile );
         nativeImage.setJarFile project.provider( () -> daemonJar.archiveFile.get().asFile ) as Provider< File >
         graal {
-            mainClass "org.ranflood.daemon.RanFlood"
+            mainClass "org.ranflood.daemon.Ranflood"
 //            graalVersion "21.0.0.2"
 //            javaVersion "11"
 			graalVersion "22.0.0.2"
@@ -209,7 +209,7 @@ task clientNativeImage {
 //        nativeImage.jarFile.set( clientJar.archiveFile.get().asFile );
         nativeImage.setJarFile project.provider( () -> clientJar.archiveFile.get().asFile ) as Provider< File >
         graal {
-            mainClass "org.ranflood.client.RanFlood"
+            mainClass "org.ranflood.client.Ranflood"
             //graalVersion "21.0.0.2"
             //javaVersion "11"
             graalVersion "22.0.0.2"

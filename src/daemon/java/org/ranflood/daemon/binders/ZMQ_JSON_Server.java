@@ -24,11 +24,11 @@ package org.ranflood.daemon.binders;
 import org.ranflood.common.commands.Command;
 import org.ranflood.common.commands.FloodCommand;
 import org.ranflood.common.commands.SnapshotCommand;
-import org.ranflood.daemon.RanFlood;
+import org.ranflood.daemon.Ranflood;
 import org.ranflood.common.commands.transcoders.JSONTranscoder;
 import org.ranflood.common.commands.transcoders.ParseException;
 import org.ranflood.common.commands.types.CommandResult;
-import org.ranflood.common.commands.types.RanFloodType;
+import org.ranflood.common.commands.types.RanfloodType;
 import org.ranflood.daemon.commands.FloodCommandImpl;
 import org.ranflood.daemon.commands.SnapshotCommandImpl;
 import org.zeromq.SocketType;
@@ -37,8 +37,8 @@ import org.zeromq.ZMQ;
 
 import java.util.List;
 
-import static org.ranflood.common.RanFloodLogger.error;
-import static org.ranflood.common.RanFloodLogger.log;
+import static org.ranflood.common.RanfloodLogger.error;
+import static org.ranflood.common.RanfloodLogger.log;
 
 public class ZMQ_JSON_Server {
 
@@ -53,16 +53,16 @@ public class ZMQ_JSON_Server {
 		ZMQ.Socket socket = context.createSocket( SocketType.REP );
 		socket.bind( address );
 		log( "Server started at " + address + ", accepting requests from clients" );
-		RanFlood.daemon().executeServer( () -> {
+		Ranflood.daemon().executeServer( () -> {
 			while ( !context.isClosed() ) {
 				try {
 					String request = new String( socket.recv(), ZMQ.CHARSET );
-					RanFlood.daemon().executeCommand( () -> {
+					Ranflood.daemon().executeCommand( () -> {
 						log( "Server received [" + request + "]" );
 						try {
 							Command< ? > command = bindToImpl( JSONTranscoder.fromJson( request ) );
 							if ( command.isAsync() ) {
-								RanFlood.daemon().executeCommand( () -> {
+								Ranflood.daemon().executeCommand( () -> {
 									Object result = command.execute();
 									if ( result instanceof CommandResult.Successful ) {
 										log( ( ( CommandResult.Successful ) result ).message() );
@@ -72,18 +72,18 @@ public class ZMQ_JSON_Server {
 								} );
 								socket.send( JSONTranscoder.wrapSuccess( "Command " + command.name() + " issued." ) );
 							} else {
-								List< ? extends RanFloodType > l =
+								List< ? extends RanfloodType > l =
 												( command instanceof SnapshotCommand.List ) ?
 																( ( SnapshotCommandImpl.List ) command ).execute()
 																: ( ( FloodCommandImpl.List ) command ).execute();
-								socket.send( JSONTranscoder.wrapListRanFloodType( l ) );
+								socket.send( JSONTranscoder.wrapListRanfloodType( l ) );
 							}
 						} catch ( ParseException e ) {
 							error( e.getMessage() );
 							socket.send( JSONTranscoder.wrapError( e.getMessage() ).getBytes( ZMQ.CHARSET ) );
 							if ( request.equals( "shutdown" ) ) {
 								error( "Cheat-code for shutdown, remove for release" );
-								RanFlood.daemon().shutdown();
+								Ranflood.daemon().shutdown();
 							}
 						} catch ( Exception e ) {
 							error( e.getMessage() );

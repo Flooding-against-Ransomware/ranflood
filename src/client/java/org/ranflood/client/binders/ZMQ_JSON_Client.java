@@ -26,7 +26,7 @@ import org.ranflood.common.commands.FloodCommand;
 import org.ranflood.common.commands.SnapshotCommand;
 import org.ranflood.common.commands.transcoders.JSONTranscoder;
 import org.ranflood.common.commands.transcoders.ParseException;
-import org.ranflood.common.commands.types.RanFloodType;
+import org.ranflood.common.commands.types.RanfloodType;
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
@@ -35,9 +35,9 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
-import static org.ranflood.common.RanFloodLogger.*;
+import static org.ranflood.common.RanfloodLogger.*;
 
-import static org.ranflood.common.RanFloodLogger.log;
+import static org.ranflood.common.RanfloodLogger.log;
 
 public class ZMQ_JSON_Client {
 
@@ -72,9 +72,9 @@ public class ZMQ_JSON_Client {
 	}
 
 	@SuppressWarnings("unchecked")
-	public List< RanFloodType.Tagged > sendListCommand( FloodCommand.List c ) {
+	public List< RanfloodType.Tagged > sendListCommand( FloodCommand.List c ) {
 		try {
-			return ( List< RanFloodType.Tagged > ) _sendList( JSONTranscoder.toJsonString( c ) );
+			return ( List< RanfloodType.Tagged > ) _sendList( JSONTranscoder.toJsonString( c ) );
 		} catch ( ParseException e ) {
 			error( e.getMessage() );
 		}
@@ -82,9 +82,9 @@ public class ZMQ_JSON_Client {
 	}
 
 	@SuppressWarnings("unchecked")
-	public List< RanFloodType > sendListCommand( SnapshotCommand.List c ) {
+	public List< RanfloodType > sendListCommand( SnapshotCommand.List c ) {
 		try {
-			return ( List< RanFloodType > ) _sendList( JSONTranscoder.toJsonString( c ) );
+			return ( List< RanfloodType > ) _sendList( JSONTranscoder.toJsonString( c ) );
 		} catch ( ParseException e ) {
 			error( e.getMessage() );
 		}
@@ -93,7 +93,7 @@ public class ZMQ_JSON_Client {
 
 	// UTILITY METHODS
 
-	private List< ? extends RanFloodType > _sendList( String listCommand ) {
+	private List< ? extends RanfloodType > _sendList( String listCommand ) {
 		try {
 			String response = _rr( listCommand );
 			return JSONTranscoder.parseDaemonCommandList( response );

@@ -29,7 +29,7 @@ import java.io.*;
 import java.nio.file.Path;
 import java.util.stream.IntStream;
 
-import static org.ranflood.common.RanFloodLogger.error;
+import static org.ranflood.common.RanfloodLogger.error;
 
 public class WriteCopyFileTask extends WriteFileTask {
 	public WriteCopyFileTask( Path filePath, byte[] content, FloodMethod floodMethod ) {

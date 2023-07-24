@@ -22,7 +22,7 @@
 package org.ranflood.daemon.flooders.shadowCopy;
 
 import org.ranflood.common.FloodMethod;
-import org.ranflood.daemon.RanFlood;
+import org.ranflood.daemon.Ranflood;
 import org.ranflood.daemon.flooders.AbstractSnapshotFlooder;
 import org.ranflood.daemon.flooders.FlooderException;
 import org.ranflood.daemon.flooders.SnapshotException;
@@ -55,7 +55,7 @@ public class ShadowCopyFlooder extends AbstractSnapshotFlooder {
 			UUID id = UUID.randomUUID();
 			LabeledFloodTask lft = new LabeledFloodTask( id, t );
 			addRunningTask( lft );
-			RanFlood.daemon().floodTaskExecutor().addTask( lft );
+			Ranflood.daemon().floodTaskExecutor().addTask( lft );
 			return id;
 		} catch ( SnapshotException e ) {
 			throw new FlooderException( e.getMessage() );

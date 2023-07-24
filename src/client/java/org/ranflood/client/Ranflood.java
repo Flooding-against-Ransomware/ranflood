@@ -19,46 +19,52 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.daemon;
+package org.ranflood.client;
 
+import org.ranflood.client.subcommands.Flood;
+import org.ranflood.client.subcommands.Snapshot;
 import org.ranflood.common.utils.ProjectPropertiesLoader;
+import picocli.CommandLine;
 
-import java.io.IOException;
-import java.nio.file.Path;
+import java.util.Properties;
+import java.util.concurrent.Callable;
 
-import static org.ranflood.common.RanFloodLogger.error;
 
-public class RanFlood {
-
-	private static RanFloodDaemon daemon;
-	private static String version;
-
-	static {
-		try {
-			version = ProjectPropertiesLoader.loadPropertyFile( RanFlood.class.getClassLoader() ).getProperty( "version" );
-		} catch ( IOException exception ) {
-			exception.printStackTrace();
-		}
-	}
+@CommandLine.Command(
+				name = "ranflood",
+				mixinStandardHelpOptions = true,
+				versionProvider = Ranflood.VersionProvider.class,
+				description = { "The Ranflood client" },
+				subcommands = {
+								Snapshot.class,
+								Flood.class
+				}
+)
+public class Ranflood implements Callable< Integer > {
 
 	public static void main( String[] args ) {
-		if ( args.length < 1 ) {
-			error( "Expected 1 argument, path to the settings ini file." );
-			System.exit( 1 );
-		}
-		try {
-			daemon = new RanFloodDaemon( Path.of( args[ 0 ] ) );
-			daemon.start();
-		} catch ( IOException e ) {
-			error( e.getMessage() );
+		System.exit( run( args ) );
+	}
+
+	public static int run( String[] args ) {
+		CommandLine c = new CommandLine( new Ranflood() );
+		c.setCaseInsensitiveEnumValuesAllowed( true );
+		return c.execute( args );
+	}
+
+	@Override
+	public Integer call() {
+		new CommandLine( this ).usage( System.err );
+		return 1;
+	}
+
+	static class VersionProvider implements CommandLine.IVersionProvider {
+
+		@Override
+		public String[] getVersion() throws Exception {
+			Properties properties = ProjectPropertiesLoader.loadPropertyFile( Ranflood.class.getClassLoader() );
+			return new String[]{ "Ranflood client version " + properties.getProperty( "version" ) };
 		}
 	}
 
-	public static RanFloodDaemon daemon() {
-		return daemon;
-	}
-
-	public static String version() {
-		return version;
-	}
 }

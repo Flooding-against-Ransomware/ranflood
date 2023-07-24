@@ -24,8 +24,7 @@ package playground;
 import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.*;
 import io.reactivex.rxjava3.schedulers.Schedulers;
-import org.ranflood.common.RanFloodLogger;
-import org.ranflood.daemon.RanFloodDaemon;
+import org.ranflood.common.RanfloodLogger;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -43,7 +42,7 @@ public class TestFlower {
 						.toFlowable( BackpressureStrategy.BUFFER )
 						.subscribeOn( Schedulers.computation() )
 						.map( Object::toString )
-						.subscribe( RanFloodLogger::log );
+						.subscribe( RanfloodLogger::log );
 
 		Thread.sleep( 5000 );
 		System.out.println( "10 time units passed, shutting down" );

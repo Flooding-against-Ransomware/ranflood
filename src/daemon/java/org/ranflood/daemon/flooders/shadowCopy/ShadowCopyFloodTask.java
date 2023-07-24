@@ -25,7 +25,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.utils.IOUtils;
 import org.ranflood.common.FloodMethod;
-import org.ranflood.daemon.RanFlood;
+import org.ranflood.daemon.Ranflood;
 import org.ranflood.daemon.flooders.tasks.FloodTaskGenerator;
 import org.ranflood.daemon.flooders.tasks.WriteCopyFileTask;
 import org.ranflood.daemon.flooders.tasks.WriteFileTask;
@@ -36,7 +36,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import static org.ranflood.common.RanFloodLogger.error;
+import static org.ranflood.common.RanfloodLogger.error;
 
 public class ShadowCopyFloodTask extends FloodTaskGenerator {
 
@@ -56,12 +56,12 @@ public class ShadowCopyFloodTask extends FloodTaskGenerator {
 		throw new UnsupportedOperationException( "ShadowCopyFloodTask should not be run as a normal task" );
 //		return () ->
 //						tasks.forEach( t ->
-//										RanFloodDaemon.executeIORunnable( t.getRunnableTask() )
+//										RanfloodDaemon.executeIORunnable( t.getRunnableTask() )
 //						);
 	}
 
 	private void loadWriteFileTasks( Path tarFilePath ) {
-		RanFlood.daemon().executeCommand( () -> {
+		Ranflood.daemon().executeCommand( () -> {
 			try ( TarArchiveInputStream tarIn = new TarArchiveInputStream(
 							new BufferedInputStream( new FileInputStream( tarFilePath.toFile() ) ) ) ) {
 				TarArchiveEntry entry = tarIn.getNextTarEntry();
