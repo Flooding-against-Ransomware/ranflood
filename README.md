@@ -17,7 +17,8 @@ The daemon should run as a service (always on, restarted if it crashes, etc.). T
 
 For instance, an example `setting.ini` file for a Windows installation is
 
-```[RandomFlooder]
+```
+[RandomFlooder]
 MaxFileSize = 768 KB
 [OnTheFlyFlooder]
 Signature_DB = C:\Users\thesave\Desktop\ranflood_testsite\signatures.db
