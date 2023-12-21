@@ -55,7 +55,7 @@ public class CheckCommand implements Callable< Integer > {
 
 	@CommandLine.Option(
 					names = { "--deep" },
-					description = "Perform a deep check, comparing files absent from the checksum to find possible duplicated (coinciding signatures)"
+					description = "Perform a deep check, comparing files absent from the checksum to find possible duplicates (coinciding signatures)"
 	)
 	private final Boolean deep = false;
 
