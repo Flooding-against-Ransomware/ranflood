@@ -39,7 +39,7 @@ import java.util.concurrent.Callable;
 )
 public class FileChecker implements Callable< Integer > {
 
-	public static final String version = "0.2";
+	public static final String version = "0.3";
 
 	public static void main( String[] args ) {
 		System.exit( run( args ) );
