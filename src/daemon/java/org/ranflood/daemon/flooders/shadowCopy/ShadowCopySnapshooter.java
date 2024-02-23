@@ -66,7 +66,8 @@ public class ShadowCopySnapshooter extends Snapshooter {
 
 	static void takeSnapshot( Path filePath ) throws SnapshotException {
 		log( "Taking SHADOW_COPY archive " + filePath );
-		if ( filePath.toFile().isDirectory() && filePath.toFile().exists() && !Files.isSymbolicLink( filePath ) ) {
+		File file = filePath.toFile();
+		if ( file.exists() && file.isDirectory() && !Files.isSymbolicLink( filePath ) ) {
 			Path tarFile;
 			try {
 				tarFile = INSTANCE.archiveRoot.resolve( ShadowCopySnapshooter.getPathSignature( filePath ) );

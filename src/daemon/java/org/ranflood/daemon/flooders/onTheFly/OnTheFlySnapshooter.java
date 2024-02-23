@@ -54,7 +54,7 @@ public class OnTheFlySnapshooter extends Snapshooter {
 	static void takeSnapshot( Path filePath ) throws SnapshotException {
 		log( "Taking ON_THE_FLY snapshot " + filePath );
 		File file = filePath.toFile();
-		if ( file.isDirectory() && !Files.isSymbolicLink( file.toPath() ) && file.exists() ) {
+		if ( file.exists() && file.isDirectory() && !Files.isSymbolicLink( filePath ) ) {
 			INSTANCE.signaturesDatabase.executeInExclusiveTransaction( t -> {
 				final Store targetDB = INSTANCE.signaturesDatabase
 								.openStore( file.getAbsolutePath(), StoreConfig.WITHOUT_DUPLICATES, t );
