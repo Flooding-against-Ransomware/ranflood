@@ -1,6 +1,10 @@
 .gradle
 .DS_Store
+
 .idea/
+.vscode/
+
+bin/
 build/
 .jqwik-database
 *.cache

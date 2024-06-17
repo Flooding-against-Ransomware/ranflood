@@ -26,6 +26,7 @@ import static org.ranflood.common.RanfloodLogger.log;
 
 import org.ranflood.daemon.Ranflood;
 import org.ranflood.daemon.RanfloodDaemon;
+import org.ranflood.daemon.flooders.SSS.SSSFloodTask;
 import org.ranflood.daemon.flooders.onTheFly.OnTheFlyFloodTask;
 import org.ranflood.daemon.flooders.random.RandomFloodTask;
 import org.ranflood.daemon.flooders.shadowCopy.ShadowCopyFloodTask;
@@ -104,6 +105,8 @@ public class FloodTaskExecutor {
 					try {
 						if( t.main.floodTask() instanceof OnTheFlyFloodTask ){
 							Ranflood.daemon().onTheFlyFlooder().stopFlood( t.main.label() );
+						} else if( t.main.floodTask() instanceof SSSFloodTask ){
+							Ranflood.daemon().SSSFlooder().stopFlood( t.main.label() );
 						} else if( t.main.floodTask() instanceof ShadowCopyFloodTask ){
 							Ranflood.daemon().shadowCopyFlooder().stopFlood( t.main.label() );
 						} else if( t.main.floodTask() instanceof RandomFloodTask ){

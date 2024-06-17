@@ -27,6 +27,7 @@ public enum FloodMethod {
 
 	RANDOM,
 	ON_THE_FLY,
+	SSS,
 	SHADOW_COPY;
 
 	public static FloodMethod getMethod( String method ) throws ParseException {
@@ -35,6 +36,8 @@ public enum FloodMethod {
 				return FloodMethod.RANDOM;
 			case "ON_THE_FLY":
 				return FloodMethod.ON_THE_FLY;
+			case "SSS":
+				return FloodMethod.SSS;
 			case "SHADOW_COPY":
 				return FloodMethod.SHADOW_COPY;
 			default:

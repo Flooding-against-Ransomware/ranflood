@@ -53,6 +53,13 @@ public class SnapshotCommandImpl {
 					} catch ( SnapshotException e ) {
 						return new CommandResult.Failed( "Could not issue the creation of a snapshot for the on-the-fly flooder: " + e.getMessage() );
 					}
+				case SSS:
+					try {
+						Ranflood.daemon().SSSFlooder().takeSnapshot( this.type().path() );
+						return new CommandResult.Successful( "Created snapshot for the SSS flooder at " + this.type().path() );
+					} catch ( SnapshotException e ) {
+						return new CommandResult.Failed( "Could not issue the creation of a snapshot for the SSS flooder: " + e.getMessage() );
+					}
 				case SHADOW_COPY:
 					try {
 						Ranflood.daemon().shadowCopyFlooder().takeSnapshot( this.type().path() );
@@ -81,6 +88,9 @@ public class SnapshotCommandImpl {
 				case ON_THE_FLY:
 					Ranflood.daemon().onTheFlyFlooder().removeSnapshot( this.type().path() );
 					return new CommandResult.Successful( "Issued the removal of the snapshot of the on-the-fly flooder" );
+				case SSS:
+					Ranflood.daemon().SSSFlooder().removeSnapshot( this.type().path() );
+					return new CommandResult.Successful( "Issued the removal of the snapshot of the SSS flooder" );
 				case SHADOW_COPY:
 					Ranflood.daemon().shadowCopyFlooder().removeSnapshot( this.type().path() );
 					return new CommandResult.Successful( "Issued the removal of the snapshot of the shadow-copy flooder" );
@@ -98,6 +108,8 @@ public class SnapshotCommandImpl {
 			LinkedList< RanfloodType > l = new LinkedList<>();
 			Ranflood.daemon().onTheFlyFlooder().listSnapshots()
 							.forEach( p -> l.add( new RanfloodType( FloodMethod.ON_THE_FLY, p ) ) );
+			Ranflood.daemon().SSSFlooder().listSnapshots()
+							.forEach( p -> l.add( new RanfloodType( FloodMethod.SSS, p ) ) );
 			Ranflood.daemon().shadowCopyFlooder().listSnapshots()
 							.forEach( p -> l.add( new RanfloodType( FloodMethod.SHADOW_COPY, p ) ) );
 			return l;

@@ -25,6 +25,7 @@ import io.reactivex.rxjava3.core.*;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import org.ranflood.daemon.binders.ZMQ_JSON_Server;
 import org.ranflood.daemon.flooders.FloodTaskExecutor;
+import org.ranflood.daemon.flooders.SSS.SSSFlooder;
 import org.ranflood.daemon.flooders.onTheFly.OnTheFlyFlooder;
 import org.ranflood.daemon.flooders.random.RandomFlooder;
 import org.ranflood.common.utils.IniParser;
@@ -51,6 +52,7 @@ public class RanfloodDaemon {
 	private static final ExecutorService scheduler = Executors.newFixedThreadPool( 2 * Runtime.getRuntime().availableProcessors() );
 	private final RandomFlooder RANDOM_FLOODER;
 	private final OnTheFlyFlooder ON_THE_FLY_FLOODER;
+	private final SSSFlooder SSS_FLOODER;
 	private final ShadowCopyFlooder SHADOW_COPY_FLOODER;
 	static private Emitter< Runnable > emitter;
 
@@ -68,7 +70,7 @@ public class RanfloodDaemon {
 		try {
 			settings = new IniParser( settingsFilePath.toAbsolutePath().toString() );
 		} catch ( IOException e ) {
-			throw new IOException( "Cloud not find setting file at: " + settingsFilePath.toAbsolutePath() );
+			throw new IOException( "Could not find setting file at: " + settingsFilePath.toAbsolutePath() );
 		}
 		Optional< String > random_opt_max_size = settings.getValue( "RandomFlooder", "MaxFileSize" );
 		RANDOM_FLOODER = random_opt_max_size.isEmpty() ? new RandomFlooder() : new RandomFlooder( random_opt_max_size.get() );
@@ -81,6 +83,40 @@ public class RanfloodDaemon {
 							return signaturesDBpath;
 						} ) ),
 						Arrays.stream( on_the_fly_opt_exclude_folder_names.orElse( "" ).split( "," ) ).map( String::trim ).collect( Collectors.toSet() )
+		);
+		Optional< Integer > sss_n = settings.getValue( "SSS", "n" ).map(
+				(value) -> {
+					try {
+						return Integer.parseInt(value);
+					} catch (NumberFormatException e) {
+						return null;
+					}
+				}
+		);
+		Optional< Integer > sss_k = settings.getValue( "SSS", "k" ).map(
+				(value) -> {
+					try {
+						return Integer.parseInt(value);
+					} catch (NumberFormatException e) {
+						return null;
+					}
+				}
+		);
+		Optional< Boolean > sss_remove_originals = settings.getValue( "SSS", "remove_originals" ).map(
+                Boolean::parseBoolean
+		);
+		SSS_FLOODER = new SSSFlooder(
+						Path.of( on_the_fly_opt_signature_db.orElseGet( () -> {
+							String signaturesDBpath = Paths.get( "" ).toAbsolutePath() + File.separator + "signatures.db";
+							error( "OnTheFlyFlooder -> Signature_DB not found in the settings file. Using " + signaturesDBpath );
+							return signaturesDBpath;
+						} ) ),
+						Arrays.stream( on_the_fly_opt_exclude_folder_names.orElse( "" ).split( "," ) ).map( String::trim ).collect( Collectors.toSet() ),
+						new SSSFlooder.Parameters(
+								sss_n.orElse(null),
+								sss_k.orElse(null),
+								sss_remove_originals.orElse(null)
+						)
 		);
 		Optional< String > shadow_copy_opt_archive_root = settings.getValue( "ShadowCopyFlooder", "ArchiveRoot" );
 		Optional< String > shadow_copy_opt_archive_database = settings.getValue( "ShadowCopyFlooder", "ArchiveDatabase" );
@@ -125,6 +161,10 @@ public class RanfloodDaemon {
 		return ON_THE_FLY_FLOODER;
 	}
 
+	public SSSFlooder SSSFlooder() {
+		return SSS_FLOODER;
+	}
+
 	public ShadowCopyFlooder shadowCopyFlooder() {
 		return SHADOW_COPY_FLOODER;
 	}
@@ -137,6 +177,7 @@ public class RanfloodDaemon {
 		commandExecutor.shutdown();
 		scheduler.shutdown();
 		ON_THE_FLY_FLOODER.shutdown();
+		SSS_FLOODER.shutdown();
 		System.exit( 0 );
 	}
 

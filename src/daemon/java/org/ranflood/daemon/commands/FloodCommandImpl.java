@@ -57,6 +57,13 @@ public class FloodCommandImpl {
 					} catch ( FlooderException e ) {
 						return new CommandResult.Failed( "Error in launching " + this.type().method() + " flood: " + e.getMessage() );
 					}
+				case SSS:
+					try {
+						id = Ranflood.daemon().SSSFlooder().flood( this.type().path() ).toString();
+						return new CommandResult.Successful( "Launched " + this.type().method() + " flood, ID: " + id );
+					} catch ( FlooderException e ) {
+						return new CommandResult.Failed( "Error in launching " + this.type().method() + " flood: " + e.getMessage() );
+					}
 				case SHADOW_COPY:
 					try {
 						id = Ranflood.daemon().shadowCopyFlooder().flood( this.type().path() ).toString();
@@ -94,6 +101,13 @@ public class FloodCommandImpl {
 					} catch ( FlooderException e ) {
 						return new CommandResult.Failed( "Error trying to stop " + this.method() + " flood, ID: " + this.id() );
 					}
+				case SSS:
+					try {
+						Ranflood.daemon().SSSFlooder().stopFlood( UUID.fromString( this.id() ) );
+						return new CommandResult.Successful( "Stopped " + this.method() + " flood, ID: " + this.id() );
+					} catch ( FlooderException e ) {
+						return new CommandResult.Failed( "Error trying to stop " + this.method() + " flood, ID: " + this.id() );
+					}
 				case SHADOW_COPY:
 					try {
 						Ranflood.daemon().shadowCopyFlooder().stopFlood( UUID.fromString( this.id() ) );
@@ -116,10 +130,13 @@ public class FloodCommandImpl {
 
 		@Override
 		public java.util.List< RanfloodType.Tagged > execute() {
-			return Stream.concat( Stream.concat(
-											Ranflood.daemon().randomFlooder()
-															.currentRunningTasksSnapshotList().stream(),
-											Ranflood.daemon().onTheFlyFlooder()
+			return Stream.concat( Stream.concat( Stream.concat(
+															Ranflood.daemon().randomFlooder()
+																			.currentRunningTasksSnapshotList().stream(),
+															Ranflood.daemon().onTheFlyFlooder()
+																			.currentRunningTasksSnapshotList().stream()
+											),
+											Ranflood.daemon().SSSFlooder()
 															.currentRunningTasksSnapshotList().stream()
 							),
 							Ranflood.daemon().shadowCopyFlooder()
