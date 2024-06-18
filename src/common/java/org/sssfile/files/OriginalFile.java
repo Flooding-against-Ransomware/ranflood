@@ -18,7 +18,7 @@ public class OriginalFile {
 	public final Path path;
 	public final Map<Integer, byte[]> parts;
 	private LinkedList<Path> shards_paths = null;
-	private byte[] hash_original_file;
+	public byte[] hash_original_file;
 
 	private int current_key = 1;
 
@@ -61,17 +61,20 @@ public class OriginalFile {
 
 	/**
 	 * Used to iteratively return the content of a shard to write.
+	 * If the hash is not given, it's calculated.
 	 * @return the content of the next shard, or null if got all
 	 */
 	public byte[] iterateShardContent() throws WriteShardException {
 
 		FileNamesGenerator file_names_generator = new FileNamesGenerator(path);
 
-		try {
-			readHash();
-		} catch (IOException | NoSuchAlgorithmException e) {
-			e.printStackTrace();
-			throw new WriteShardException(e.getMessage());
+		if(hash_original_file == null) {
+			try {
+				readHash();
+			} catch (IOException | NoSuchAlgorithmException e) {
+				e.printStackTrace();
+				throw new WriteShardException(e.getMessage());
+			}
 		}
 
 		byte[] entry = parts.get(current_key);

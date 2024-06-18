@@ -10,6 +10,7 @@ import java.security.SecureRandom;
 
 import com.codahale.shamir.Scheme;
 import org.sssfile.exceptions.InvalidShardException;
+import org.sssfile.exceptions.ReadShardException;
 import org.sssfile.files.OriginalFile;
 import org.sssfile.files.ShardFile;
 import org.sssfile.files.ShardFileGenerator;
@@ -56,7 +57,7 @@ public class SSSRestorer {
 		logger.start();
 		
 		findShards(root);
-		dirJoin(root);
+		dirJoin();
 
 		logger.summary();
 	}
@@ -72,10 +73,9 @@ public class SSSRestorer {
 	 */
 
 	/**
-	 * Join all shards in a directory.
-	 * @param dir
+	 * Join all found shards.
 	 */
-	private void dirJoin(Path dir) {
+	private void dirJoin() {
 
 		for (OriginalFile original_file : shard_groups.values()) {
 			fileJoin(original_file);
@@ -143,16 +143,21 @@ public class SSSRestorer {
 					continue;
 				}
 
+				logger.logDebug("Reading shard " + file );
+
 				ShardFile shard;
 				try {
 					shard = shard_generator.fromFile(file);
 				} catch (InvalidShardException e) {
 					logger.foundShard(file, false);
 					continue;
+				} catch (ReadShardException e) {
+					logger.fileErrorReading(file);
+					continue;
 				}
 
 				if(shard_groups.get(shard.getOriginalFileHash()) == null) {
-					logger.foundOriginalFile(shard.getOriginalPath());
+					logger.foundOriginalFile(shard.original_file);
 				}
 				
 				shard_groups.addShard(shard);

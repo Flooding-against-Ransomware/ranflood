@@ -2,6 +2,7 @@ package org.sssfile.util;
 
 import org.ranflood.common.utils.Pair;
 import org.sssfile.files.OriginalFile;
+import org.sssfile.files.ShardFile;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -194,6 +195,22 @@ public class LoggerRestore {
 			String msg =
 				"[Unrecoverable]\tUnrecoverable file, with " + parts_recovered +
 				"/" + k + " parts: " + original_file.path;
+			logLine(msg);
+			report(msg);
+		}
+	}
+	public void fileErrorReading(Path path) {
+
+		stats.n_errors++;
+		/*
+		TODO:
+		stats.files_error_other.add( new LoggerResult.FileInfo(
+				original_file,
+				"Got an error and couldn't write the recovered file (try again...)"
+		));
+		*/
+		if(debug_restore) {
+			String msg = "[Error]\tCould not read shard, IO exception: " + path;
 			logLine(msg);
 			report(msg);
 		}

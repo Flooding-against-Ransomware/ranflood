@@ -39,18 +39,15 @@ import java.util.UUID;
 
 public class SSSFlooder extends AbstractSnapshotFlooder {
 
-	private final FloodMethod METHOD = FloodMethod.SSS;
-	private final Path snapshotDBPath;
-	private final Set< String > exclusionList;
-
-	private final Parameters parameters;
-
-
 	public static final class Parameters {
 
-		private static final int DFLT_N = 15;
-		private static final int DFLT_K = 10;
-		private static final boolean DFLT_REMOVE_ORIGINALS = false;
+		private static final int DFLT_RANSOMWARE_N = 100;
+		private static final int DFLT_RANSOMWARE_K = 2;
+		private static final boolean DFLT_RANSOMWARE_REMOVE_ORIGINALS = false;
+
+		private static final int DFLT_EXFILTRATION_N = 100;
+		private static final int DFLT_EXFILTRATION_K = 100;
+		private static final boolean DFLT_EXFILTRATION_REMOVE_ORIGINALS = true;
 
 		public Integer n, k;
 		public Boolean remove_originals;
@@ -62,16 +59,34 @@ public class SSSFlooder extends AbstractSnapshotFlooder {
 		}
 	}
 
+
+
+	private final FloodMethod METHOD;
+	private final Path snapshotDBPath;
+	private final Set< String > exclusionList;
+
+	private final Parameters parameters;
+
+
+
 	public SSSFlooder(
-			Path snapshotDBPath, Set< String > exclusionList, Parameters parameters
+			Path snapshotDBPath, Set< String > exclusionList, FloodMethod mode, Parameters parameters
 	) {
+		this.METHOD = mode;
 		this.snapshotDBPath = snapshotDBPath;
 		this.exclusionList = exclusionList;
-		this.parameters = new Parameters(
-			(parameters.n != null) ? parameters.n : Parameters.DFLT_N,
-			(parameters.n != null) ? parameters.k : Parameters.DFLT_K,
-			(parameters.remove_originals != null) ? parameters.remove_originals : Parameters.DFLT_REMOVE_ORIGINALS
-		);
+		if(mode == FloodMethod.SSS_RANSOMWARE)
+			this.parameters = new Parameters(
+				(parameters.n != null) ? parameters.n : Parameters.DFLT_RANSOMWARE_N,
+				(parameters.n != null) ? parameters.k : Parameters.DFLT_RANSOMWARE_K,
+				(parameters.remove_originals != null) ? parameters.remove_originals : Parameters.DFLT_RANSOMWARE_REMOVE_ORIGINALS
+			);
+		else
+			this.parameters = new Parameters(
+				(parameters.n != null) ? parameters.n : Parameters.DFLT_EXFILTRATION_N,
+				(parameters.n != null) ? parameters.k : Parameters.DFLT_EXFILTRATION_K,
+				(parameters.remove_originals != null) ? parameters.remove_originals : Parameters.DFLT_EXFILTRATION_REMOVE_ORIGINALS
+			);
 	}
 
 	@Override

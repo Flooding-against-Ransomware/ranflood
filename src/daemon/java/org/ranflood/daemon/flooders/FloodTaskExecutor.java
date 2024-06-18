@@ -105,10 +105,10 @@ public class FloodTaskExecutor {
 					try {
 						if( t.main.floodTask() instanceof OnTheFlyFloodTask ){
 							Ranflood.daemon().onTheFlyFlooder().stopFlood( t.main.label() );
-						} else if( t.main.floodTask() instanceof SSSFloodTask ){
-							Ranflood.daemon().SSSFlooder().stopFlood( t.main.label() );
 						} else if( t.main.floodTask() instanceof ShadowCopyFloodTask ){
 							Ranflood.daemon().shadowCopyFlooder().stopFlood( t.main.label() );
+						} else if( t.main.floodTask() instanceof SSSFloodTask ){
+							Ranflood.daemon().SSSFlooder().stopFlood( t.main.label() );
 						} else if( t.main.floodTask() instanceof RandomFloodTask ){
 							Ranflood.daemon().randomFlooder().stopFlood( t.main.label() );
 						}

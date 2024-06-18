@@ -23,6 +23,7 @@ package org.ranflood.daemon;
 
 import io.reactivex.rxjava3.core.*;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import org.ranflood.common.FloodMethod;
 import org.ranflood.daemon.binders.ZMQ_JSON_Server;
 import org.ranflood.daemon.flooders.FloodTaskExecutor;
 import org.ranflood.daemon.flooders.SSS.SSSFlooder;
@@ -52,7 +53,8 @@ public class RanfloodDaemon {
 	private static final ExecutorService scheduler = Executors.newFixedThreadPool( 2 * Runtime.getRuntime().availableProcessors() );
 	private final RandomFlooder RANDOM_FLOODER;
 	private final OnTheFlyFlooder ON_THE_FLY_FLOODER;
-	private final SSSFlooder SSS_FLOODER;
+	private final SSSFlooder SSS_RANSOMWARE_FLOODER;
+	private final SSSFlooder SSS_EXFILTRATION_FLOODER;
 	private final ShadowCopyFlooder SHADOW_COPY_FLOODER;
 	static private Emitter< Runnable > emitter;
 
@@ -84,40 +86,6 @@ public class RanfloodDaemon {
 						} ) ),
 						Arrays.stream( on_the_fly_opt_exclude_folder_names.orElse( "" ).split( "," ) ).map( String::trim ).collect( Collectors.toSet() )
 		);
-		Optional< Integer > sss_n = settings.getValue( "SSS", "n" ).map(
-				(value) -> {
-					try {
-						return Integer.parseInt(value);
-					} catch (NumberFormatException e) {
-						return null;
-					}
-				}
-		);
-		Optional< Integer > sss_k = settings.getValue( "SSS", "k" ).map(
-				(value) -> {
-					try {
-						return Integer.parseInt(value);
-					} catch (NumberFormatException e) {
-						return null;
-					}
-				}
-		);
-		Optional< Boolean > sss_remove_originals = settings.getValue( "SSS", "remove_originals" ).map(
-                Boolean::parseBoolean
-		);
-		SSS_FLOODER = new SSSFlooder(
-						Path.of( on_the_fly_opt_signature_db.orElseGet( () -> {
-							String signaturesDBpath = Paths.get( "" ).toAbsolutePath() + File.separator + "signatures.db";
-							error( "OnTheFlyFlooder -> Signature_DB not found in the settings file. Using " + signaturesDBpath );
-							return signaturesDBpath;
-						} ) ),
-						Arrays.stream( on_the_fly_opt_exclude_folder_names.orElse( "" ).split( "," ) ).map( String::trim ).collect( Collectors.toSet() ),
-						new SSSFlooder.Parameters(
-								sss_n.orElse(null),
-								sss_k.orElse(null),
-								sss_remove_originals.orElse(null)
-						)
-		);
 		Optional< String > shadow_copy_opt_archive_root = settings.getValue( "ShadowCopyFlooder", "ArchiveRoot" );
 		Optional< String > shadow_copy_opt_archive_database = settings.getValue( "ShadowCopyFlooder", "ArchiveDatabase" );
 		Optional< String > shadow_copy_opt_exclude_folder_names = settings.getValue( "ShadowCopyFlooder", "ExcludeFolderNames" );
@@ -133,6 +101,56 @@ public class RanfloodDaemon {
 							return archiveRoot;
 						} ) ),
 						Arrays.stream( shadow_copy_opt_exclude_folder_names.orElse( "" ).split( "," ) ).map( String::trim ).collect( Collectors.toSet() )
+		);
+		Optional< String > sss_opt_signature_db = settings.getValue( "SSS", "Signature_DB" );
+		Optional< Integer > sss_opt_n = settings.getValue( "SSS", "n" ).map(
+				(value) -> {
+					try {
+						return Integer.parseInt(value);
+					} catch (NumberFormatException e) {
+						return null;
+					}
+				}
+		);
+		Optional< Integer > sss_opt_k = settings.getValue( "SSS", "k" ).map(
+				(value) -> {
+					try {
+						return Integer.parseInt(value);
+					} catch (NumberFormatException e) {
+						return null;
+					}
+				}
+		);
+		Optional< Boolean > sss_opt_remove_originals = settings.getValue( "SSS", "RemoveOriginals" ).map(
+                Boolean::parseBoolean
+		);
+		SSS_RANSOMWARE_FLOODER = new SSSFlooder(
+						Path.of( sss_opt_signature_db.orElseGet( () -> {
+							String signaturesDBpath = Paths.get( "" ).toAbsolutePath() + File.separator + "signatures.db";
+							error( "OnTheFlyFlooder -> Signature_DB not found in the settings file. Using " + signaturesDBpath );
+							return signaturesDBpath;
+						} ) ),
+						Arrays.stream( on_the_fly_opt_exclude_folder_names.orElse( "" ).split( "," ) ).map( String::trim ).collect( Collectors.toSet() ),
+						FloodMethod.SSS_RANSOMWARE,
+						new SSSFlooder.Parameters(
+								sss_opt_n.orElse(null),
+								sss_opt_k.orElse(null),
+								sss_opt_remove_originals.orElse(null)
+						)
+		);
+		SSS_EXFILTRATION_FLOODER = new SSSFlooder(
+						Path.of( sss_opt_signature_db.orElseGet( () -> {
+							String signaturesDBpath = Paths.get( "" ).toAbsolutePath() + File.separator + "signatures.db";
+							error( "OnTheFlyFlooder -> Signature_DB not found in the settings file. Using " + signaturesDBpath );
+							return signaturesDBpath;
+						} ) ),
+						Arrays.stream( on_the_fly_opt_exclude_folder_names.orElse( "" ).split( "," ) ).map( String::trim ).collect( Collectors.toSet() ),
+						FloodMethod.SSS_EXFILTRATION,
+						new SSSFlooder.Parameters(
+								sss_opt_n.orElse(null),
+								sss_opt_k.orElse(null),
+								sss_opt_remove_originals.orElse(null)
+						)
 		);
 		log( "Ranflood Daemon (ranfloodd) version " + Ranflood.version() + " started." );
 	}
@@ -161,12 +179,16 @@ public class RanfloodDaemon {
 		return ON_THE_FLY_FLOODER;
 	}
 
-	public SSSFlooder SSSFlooder() {
-		return SSS_FLOODER;
-	}
-
 	public ShadowCopyFlooder shadowCopyFlooder() {
 		return SHADOW_COPY_FLOODER;
+	}
+
+	public SSSFlooder SSSRansomwareFlooder() {
+		return SSS_RANSOMWARE_FLOODER;
+	}
+
+	public SSSFlooder SSSExfiltrationFlooder() {
+		return SSS_EXFILTRATION_FLOODER;
 	}
 
 	public void shutdown() {
@@ -177,7 +199,7 @@ public class RanfloodDaemon {
 		commandExecutor.shutdown();
 		scheduler.shutdown();
 		ON_THE_FLY_FLOODER.shutdown();
-		SSS_FLOODER.shutdown();
+		SSS_RANSOMWARE_FLOODER.shutdown();
 		System.exit( 0 );
 	}
 

@@ -2,14 +2,11 @@ package org.sssfile.files;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
 import org.sssfile.exceptions.WriteShardException;
-import org.sssfile.util.IO;
 import org.sssfile.util.Security;
 
 
@@ -25,7 +22,7 @@ import org.sssfile.util.Security;
  */
 public class ShardFile {
 
-	protected static class HashFields {
+	protected static class Sections {
 
 		// a (hopefully) unique signature
 		protected static final byte[] HEADER_SIGNATURE = new byte[] {
@@ -61,15 +58,11 @@ public class ShardFile {
 	public final Integer key;
 	public final byte[] secret;
 
-	private final byte[] hash_original_file;
-	private final Path original_file;
+	private final byte[]	hash_original_file;
+	public final Path		original_file;
 	
 	
 
-	public ShardFile(Path path, Integer key, byte[] secret) {
-		this(path, key, secret, null, null);
-	}
-	
 	public ShardFile(
 		Path path, Integer key, byte[] secret, Path original_file, byte[] hash_original_file
 	) {
@@ -94,7 +87,6 @@ public class ShardFile {
 			try {
 				hash_secret = Security.hashSecret(key, secret);
 			} catch (IOException | NoSuchAlgorithmException e) {
-				e.printStackTrace();
 				throw new WriteShardException(e.getMessage());
 			}
 
@@ -114,61 +106,28 @@ public class ShardFile {
 	}
 
 	public int getContentLength() {
-		return HashFields.HEADER_SIGNATURE.length	// header signature
-				+ HashFields.LEN_KEY				// key
-				+ HashFields.LEN_HASH				// hash original file
-				+ HashFields.LEN_HASH				// hash secret
-				+ HashFields.LEN_ORIGINAL_PATH_LEN	// original path length
-				+ getOriginalPathLength()			// original path
+		return Sections.HEADER_SIGNATURE.length	// header signature
+				+ Sections.LEN_KEY				// key
+				+ Sections.LEN_HASH				// hash original file
+				+ Sections.LEN_HASH				// hash secret
+				+ Sections.LEN_ORIGINAL_PATH_LEN	// original path length
+				+ original_file.toString().length()	// original path
 				+ secret.length						// secret
 		;
 	}
 
 
 	public static byte[] getHeaderSignature() {
-		return HashFields.HEADER_SIGNATURE;
-	}
-
-
-	public Path getOriginalPath() {
-
-		if(original_file != null)
-			return original_file;
-		else
-			return Paths.get(
-				new String(
-					IO.readBytes(path, getOriginalPathLength(), HashFields.OFFSET_ORIGINAL_PATH),
-					StandardCharsets.UTF_8
-				)
-			);
+		return Sections.HEADER_SIGNATURE;
 	}
 
 	public OriginalFile getOriginalFile() {
-		return new OriginalFile(getOriginalPath(), hash_original_file);
+		if(original_file == null) return null;
+		else return new OriginalFile(original_file, hash_original_file);
 	}
 
 	public int getOriginalFileHash() {
 		return Arrays.hashCode(hash_original_file);
-	}
-
-	public int getOriginalPathLength() {
-		return ByteBuffer.wrap(
-			 IO.readBytes(path, HashFields.LEN_ORIGINAL_PATH_LEN, HashFields.OFFSET_ORIGINAL_PATH_LEN)
-		).getInt();
-	}
-
-	public final Boolean isValid() {
-		return Arrays.equals(
-				IO.readBytes(path, HashFields.HEADER_SIGNATURE.length, 0),
-				HashFields.HEADER_SIGNATURE
-		);
-	}
-
-	public static Boolean isValid(Path path) {
-		return Arrays.equals(
-				IO.readBytes(path, HashFields.HEADER_SIGNATURE.length, 0),
-				HashFields.HEADER_SIGNATURE
-		);
 	}
 
 

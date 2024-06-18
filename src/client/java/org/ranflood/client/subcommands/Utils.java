@@ -37,10 +37,12 @@ class Utils {
 						.forEach( e -> translationMap.put( e, FloodMethod.RANDOM ) );
 		Arrays.asList( "on-the-fly", "on_the_fly", "ON-THE-FLY", "ON_THE_FLY" )
 						.forEach( e -> translationMap.put( e, FloodMethod.ON_THE_FLY ) );
-		Arrays.asList( "sss", "SSS" )
-						.forEach( e -> translationMap.put( e, FloodMethod.SSS ) );
 		Arrays.asList( "shadow-copy", "shadow_copy", "SHADOW-COPY", "SHADOW_COPY" )
 						.forEach( e -> translationMap.put( e, FloodMethod.SHADOW_COPY ) );
+		Arrays.asList( "sss-ransomware", "sss_ransomware", "SSS-RANSOMWARE", "SSS_RANSOMWARE" )
+						.forEach( e -> translationMap.put( e, FloodMethod.SSS_RANSOMWARE) );
+		Arrays.asList( "sss-exfiltration", "sss_exfiltration", "SSS-EXFILTRATION", "SSS_EXFILTRATION" )
+						.forEach( e -> translationMap.put( e, FloodMethod.SSS_EXFILTRATION ) );
 	}
 
 	public static String padLeft( int padSize ) {

@@ -27,8 +27,9 @@ public enum FloodMethod {
 
 	RANDOM,
 	ON_THE_FLY,
-	SSS,
-	SHADOW_COPY;
+	SHADOW_COPY,
+	SSS_RANSOMWARE,
+	SSS_EXFILTRATION;
 
 	public static FloodMethod getMethod( String method ) throws ParseException {
 		switch ( method ) {
@@ -36,10 +37,12 @@ public enum FloodMethod {
 				return FloodMethod.RANDOM;
 			case "ON_THE_FLY":
 				return FloodMethod.ON_THE_FLY;
-			case "SSS":
-				return FloodMethod.SSS;
 			case "SHADOW_COPY":
 				return FloodMethod.SHADOW_COPY;
+			case "SSS_FLOOD":
+				return FloodMethod.SSS_RANSOMWARE;
+			case "SSS_EXFILTRATION":
+				return FloodMethod.SSS_EXFILTRATION;
 			default:
 				throw new ParseException( "Unrecognized method " + method );
 		}

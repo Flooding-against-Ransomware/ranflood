@@ -10,9 +10,11 @@ import java.util.Map;
 import com.codahale.shamir.Scheme;
 
 import org.sssfile.exceptions.InvalidOriginalFileException;
+import org.sssfile.exceptions.ReadShardException;
 import org.sssfile.exceptions.WriteShardException;
 import org.sssfile.files.OriginalFile;
 import org.sssfile.files.ShardFile;
+import org.sssfile.files.ShardFileGenerator;
 
 
 public class SSSSplitter {
@@ -38,10 +40,14 @@ public class SSSSplitter {
 	
 	public OriginalFile getSplitFile(
 			Path path
-	) throws InvalidOriginalFileException, WriteShardException {
+	) throws InvalidOriginalFileException, ReadShardException, WriteShardException {
 
-		if(ShardFile.isValid(path)) {
-			throw new InvalidOriginalFileException("Can't split a shard again.");
+		try {
+			if(ShardFileGenerator.isValid(path)) {
+				throw new InvalidOriginalFileException("Can't split a shard again.");
+			}
+		} catch(IOException e) {
+			throw new ReadShardException("IO exception while reading shard at " + path + " : " + e.getMessage());
 		}
 
 		byte[] secret;

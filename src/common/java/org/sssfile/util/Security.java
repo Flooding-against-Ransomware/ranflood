@@ -18,8 +18,7 @@ public class Security {
 	public static byte[] hashBytes(byte[] bytes) throws IOException, NoSuchAlgorithmException {
 
 		MessageDigest digest = MessageDigest.getInstance(ALGORITHM);
-		byte[] hash = digest.digest(bytes);
-		return hash;
+        return digest.digest(bytes);
 	}	
 
 	public static byte[] hashFileContent(Path path) throws IOException, NoSuchAlgorithmException {
