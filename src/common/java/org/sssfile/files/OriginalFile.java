@@ -1,6 +1,7 @@
 package org.sssfile.files;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -86,17 +87,6 @@ public class OriginalFile {
 		return shard.getContent();
 	}
 
-
-	public boolean isValid(byte[] content) {
-		try {
-			return Arrays.equals(hash_original_file, Security.hashBytes(content));
-		} catch (IOException | NoSuchAlgorithmException e) {
-			e.printStackTrace();
-			return false;
-		}
-	}
-
-
 	/**
 	 * Read this path's content, then calculate and save the hash.
 	 * @throws IOException
@@ -104,6 +94,23 @@ public class OriginalFile {
 	 */
 	private void readHash() throws IOException, NoSuchAlgorithmException {
 		hash_original_file = Security.hashFileContent(path);
+	}
+
+
+	/*
+	 * Get
+	 */
+
+	public String getHashString() {
+		return new String(hash_original_file, StandardCharsets.UTF_8);
+	}
+	public boolean isValid(byte[] content) {
+		try {
+			return Arrays.equals(hash_original_file, Security.hashBytes(content));
+		} catch (IOException | NoSuchAlgorithmException e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 
 

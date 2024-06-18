@@ -1,9 +1,11 @@
 package org.sssfile;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 
 import com.codahale.shamir.Scheme;
@@ -13,6 +15,8 @@ import org.sssfile.files.ShardFile;
 import org.sssfile.files.ShardFileGenerator;
 import org.sssfile.files.RestoredFilesList;
 import org.sssfile.util.LoggerRestore;
+import org.sssfile.util.LoggerResult;
+import org.sssfile.util.Security;
 
 
 public class SSSRestorer {
@@ -32,11 +36,11 @@ public class SSSRestorer {
 	
 
 	public SSSRestorer(int n, int k, Path dir,
-		LoggerRestore logger, ShardFileGenerator shard_generator,
-		boolean remove_shards
+		Path file_log, boolean remove_shards, boolean debug, boolean debug_dev
 	) {
-		this.logger = logger;
-		this.shard_generator = shard_generator;
+		logger = new LoggerRestore(n, k, file_log, debug_dev, debug);
+
+		this.shard_generator = new ShardFileGenerator();
 
         SecureRandom random_generator = new SecureRandom();
 		scheme = new Scheme(random_generator, n, k);
@@ -55,6 +59,10 @@ public class SSSRestorer {
 		dirJoin(root);
 
 		logger.summary();
+	}
+
+	public LoggerResult getStats() {
+		return logger.getStats();
 	}
 
 
@@ -82,7 +90,7 @@ public class SSSRestorer {
 	private void fileJoin(OriginalFile original_file) {
 
 		if(original_file.parts.size() < scheme.k()) {
-			logger.fileUnrecoverable(original_file.path, original_file.parts.size());
+			logger.fileErrorUnrecoverable(original_file, original_file.parts.size());
 			return;
 		}
 
@@ -93,16 +101,20 @@ public class SSSRestorer {
 		try {
 			Files.write( original_file.path, recovered );
 		} catch (IOException e) {
-			logger.errorIO(original_file.path);
+			logger.fileErrorWriting(original_file);
 			return;
 		}
 
 		if(!original_file.isValid(recovered)) {
-			logger.fileBadHash(original_file.path);
+			try {
+				logger.fileErrorBadHash(original_file, new String(Security.hashBytes(recovered), StandardCharsets.UTF_8) );
+			} catch (NoSuchAlgorithmException | IOException e) {
+				logger.fileErrorBadHash(original_file, "{ERROR READING HASH}");
+			}
 			return;
 		}
 
-		logger.fileRestored(original_file.path);
+		logger.fileRestored(original_file);
 
 		if(remove_shards) {
 			for(Path shard_path : original_file.getShardsPaths()) {
