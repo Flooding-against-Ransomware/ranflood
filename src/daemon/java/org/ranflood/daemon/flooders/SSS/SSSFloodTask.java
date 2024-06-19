@@ -27,8 +27,6 @@ import org.ranflood.daemon.Ranflood;
 import org.ranflood.daemon.flooders.FlooderException;
 import org.sssfile.SSSSplitter;
 import org.sssfile.exceptions.InvalidOriginalFileException;
-import org.sssfile.exceptions.ReadShardException;
-import org.sssfile.exceptions.WriteShardException;
 import org.sssfile.files.OriginalFile;
 import org.ranflood.daemon.flooders.SnapshotException;
 import org.ranflood.daemon.flooders.tasks.FloodTaskGenerator;
@@ -130,7 +128,7 @@ public class SSSFloodTask extends FloodTaskGenerator {
 					do {
 						try {
 							shard_content = original_file.iterateShardContent();
-						} catch (WriteShardException e) {
+						} catch (IOException e) {
 							RanfloodLogger.error("Couldn't get shard content: " + e.getMessage());
 							continue;
 						}
@@ -183,9 +181,6 @@ public class SSSFloodTask extends FloodTaskGenerator {
 		} catch ( SnapshotException e ) {
 			e.printStackTrace();
 			throw new FlooderException("Could not find a snapshot of file " + file.getAbsolutePath());
-		} catch (WriteShardException | ReadShardException e) {
-			e.printStackTrace();
-			throw new FlooderException("Error in reading or splitting file: " + e.getMessage() );
 		}
 	}
 

@@ -1,7 +1,6 @@
 package org.sssfile.util;
 
 import org.ranflood.common.utils.Pair;
-import org.sssfile.files.OriginalFile;
 
 import java.util.LinkedList;
 
@@ -26,20 +25,17 @@ public class LoggerResult {
 	public final FileInfoList files_error_other		    = new FileInfoList();
 
 
-    public static class FileInfo extends Pair<OriginalFile, String> {
+    public static class FileInfo extends Pair<String, String> {
 
-        public FileInfo(OriginalFile file, String info) {
-            super(file, info);
+        public FileInfo(String absolute_path, String info) {
+            super(absolute_path, info);
         }
 
-        public OriginalFile getFile() {
+        public String getAbsolutePath() {
             return this.left();
         }
         public String getInfo() {
             return this.right();
-        }
-        public String getPathString() {
-            return getFile().path.toString();
         }
     }
 

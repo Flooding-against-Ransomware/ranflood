@@ -10,19 +10,18 @@ import java.util.Map;
 import com.codahale.shamir.Scheme;
 
 import org.sssfile.exceptions.InvalidOriginalFileException;
-import org.sssfile.exceptions.ReadShardException;
-import org.sssfile.exceptions.WriteShardException;
 import org.sssfile.files.OriginalFile;
 import org.sssfile.files.ShardFile;
-import org.sssfile.files.ShardFileGenerator;
+
 
 
 public class SSSSplitter {
 
     private final Scheme scheme;
 
-	public final int n;
-	public final int k;
+	public final int	n,
+						k;
+	public final long	generation;
 
 
 	/**
@@ -30,35 +29,37 @@ public class SSSSplitter {
 	 * @param n number of shards created
 	 * @param k minimum number of shards required to rebuild the original file (0<=k<=n)
 	 */
-	public SSSSplitter(int n, int k) {
+	public SSSSplitter(int n, int k, long generation) {
         SecureRandom random_generator = new SecureRandom();
 		scheme = new Scheme(random_generator, n, k);
 		this.n = n;
 		this.k = k;
+		this.generation = generation;
 	}
 
-	
+
+	/**
+	 *
+	 * @param path file path
+	 * @return the OriginalFile object
+	 * @throws IOException while reading file content
+	 * @throws InvalidOriginalFileException if the file is a shard
+	 */
 	public OriginalFile getSplitFile(
 			Path path
-	) throws InvalidOriginalFileException, ReadShardException, WriteShardException {
+	) throws IOException, InvalidOriginalFileException {
 
-		try {
-			if(ShardFileGenerator.isValid(path)) {
-				throw new InvalidOriginalFileException("Can't split a shard again.");
-			}
-		} catch(IOException e) {
-			throw new ReadShardException("IO exception while reading shard at " + path + " : " + e.getMessage());
+		if(ShardFile.isValid(path)) {
+			throw new InvalidOriginalFileException("Can't split a shard again.");
 		}
 
 		byte[] secret;
 		try ( InputStream input = new FileInputStream( path.toFile() ) ) {
 			secret = input.readAllBytes();
-		} catch (IOException e) {
-			throw new WriteShardException("Couldn't read file: " + e.getMessage());
 		}
 
 		Map<Integer, byte[]> parts = scheme.split(secret);
-		return new OriginalFile(path, parts);
+		return new OriginalFile(path, parts, n, k, generation);
 	}
 
 

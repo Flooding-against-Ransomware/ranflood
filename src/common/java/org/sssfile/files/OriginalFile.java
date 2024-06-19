@@ -1,15 +1,10 @@
 package org.sssfile.files;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 
-import org.sssfile.exceptions.WriteShardException;
 import org.sssfile.util.Security;
 
 
@@ -20,26 +15,36 @@ public class OriginalFile {
 	private LinkedList<Path> shards_paths = null;
 	public byte[] hash_original_file;
 
+	public final int	n,
+						k;
+	public final long	generation;
+
 	private int current_key = 1;
 
 	
 
-	protected OriginalFile(Path path) {
-		this.path	= path;
-		this.parts	= new HashMap<Integer, byte[]>();
-		hash_original_file = null;
-	}
-
-	public OriginalFile(Path path, Map<Integer, byte[]> parts) {
+	public OriginalFile(
+			Path path, Map<Integer, byte[]> parts,
+			int n, int k, long generation
+	) {
 		this.path	= path;
 		this.parts	= parts;
 		hash_original_file = null;
+		this.n = n;
+		this.k = k;
+		this.generation = generation;
 	}
 
-	public OriginalFile(Path path, byte[] hash_original_file) {
+	public OriginalFile(
+			Path path, byte[] hash_original_file,
+			int n, int k, long generation
+	) {
 		this.path	= path;
 		this.parts	= new HashMap<Integer, byte[]>();
 		this.hash_original_file = hash_original_file;
+		this.n = n;
+		this.k = k;
+		this.generation = generation;
 	}
 
 
@@ -64,26 +69,18 @@ public class OriginalFile {
 	 * If the hash is not given, it's calculated.
 	 * @return the content of the next shard, or null if got all
 	 */
-	public byte[] iterateShardContent() throws WriteShardException {
+	public byte[] iterateShardContent() throws IOException, NoSuchAlgorithmException {
 
 		FileNamesGenerator file_names_generator = new FileNamesGenerator(path);
 
 		if(hash_original_file == null) {
-			try {
-				readHash();
-			} catch (IOException | NoSuchAlgorithmException e) {
-				e.printStackTrace();
-				throw new WriteShardException(e.getMessage());
-			}
+			readHash();
 		}
 
-		byte[] entry = parts.get(current_key);
-
 		ShardFile shard = new ShardFile(
-			Path.of( file_names_generator.generateShardPath() ),
-			current_key, parts.get(current_key),
-			path,
-			hash_original_file
+			Path.of( file_names_generator.generateShardPath() ), path, hash_original_file,
+			n, k, generation,
+			current_key, parts.get(current_key)
 		);
 		current_key++;
 
@@ -92,8 +89,8 @@ public class OriginalFile {
 
 	/**
 	 * Read this path's content, then calculate and save the hash.
-	 * @throws IOException
-	 * @throws NoSuchAlgorithmException
+	 * @throws IOException -
+	 * @throws NoSuchAlgorithmException -
 	 */
 	private void readHash() throws IOException, NoSuchAlgorithmException {
 		hash_original_file = Security.hashFileContent(path);
@@ -104,16 +101,11 @@ public class OriginalFile {
 	 * Get
 	 */
 
-	public String getHashString() {
-		return new String(hash_original_file, StandardCharsets.UTF_8);
+	public String getHashBase64() {
+		return Base64.getEncoder().encodeToString( hash_original_file );
 	}
-	public boolean isValid(byte[] content) {
-		try {
-			return Arrays.equals(hash_original_file, Security.hashBytes(content));
-		} catch (IOException | NoSuchAlgorithmException e) {
-			e.printStackTrace();
-			return false;
-		}
+	public boolean isValid(byte[] content) throws NoSuchAlgorithmException {
+		return Arrays.equals(hash_original_file, Security.hashBytes(content));
 	}
 
 

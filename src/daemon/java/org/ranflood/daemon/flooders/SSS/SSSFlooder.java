@@ -31,6 +31,7 @@ import org.ranflood.daemon.flooders.SnapshotException;
 import org.ranflood.daemon.flooders.tasks.LabeledFloodTask;
 
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -41,18 +42,20 @@ public class SSSFlooder extends AbstractSnapshotFlooder {
 
 	public static final class Parameters {
 
-		private static final int DFLT_RANSOMWARE_N = 100;
-		private static final int DFLT_RANSOMWARE_K = 2;
+		private static final int	DFLT_RANSOMWARE_N = 100,
+									DFLT_RANSOMWARE_K = 2;
 		private static final boolean DFLT_RANSOMWARE_REMOVE_ORIGINALS = false;
 
-		private static final int DFLT_EXFILTRATION_N = 100;
-		private static final int DFLT_EXFILTRATION_K = 100;
+		private static final int	DFLT_EXFILTRATION_N = 50,
+									DFLT_EXFILTRATION_K = 45;
 		private static final boolean DFLT_EXFILTRATION_REMOVE_ORIGINALS = true;
 
-		public Integer n, k;
+		public Integer	n,
+						k;
 		public Boolean remove_originals;
 
-		public Parameters(Integer n, Integer k, Boolean remove_originals) {
+		public Parameters(Integer n, Integer k,
+						  Boolean remove_originals) {
 			this.n = n;
 			this.k = k;
 			this.remove_originals = remove_originals;
@@ -60,38 +63,41 @@ public class SSSFlooder extends AbstractSnapshotFlooder {
 	}
 
 
-
 	private final FloodMethod METHOD;
 	private final Path snapshotDBPath;
 	private final Set< String > exclusionList;
 
+	private long generation;
 	private final Parameters parameters;
 
 
 
 	public SSSFlooder(
-			Path snapshotDBPath, Set< String > exclusionList, FloodMethod mode, Parameters parameters
+			Path snapshotDBPath, Set< String > exclusionList, FloodMethod mode, Parameters params
 	) {
 		this.METHOD = mode;
 		this.snapshotDBPath = snapshotDBPath;
 		this.exclusionList = exclusionList;
+
+		this.generation = System.currentTimeMillis();	// unique for each flood (for this instance)
+
 		if(mode == FloodMethod.SSS_RANSOMWARE)
 			this.parameters = new Parameters(
-				(parameters.n != null) ? parameters.n : Parameters.DFLT_RANSOMWARE_N,
-				(parameters.n != null) ? parameters.k : Parameters.DFLT_RANSOMWARE_K,
-				(parameters.remove_originals != null) ? parameters.remove_originals : Parameters.DFLT_RANSOMWARE_REMOVE_ORIGINALS
+				(params.n != null) ? params.n : Parameters.DFLT_RANSOMWARE_N,
+				(params.k != null) ? params.k : Parameters.DFLT_RANSOMWARE_K,
+				(params.remove_originals != null) ? params.remove_originals : Parameters.DFLT_RANSOMWARE_REMOVE_ORIGINALS
 			);
 		else
 			this.parameters = new Parameters(
-				(parameters.n != null) ? parameters.n : Parameters.DFLT_EXFILTRATION_N,
-				(parameters.n != null) ? parameters.k : Parameters.DFLT_EXFILTRATION_K,
-				(parameters.remove_originals != null) ? parameters.remove_originals : Parameters.DFLT_EXFILTRATION_REMOVE_ORIGINALS
+				(params.n != null) ? params.n : Parameters.DFLT_EXFILTRATION_N,
+				(params.k != null) ? params.k : Parameters.DFLT_EXFILTRATION_K,
+				(params.remove_originals != null) ? params.remove_originals : Parameters.DFLT_EXFILTRATION_REMOVE_ORIGINALS
 			);
 	}
 
 	@Override
 	public UUID flood( Path targetFolder ) throws FlooderException {
-		SSSSplitter sss = new SSSSplitter(parameters.n, parameters.k);
+		SSSSplitter sss = new SSSSplitter(parameters.n, parameters.k, generation);
 		SSSFloodTask t = new SSSFloodTask( targetFolder, METHOD, sss, parameters.remove_originals );
 		UUID id = UUID.randomUUID();
 		LabeledFloodTask lft = new LabeledFloodTask( id, t );

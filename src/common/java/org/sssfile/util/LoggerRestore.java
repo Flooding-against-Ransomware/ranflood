@@ -1,23 +1,17 @@
 package org.sssfile.util;
 
-import org.ranflood.common.utils.Pair;
 import org.sssfile.files.OriginalFile;
-import org.sssfile.files.ShardFile;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.LinkedList;
+
 
 
 public class LoggerRestore {
-
-	private final int n;
-	private final int k;
 
 	// where to print restoration report
 	private final Path path_report;
@@ -33,28 +27,15 @@ public class LoggerRestore {
 
 
 
-	public LoggerRestore(int n, int k) {
-		this.n = n;
-		this.k = k;
-		path_report		= null;
-		debug_dev		= false;
-		debug_restore	= false;
-	}
-
 	/**
 	 * 
-	 * @param n
-	 * @param k
 	 * @param report_restore path of report file for restore
 	 * @param debug_dev if true, print additional logs
 	 */
 	public LoggerRestore(
-		int n, int k,
 		Path report_restore,
 		boolean debug_dev, boolean debug_restore
 	) {
-		this.n = n;
-		this.k = k;
 		this.debug_dev = debug_dev;
 		this.debug_restore = debug_restore;
 
@@ -76,7 +57,7 @@ public class LoggerRestore {
 
 	/**
 	 * Log, with a newline.
-	 * @param message
+	 * @param message -
 	 */
 	public void logLine(String message) {
 		System.out.println(message);
@@ -88,14 +69,14 @@ public class LoggerRestore {
 						StandardOpenOption.CREATE, StandardOpenOption.APPEND
 				);
 			} catch (IOException e) {
-				e.printStackTrace();
+				System.err.println("IO Exception: Couldn't write line to log.");
 			}
 		}
 	}
 
 	/**
 	 * Log at debug level.
-	 * @param message
+	 * @param message -
 	 */
 	public void logDebug(String message) {
 		if(debug_dev)
@@ -108,13 +89,13 @@ public class LoggerRestore {
 
 	public void start() {
 		time_start = LocalDateTime.now();
-		logLine("Start - (n, k) = (" + n + ", " + k + ") - " + time_start);
+		logLine("Start - " + time_start);
 	}
 
 	
 	/**
 	 * Add to report. Ignore `debug_restore`.
-	 * @param message
+	 * @param message -
 	 */
 	public void report(String message) {
 
@@ -125,7 +106,7 @@ public class LoggerRestore {
 					StandardOpenOption.CREATE, StandardOpenOption.APPEND
 				);
 			} catch (IOException e) {
-				e.printStackTrace();
+				System.err.println("IO Exception: Couldn't write line to log.");
 			}
 		}
 	}
@@ -175,8 +156,8 @@ public class LoggerRestore {
 
 		stats.n_files_bad_hash++;
 		stats.files_error_checksum.add( new LoggerResult.FileInfo(
-				original_file,
-				"Wrong checksum after recover (" + original_file.getHashString() + "), expected was " + hash_found
+				original_file.path.toAbsolutePath().toString(),
+				"Wrong checksum after recover (" + original_file.getHashBase64() + "), expected was " + hash_found
 		));
 		if(debug_restore) {
 			String msg ="[Bad hash]\tRecovered file's checksum is incorrect: " + original_file.path;
@@ -184,17 +165,17 @@ public class LoggerRestore {
 			report(msg);
 		}
 	}
-	public void fileErrorUnrecoverable(OriginalFile original_file, int parts_recovered) {
+	public void fileErrorUnrecoverable(Path path, int k, int parts_recovered) {
 
 		stats.n_files_unrecoverable++;
 		stats.files_error_insufficient.add( new LoggerResult.FileInfo(
-				original_file,
+				path.toAbsolutePath().toString(),
 				"Can't recover with only " + parts_recovered + " / " + k + " parts found"
 		));
 		if(debug_restore) {
 			String msg =
 				"[Unrecoverable]\tUnrecoverable file, with " + parts_recovered +
-				"/" + k + " parts: " + original_file.path;
+				"/" + k + " parts: " + path;
 			logLine(msg);
 			report(msg);
 		}
@@ -202,41 +183,38 @@ public class LoggerRestore {
 	public void fileErrorReading(Path path) {
 
 		stats.n_errors++;
-		/*
-		TODO:
 		stats.files_error_other.add( new LoggerResult.FileInfo(
-				original_file,
-				"Got an error and couldn't write the recovered file (try again...)"
+				null,
+				"Got an error and couldn't read shard at " + path
 		));
-		*/
 		if(debug_restore) {
 			String msg = "[Error]\tCould not read shard, IO exception: " + path;
 			logLine(msg);
 			report(msg);
 		}
 	}
-	public void fileErrorWriting(OriginalFile original_file) {
+	public void fileErrorWriting(Path path) {
 
 		stats.n_errors++;
 		stats.files_error_other.add( new LoggerResult.FileInfo(
-				original_file,
+				path.toAbsolutePath().toString(),
 				"Got an error and couldn't write the recovered file (try again...)"
 		));
 		if(debug_restore) {
-			String msg = "[Error]\tCould not write recovered file, IO exception: " + original_file.path;
+			String msg = "[Error]\tCould not write recovered file, IO exception: " + path;
 			logLine(msg);
 			report(msg);
 		}
 	}
-	public void fileRestored(OriginalFile original_file) {
+	public void fileRestored(Path path) {
 
 		stats.n_files_restored++;
 		stats.files_recovered.add( new LoggerResult.FileInfo(
-				original_file,
+				path.toAbsolutePath().toString(),
 				"Restored"
 		));
 		if(debug_restore) {
-			String msg ="[Restored]\tRecovered file: " + original_file.path;
+			String msg ="[Restored]\tRecovered file: " + path;
 			logLine(msg);
 			report(msg);
 		}

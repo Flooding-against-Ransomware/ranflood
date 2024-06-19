@@ -15,7 +15,7 @@ public class Security {
 
 
 
-	public static byte[] hashBytes(byte[] bytes) throws IOException, NoSuchAlgorithmException {
+	public static byte[] hashBytes(byte[] bytes) throws NoSuchAlgorithmException {
 
 		MessageDigest digest = MessageDigest.getInstance(ALGORITHM);
         return digest.digest(bytes);
@@ -25,17 +25,16 @@ public class Security {
 		return hashBytes(Files.readAllBytes(path));
 	}	
 
-	public static byte[] hashPath(Path path) throws IOException, NoSuchAlgorithmException {
+	public static byte[] hashPath(Path path) throws NoSuchAlgorithmException {
 		return hashBytes(path.toString().getBytes());
 	}	
 
-	public static byte[] hashSecret(int key, byte[] secret) throws IOException, NoSuchAlgorithmException {
+	public static byte[] hashSecret(int key, byte[] secret) throws NoSuchAlgorithmException {
 
 		MessageDigest digest = MessageDigest.getInstance(ALGORITHM);
 				digest.update(ByteBuffer.allocate(Integer.BYTES).putInt(key).array());
 				digest.update(secret);
-		byte[] hash = digest.digest();
-		return hash;
+        return digest.digest();
 	}	
 	
 }

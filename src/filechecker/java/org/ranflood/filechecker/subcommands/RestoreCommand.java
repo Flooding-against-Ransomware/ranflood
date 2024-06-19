@@ -36,29 +36,22 @@ import java.util.concurrent.Callable;
 public class RestoreCommand implements Callable< Integer > {
 
 	@CommandLine.Parameters(
-					index = "0",
+			index = "0",
+			description = "the path to the checksum file"
+	)
+	private File checksumFile;
+
+	@CommandLine.Parameters(
+					index = "1",
 					description = "the path to the report file"
 	)
 	private File report_file;
 
 	@CommandLine.Parameters(
-					index = "1",
+					index = "2",
 					description = "the path to the root folder of the files to check"
 	)
 	private File folder;
-
-	@CommandLine.Parameters(
-					index = "2",
-					description = "the number of shards created"
-	)
-	private Integer n;
-
-	@CommandLine.Parameters(
-					index = "3",
-					description = "the minimum number of shards required to rebuild the original file"
-	)
-	private Integer k;
-
 
 	@CommandLine.Option(
 					names = { "--debug" },
@@ -82,7 +75,7 @@ public class RestoreCommand implements Callable< Integer > {
 	@Override
 	public Integer call() {
 		try {
-			Restore.run( folder, report_file, delete, n, k, log_file, debug );
+			Restore.run( checksumFile, folder, report_file, delete, log_file, debug );
 			System.out.println( "Report of the check of folder " + folder + " saved in file " + report_file.getAbsolutePath() );
 		} catch ( IOException e ) {
 			System.err.println( "Problem writing the report, " + e.getMessage() );

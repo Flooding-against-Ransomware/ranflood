@@ -1,11 +1,9 @@
 package org.sssfile.files;
 
-import org.ranflood.common.utils.Pair;
-
 import java.util.*;
 
 
-public class RestoredFilesList extends HashMap<Integer, OriginalFile> {
+public class RestoredFilesList extends LinkedHashMap<Integer, OriginalFile> {
 
 
 	public void addOriginalFile(OriginalFile original_file) {
@@ -14,7 +12,7 @@ public class RestoredFilesList extends HashMap<Integer, OriginalFile> {
 
 	public void addShard(ShardFile shard) {
 
-		OriginalFile original_file = get(shard.getOriginalFileHash());
+		OriginalFile original_file = get(shard.hashCode());
 		if(original_file == null) {
 			original_file = shard.getOriginalFile();
 			addOriginalFile(original_file);
