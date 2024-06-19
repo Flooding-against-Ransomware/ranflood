@@ -9,6 +9,7 @@ import java.nio.file.StandardOpenOption;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
+import org.ranflood.common.RanfloodLogger;
 import org.sssfile.exceptions.InvalidShardException;
 import org.sssfile.util.IO;
 import org.sssfile.util.Security;
@@ -171,24 +172,24 @@ public class ShardFile {
 	 * The content is made of the header signature, the key (padded to int size)
 	 * and the secret.
 	 */
-	public byte[] getContent() throws IOException, NoSuchAlgorithmException {
+	public byte[] getContent() throws NoSuchAlgorithmException {
 
-			ByteBuffer buffer = ByteBuffer.allocate(getContentLength());
-			byte[] hash_secret;
+		ByteBuffer buffer = ByteBuffer.allocate(getContentLength());
+		byte[] hash_secret;
 
-			hash_secret = Security.hashSecret(key, secret);
+		hash_secret = Security.hashSecret(key, secret);
 
-			buffer.put(ByteBuffer.wrap( Sections.HEADER_SIGNATURE));						// header
-			buffer.put(ByteBuffer.allocate(Sections.LEN_N			).putInt(n				).flip());		// padded to int size
-			buffer.put(ByteBuffer.allocate(Sections.LEN_K			).putInt(k				).flip());
-			buffer.put(ByteBuffer.allocate(Sections.LEN_GENERATION	).putLong(generation	).flip());
-			buffer.put(ByteBuffer.allocate(Sections.LEN_KEY			).putInt(key			).flip());
-			buffer.put(ByteBuffer.wrap(hash_original_file));						// hash of the original file
-			buffer.put(ByteBuffer.wrap(hash_secret));								// hash of the key and secret
-			buffer.put(ByteBuffer.allocate(Sections.LEN_ORIGINAL_PATH_LEN)
-					.putInt(original_file.toString().length()).flip());				// original file path length
-			buffer.put(ByteBuffer.wrap(original_file.toString().getBytes()));		// original file path
-			buffer.put(ByteBuffer.wrap(secret));									// secret
+		buffer.put(ByteBuffer.wrap( Sections.HEADER_SIGNATURE));						// header
+		buffer.put(ByteBuffer.allocate(Sections.LEN_N			).putInt(n				).flip());		// padded to int size
+		buffer.put(ByteBuffer.allocate(Sections.LEN_K			).putInt(k				).flip());
+		buffer.put(ByteBuffer.allocate(Sections.LEN_GENERATION	).putLong(generation	).flip());
+		buffer.put(ByteBuffer.allocate(Sections.LEN_KEY			).putInt(key			).flip());
+		buffer.put(ByteBuffer.wrap(hash_original_file));						// hash of the original file
+		buffer.put(ByteBuffer.wrap(hash_secret));								// hash of the key and secret
+		buffer.put(ByteBuffer.allocate(Sections.LEN_ORIGINAL_PATH_LEN)
+				.putInt(original_file.toString().length()).flip());				// original file path length
+		buffer.put(ByteBuffer.wrap(original_file.toString().getBytes()));		// original file path
+		buffer.put(ByteBuffer.wrap(secret));									// secret
 
 		buffer.rewind();
 		byte[] array = new byte[buffer.remaining()];
@@ -197,10 +198,13 @@ public class ShardFile {
 	}
 
 	public int getContentLength() {
-		return Sections.HEADER_SIGNATURE.length	// header signature
-				+ Sections.LEN_KEY				// key
-				+ Sections.LEN_HASH				// hash original file
-				+ Sections.LEN_HASH				// hash secret
+		return Sections.HEADER_SIGNATURE.length		// header signature
+				+ Sections.LEN_N
+				+ Sections.LEN_K
+				+ Sections.LEN_GENERATION
+				+ Sections.LEN_KEY
+				+ Sections.LEN_HASH					// hash original file
+				+ Sections.LEN_HASH					// hash secret
 				+ Sections.LEN_ORIGINAL_PATH_LEN	// original path length
 				+ original_file.toString().length()	// original path
 				+ secret.length						// secret
@@ -231,7 +235,11 @@ public class ShardFile {
 
 	@Override
 	public int hashCode() {
-		return Arrays.hashCode(hash_original_file);
+		ByteBuffer buff = ByteBuffer.allocate(Long.BYTES + hash_original_file.length);
+		buff.put(0, hash_original_file);
+		buff.position(hash_original_file.length);
+		buff.putLong(generation).flip();
+		return Arrays.hashCode(buff.array());
 	}
 
 

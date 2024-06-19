@@ -11,7 +11,7 @@ import org.sssfile.util.Security;
 public class OriginalFile {
 
 	public final Path path;
-	public final Map<Integer, byte[]> parts;
+	public final LinkedHashMap<Integer, byte[]> parts;
 	private LinkedList<Path> shards_paths = null;
 	public byte[] hash_original_file;
 
@@ -19,7 +19,7 @@ public class OriginalFile {
 						k;
 	public final long	generation;
 
-	private int current_key = 1;
+	private Iterator<Map.Entry<Integer, byte[]>> iterator;
 
 	
 
@@ -28,7 +28,7 @@ public class OriginalFile {
 			int n, int k, long generation
 	) {
 		this.path	= path;
-		this.parts	= parts;
+		this.parts	= new LinkedHashMap<>(parts);
 		hash_original_file = null;
 		this.n = n;
 		this.k = k;
@@ -40,7 +40,7 @@ public class OriginalFile {
 			int n, int k, long generation
 	) {
 		this.path	= path;
-		this.parts	= new HashMap<Integer, byte[]>();
+		this.parts	= new LinkedHashMap<>();
 		this.hash_original_file = hash_original_file;
 		this.n = n;
 		this.k = k;
@@ -68,8 +68,19 @@ public class OriginalFile {
 	 * Used to iteratively return the content of a shard to write.
 	 * If the hash is not given, it's calculated.
 	 * @return the content of the next shard, or null if got all
+	 * @throws IOException on reading content to compute hash (if was not already given)
+	 * @throws NoSuchAlgorithmException on computing hashes
 	 */
 	public byte[] iterateShardContent() throws IOException, NoSuchAlgorithmException {
+
+		if(iterator == null)
+			iterator = parts.entrySet().iterator();
+
+		if(!iterator.hasNext()) {
+			iterator = null;
+			return null;
+		}
+		Map.Entry<Integer, byte[]> entry = iterator.next();
 
 		FileNamesGenerator file_names_generator = new FileNamesGenerator(path);
 
@@ -80,9 +91,8 @@ public class OriginalFile {
 		ShardFile shard = new ShardFile(
 			Path.of( file_names_generator.generateShardPath() ), path, hash_original_file,
 			n, k, generation,
-			current_key, parts.get(current_key)
+			entry.getKey(), entry.getValue()
 		);
-		current_key++;
 
 		return shard.getContent();
 	}
@@ -125,9 +135,5 @@ public class OriginalFile {
         return Arrays.equals(hash_original_file, that.hash_original_file);
     }
 
-	@Override
-	public int hashCode() {
-		return Arrays.hashCode(hash_original_file);
-	}
 	
 }

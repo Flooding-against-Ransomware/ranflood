@@ -33,6 +33,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.ranflood.common.RanfloodLogger;
 import org.ranflood.common.utils.Pair;
 import org.sssfile.SSSRestorer;
 import org.sssfile.exceptions.InvalidOriginalFileException;
@@ -80,27 +81,30 @@ public class Restore {
 			shards_error_delete				= 0,
 			original_files_error_io			= 0;
 		int iterator_percentage = 0;
+
 		Pair<OriginalFile, byte[]> original_file = new Pair<>(null, null);
-		do {
+		while(true) {
+			try {
+				original_file = sss.iterateOriginalFile();
+			} catch (InvalidOriginalFileException | UnrecoverableOriginalFileException e) {
+				RanfloodLogger.error(e.getMessage());
+			} catch (NoSuchAlgorithmException e) {
+				RanfloodLogger.error(e.getMessage());
+				original_files_error_io++;
+			}
+			if(original_file == null)
+				break;
+
 			// display completion percentage
 			if(sss.getIteratorPercentage() > iterator_percentage) {
 				iterator_percentage = sss.getIteratorPercentage();
 				System.out.println("Writing original files: " + iterator_percentage + "%");
 			}
 
-			try {
-				original_file = sss.iterateOriginalFile();
-			} catch (InvalidOriginalFileException | UnrecoverableOriginalFileException e) {
-				continue;
-			} catch (NoSuchAlgorithmException e) {
-				original_files_error_io++;
-				continue;
-			}
-
             Path file_path = original_file.left().path.toAbsolutePath();
 			String checksum_snapshot = checksum_map.get(file_path.toString());
 
-			// if snapshot doesn't contain the snapshot, just continue writing the file
+			// if snapshot doesn't contain the checksum, just continue writing the file
 			// if checksum doesn't match with snapshot, use another name
 			if ( (checksum_snapshot != null && !checksum_snapshot.equals(original_file.left().getHashBase64())) ) {
 				file_path = IO.createUniqueFile(secure_random, file_path);
@@ -113,7 +117,7 @@ public class Restore {
 					signature = Utils.getFileSignature(file_path);
 				} catch (NoSuchAlgorithmException | Utils.OutOfMemoryException ignored) { }
 
-                if( signature == null || signature.equals(original_file.left().getHashBase64()) ) {
+                if( signature == null || !signature.equals(original_file.left().getHashBase64()) ) {
 					 file_path = IO.createUniqueFile(secure_random, file_path);
 					original_files_changed_path.add(new Pair<>(original_file.left().path.toAbsolutePath(), file_path));
 				 } else {
@@ -139,8 +143,7 @@ public class Restore {
 					}
 				}
 			}
-
-		} while(original_file != null);
+		}
 
 		/* collect and report logs */
 

@@ -23,6 +23,7 @@ package org.ranflood.daemon.flooders.SSS;
 
 
 import org.ranflood.common.FloodMethod;
+import org.ranflood.common.RanfloodLogger;
 import org.ranflood.daemon.Ranflood;
 import org.ranflood.daemon.flooders.AbstractSnapshotFlooder;
 import org.ranflood.daemon.flooders.FlooderException;
@@ -31,7 +32,6 @@ import org.ranflood.daemon.flooders.SnapshotException;
 import org.ranflood.daemon.flooders.tasks.LabeledFloodTask;
 
 import java.nio.file.Path;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -50,7 +50,7 @@ public class SSSFlooder extends AbstractSnapshotFlooder {
 									DFLT_EXFILTRATION_K = 45;
 		private static final boolean DFLT_EXFILTRATION_REMOVE_ORIGINALS = true;
 
-		public Integer	n,
+		public Integer  n,
 						k;
 		public Boolean remove_originals;
 
@@ -79,25 +79,27 @@ public class SSSFlooder extends AbstractSnapshotFlooder {
 		this.snapshotDBPath = snapshotDBPath;
 		this.exclusionList = exclusionList;
 
-		this.generation = System.currentTimeMillis();	// unique for each flood (for this instance)
-
 		if(mode == FloodMethod.SSS_RANSOMWARE)
 			this.parameters = new Parameters(
-				(params.n != null) ? params.n : Parameters.DFLT_RANSOMWARE_N,
-				(params.k != null) ? params.k : Parameters.DFLT_RANSOMWARE_K,
-				(params.remove_originals != null) ? params.remove_originals : Parameters.DFLT_RANSOMWARE_REMOVE_ORIGINALS
+					(params.n != null) ? params.n : Parameters.DFLT_RANSOMWARE_N,
+					(params.k != null) ? params.k : Parameters.DFLT_RANSOMWARE_K,
+					(params.remove_originals != null) ? params.remove_originals : Parameters.DFLT_RANSOMWARE_REMOVE_ORIGINALS
 			);
 		else
 			this.parameters = new Parameters(
-				(params.n != null) ? params.n : Parameters.DFLT_EXFILTRATION_N,
-				(params.k != null) ? params.k : Parameters.DFLT_EXFILTRATION_K,
-				(params.remove_originals != null) ? params.remove_originals : Parameters.DFLT_EXFILTRATION_REMOVE_ORIGINALS
+					(params.n != null) ? params.n : Parameters.DFLT_EXFILTRATION_N,
+					(params.k != null) ? params.k : Parameters.DFLT_EXFILTRATION_K,
+					(params.remove_originals != null) ? params.remove_originals : Parameters.DFLT_EXFILTRATION_REMOVE_ORIGINALS
 			);
 	}
 
+
 	@Override
 	public UUID flood( Path targetFolder ) throws FlooderException {
+
+		this.generation = System.currentTimeMillis();	// unique for each flood (for this instance)
 		SSSSplitter sss = new SSSSplitter(parameters.n, parameters.k, generation);
+
 		SSSFloodTask t = new SSSFloodTask( targetFolder, METHOD, sss, parameters.remove_originals );
 		UUID id = UUID.randomUUID();
 		LabeledFloodTask lft = new LabeledFloodTask( id, t );

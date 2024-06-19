@@ -7,9 +7,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.Iterator;
 
 import com.codahale.shamir.Scheme;
+import org.ranflood.common.RanfloodLogger;
 import org.ranflood.common.utils.Pair;
 import org.sssfile.exceptions.InvalidOriginalFileException;
 import org.sssfile.exceptions.InvalidShardException;
@@ -20,7 +22,7 @@ import org.sssfile.files.RestoredFilesList;
 import org.sssfile.util.LoggerRestore;
 import org.sssfile.util.LoggerResult;
 import org.sssfile.util.Security;
-
+import org.zeromq.Utils;
 
 
 public class SSSRestorer {
@@ -34,7 +36,7 @@ public class SSSRestorer {
 	// group shards by original file name
 	private final RestoredFilesList shard_groups;
 
-	private Iterator<OriginalFile> iterator;
+	private Iterator<OriginalFile> iterator = null;
 	private int iterator_count = 0;
 
 
@@ -124,6 +126,8 @@ public class SSSRestorer {
 		OriginalFile original_file = iterator.next();
 		iterator_count++;
 
+		RanfloodLogger.log("it " + (original_file==null));
+
 		if(original_file.parts.size() < original_file.k) {
 			logger.fileErrorUnrecoverable(original_file.path, original_file.k, original_file.parts.size());
 			throw new UnrecoverableOriginalFileException(
@@ -136,12 +140,12 @@ public class SSSRestorer {
 
 		if(!original_file.isValid(recovered)) {
 			String hash_found;
-            hash_found = new String(Security.hashBytes(recovered), StandardCharsets.UTF_8);
+            hash_found = Security.hashBytesB64(recovered);
             logger.fileErrorBadHash(original_file, hash_found );
 			throw new InvalidOriginalFileException(
-					"Restored checksum doesn't match (got " + original_file.getHashBase64() + " , found" + hash_found + "): " + original_file.path);
+					"Restored checksum doesn't match (got " + original_file.getHashBase64() + " , found " + hash_found + " ): " + original_file.path);
 		}
-
+RanfloodLogger.log("returning" + original_file.path);
 		logger.fileRestored(original_file.path);
 		return new Pair<>(original_file, recovered);
 
@@ -149,7 +153,9 @@ public class SSSRestorer {
 
 
 	public int getIteratorPercentage() {
-		return iterator_count / shard_groups.size();
+		return (shard_groups.isEmpty()) ?
+				100
+				: iterator_count / shard_groups.size();
 	}
 
 	public LoggerResult getStats() {

@@ -41,15 +41,15 @@ import static org.ranflood.common.RanfloodLogger.log;
 
 public class SSSSnapshooter extends Snapshooter {
 
-	private static final FloodMethod METHOD = FloodMethod.SSS;
+	private static final FloodMethod METHOD = FloodMethod.SSS_RANSOMWARE;
 	private static final SSSSnapshooter INSTANCE = new SSSSnapshooter();
 	private final Environment signaturesDatabase;
 	private final Set< String > exclusionList;
 
 	private SSSSnapshooter() {
 		signaturesDatabase = Environments
-						.newInstance( Ranflood.daemon().SSSFlooder().snapshotDBPath().toFile() );
-		exclusionList = Ranflood.daemon().SSSFlooder().exclusionList();
+						.newInstance( Ranflood.daemon().SSSRansomwareFlooder().snapshotDBPath().toFile() );
+		exclusionList = Ranflood.daemon().SSSRansomwareFlooder().exclusionList();
 	}
 
 	static void takeSnapshot( Path filePath ) throws SnapshotException {

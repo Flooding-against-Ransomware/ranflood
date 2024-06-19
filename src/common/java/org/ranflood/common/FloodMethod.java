@@ -39,7 +39,7 @@ public enum FloodMethod {
 				return FloodMethod.ON_THE_FLY;
 			case "SHADOW_COPY":
 				return FloodMethod.SHADOW_COPY;
-			case "SSS_FLOOD":
+			case "SSS_RANSOMWARE":
 				return FloodMethod.SSS_RANSOMWARE;
 			case "SSS_EXFILTRATION":
 				return FloodMethod.SSS_EXFILTRATION;

@@ -103,7 +103,8 @@ public class RanfloodDaemon {
 						Arrays.stream( shadow_copy_opt_exclude_folder_names.orElse( "" ).split( "," ) ).map( String::trim ).collect( Collectors.toSet() )
 		);
 		Optional< String > sss_opt_signature_db = settings.getValue( "SSS", "Signature_DB" );
-		Optional< Integer > sss_opt_n = settings.getValue( "SSS", "n" ).map(
+		Optional< String > sss_opt_exclude_folder_names = settings.getValue( "SSS", "ExcludeFolderNames" );
+		Optional< Integer > sss_opt_n = settings.getValue( "SSS", "N" ).map(
 				(value) -> {
 					try {
 						return Integer.parseInt(value);
@@ -112,7 +113,7 @@ public class RanfloodDaemon {
 					}
 				}
 		);
-		Optional< Integer > sss_opt_k = settings.getValue( "SSS", "k" ).map(
+		Optional< Integer > sss_opt_k = settings.getValue( "SSS", "K" ).map(
 				(value) -> {
 					try {
 						return Integer.parseInt(value);
@@ -125,33 +126,35 @@ public class RanfloodDaemon {
                 Boolean::parseBoolean
 		);
 		SSS_RANSOMWARE_FLOODER = new SSSFlooder(
-						Path.of( sss_opt_signature_db.orElseGet( () -> {
-							String signaturesDBpath = Paths.get( "" ).toAbsolutePath() + File.separator + "signatures.db";
-							error( "OnTheFlyFlooder -> Signature_DB not found in the settings file. Using " + signaturesDBpath );
-							return signaturesDBpath;
-						} ) ),
-						Arrays.stream( on_the_fly_opt_exclude_folder_names.orElse( "" ).split( "," ) ).map( String::trim ).collect( Collectors.toSet() ),
-						FloodMethod.SSS_RANSOMWARE,
-						new SSSFlooder.Parameters(
-								sss_opt_n.orElse(null),
-								sss_opt_k.orElse(null),
-								sss_opt_remove_originals.orElse(null)
-						)
-		);
+				Path.of(sss_opt_signature_db.orElseGet(() -> {
+					String signaturesDBpath = Paths.get("").toAbsolutePath() + File.separator + "signatures.db";
+					error("SSSRansomware -> Signature_DB not found in the settings file. Using " + signaturesDBpath);
+					return signaturesDBpath;
+				})),
+				Arrays.stream(sss_opt_exclude_folder_names.orElse("").split(",")).map(String::trim).collect(Collectors.toSet()),
+				FloodMethod.SSS_RANSOMWARE,
+				new SSSFlooder.Parameters(
+						sss_opt_n.orElse(null),
+						sss_opt_k.orElse(null),
+						sss_opt_remove_originals.orElse(null)
+				)
+		) {
+		};
 		SSS_EXFILTRATION_FLOODER = new SSSFlooder(
-						Path.of( sss_opt_signature_db.orElseGet( () -> {
-							String signaturesDBpath = Paths.get( "" ).toAbsolutePath() + File.separator + "signatures.db";
-							error( "OnTheFlyFlooder -> Signature_DB not found in the settings file. Using " + signaturesDBpath );
-							return signaturesDBpath;
-						} ) ),
-						Arrays.stream( on_the_fly_opt_exclude_folder_names.orElse( "" ).split( "," ) ).map( String::trim ).collect( Collectors.toSet() ),
-						FloodMethod.SSS_EXFILTRATION,
-						new SSSFlooder.Parameters(
-								sss_opt_n.orElse(null),
-								sss_opt_k.orElse(null),
-								sss_opt_remove_originals.orElse(null)
-						)
-		);
+				Path.of(sss_opt_signature_db.orElseGet(() -> {
+					String signaturesDBpath = Paths.get("").toAbsolutePath() + File.separator + "signatures.db";
+					error("SSSExfiltration -> Signature_DB not found in the settings file. Using " + signaturesDBpath);
+					return signaturesDBpath;
+				})),
+				Arrays.stream(sss_opt_exclude_folder_names.orElse("").split(",")).map(String::trim).collect(Collectors.toSet()),
+				FloodMethod.SSS_EXFILTRATION,
+				new SSSFlooder.Parameters(
+						sss_opt_n.orElse(null),
+						sss_opt_k.orElse(null),
+						sss_opt_remove_originals.orElse(null)
+				)
+		) {
+		};
 		log( "Ranflood Daemon (ranfloodd) version " + Ranflood.version() + " started." );
 	}
 

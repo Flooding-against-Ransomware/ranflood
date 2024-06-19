@@ -48,9 +48,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-
-
 import static org.ranflood.common.RanfloodLogger.error;
+
+
 
 public class SSSFloodTask extends FloodTaskGenerator {
 
@@ -125,26 +125,27 @@ public class SSSFloodTask extends FloodTaskGenerator {
 					// try to write all shards
 					int shards_created = 0;
 					byte[] shard_content = new byte[0];
-					do {
+					while(true) {
 						try {
 							shard_content = original_file.iterateShardContent();
 						} catch (IOException e) {
 							RanfloodLogger.error("Couldn't get shard content: " + e.getMessage());
 							continue;
 						}
+						if(shard_content == null)
+							break;
+
 						Path shard_path = IO.createUniqueFile(secure_random, filePath);
 
 						lock.writeLock().lock();
 						tasks.add(new WriteFileTask(shard_path, shard_content, floodMethod()));
 						lock.writeLock().unlock();
-					} while(shard_content != null);
+					}
 
 					// remove original file, if created enough shards
-					RanfloodLogger.log("Created " + shards_created + " shards for " + filePath);
 					if(remove_originals && shards_created >= sss.k) {
 						try {
 							Files.delete(filePath);
-							RanfloodLogger.log("Deleted original file");
 						} catch (IOException e) {
 							RanfloodLogger.error("Error deleting original file: " + e.getMessage());
 						}

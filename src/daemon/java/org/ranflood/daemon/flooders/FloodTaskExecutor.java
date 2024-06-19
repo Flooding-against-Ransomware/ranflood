@@ -24,6 +24,7 @@ package org.ranflood.daemon.flooders;
 import static org.ranflood.common.RanfloodLogger.error;
 import static org.ranflood.common.RanfloodLogger.log;
 
+import org.ranflood.common.FloodMethod;
 import org.ranflood.daemon.Ranflood;
 import org.ranflood.daemon.RanfloodDaemon;
 import org.ranflood.daemon.flooders.SSS.SSSFloodTask;
@@ -107,8 +108,11 @@ public class FloodTaskExecutor {
 							Ranflood.daemon().onTheFlyFlooder().stopFlood( t.main.label() );
 						} else if( t.main.floodTask() instanceof ShadowCopyFloodTask ){
 							Ranflood.daemon().shadowCopyFlooder().stopFlood( t.main.label() );
-						} else if( t.main.floodTask() instanceof SSSFloodTask ){
-							Ranflood.daemon().SSSFlooder().stopFlood( t.main.label() );
+						} else if( t.main.floodTask() instanceof SSSFloodTask){
+							if(t.main.floodTask().floodMethod() == FloodMethod.SSS_RANSOMWARE)
+								Ranflood.daemon().SSSRansomwareFlooder().stopFlood( t.main.label() );
+							else
+								Ranflood.daemon().SSSExfiltrationFlooder().stopFlood( t.main.label() );
 						} else if( t.main.floodTask() instanceof RandomFloodTask ){
 							Ranflood.daemon().randomFlooder().stopFlood( t.main.label() );
 						}

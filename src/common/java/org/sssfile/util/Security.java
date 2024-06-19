@@ -6,7 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-
+import java.util.Base64;
 
 
 public class Security {
@@ -19,7 +19,13 @@ public class Security {
 
 		MessageDigest digest = MessageDigest.getInstance(ALGORITHM);
         return digest.digest(bytes);
-	}	
+	}
+
+	public static String hashBytesB64(byte[] bytes) throws NoSuchAlgorithmException {
+
+		MessageDigest digest = MessageDigest.getInstance(ALGORITHM);
+        return Base64.getEncoder().encodeToString( digest.digest(bytes) );
+	}
 
 	public static byte[] hashFileContent(Path path) throws IOException, NoSuchAlgorithmException {
 		return hashBytes(Files.readAllBytes(path));

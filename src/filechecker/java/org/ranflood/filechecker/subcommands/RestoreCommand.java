@@ -78,6 +78,7 @@ public class RestoreCommand implements Callable< Integer > {
 			Restore.run( checksumFile, folder, report_file, delete, log_file, debug );
 			System.out.println( "Report of the check of folder " + folder + " saved in file " + report_file.getAbsolutePath() );
 		} catch ( IOException e ) {
+			e.printStackTrace();
 			System.err.println( "Problem writing the report, " + e.getMessage() );
 		}
 		return 0;
