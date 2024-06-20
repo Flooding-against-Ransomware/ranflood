@@ -23,7 +23,6 @@ package org.ranflood.daemon.flooders.SSS;
 
 
 import org.ranflood.common.FloodMethod;
-import org.ranflood.common.RanfloodLogger;
 import org.ranflood.daemon.Ranflood;
 import org.ranflood.daemon.flooders.AbstractSnapshotFlooder;
 import org.ranflood.daemon.flooders.FlooderException;

@@ -25,6 +25,7 @@ import org.ranflood.daemon.Ranflood;
 import org.ranflood.common.FloodMethod;
 import org.ranflood.daemon.flooders.FlooderException;
 import org.ranflood.daemon.flooders.SnapshotException;
+import org.ranflood.daemon.flooders.tasks.FileTask;
 import org.ranflood.daemon.flooders.tasks.FloodTaskGenerator;
 import org.ranflood.daemon.flooders.tasks.WriteCopyFileTask;
 import org.ranflood.daemon.flooders.tasks.WriteFileTask;
@@ -54,7 +55,7 @@ public class OnTheFlyFloodTask extends FloodTaskGenerator {
 	}
 
 	@Override
-	public List< WriteFileTask > getFileTasks() {
+	public List< FileTask > getFileTasks() {
 		int taskListResponseRetriesTimeout = 100; // milliseconds
 		int maxTaskListResponseRetries = 5;
 		if ( taskListResponseRetriesCounter > 0 ) {
@@ -65,7 +66,7 @@ public class OnTheFlyFloodTask extends FloodTaskGenerator {
 			}
 		}
 		lock.readLock().lock();
-		List< WriteFileTask > t = new LinkedList<>( tasks );
+		List< FileTask > t = new LinkedList<>( tasks );
 		lock.readLock().unlock();
 		if ( t.isEmpty() && taskListResponseRetriesCounter < maxTaskListResponseRetries ) {
 			taskListResponseRetriesCounter++;
@@ -73,6 +74,11 @@ public class OnTheFlyFloodTask extends FloodTaskGenerator {
 			return getFileTasks();
 		}
 		return t;
+	}
+
+	@Override
+	public List<FileTask> getSingleUseFileTasks() {
+		return List.of();
 	}
 
 	@Override

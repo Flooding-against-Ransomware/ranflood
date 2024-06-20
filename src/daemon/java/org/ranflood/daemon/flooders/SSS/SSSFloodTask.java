@@ -22,9 +22,10 @@
 package org.ranflood.daemon.flooders.SSS;
 
 import org.ranflood.common.FloodMethod;
-import org.ranflood.common.RanfloodLogger;
 import org.ranflood.daemon.Ranflood;
 import org.ranflood.daemon.flooders.FlooderException;
+import org.ranflood.daemon.flooders.tasks.FileTask;
+import org.ranflood.daemon.flooders.tasks.RemoveFileTask;
 import org.sssfile.SSSSplitter;
 import org.sssfile.exceptions.InvalidOriginalFileException;
 import org.sssfile.files.OriginalFile;
@@ -38,7 +39,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -57,7 +57,8 @@ public class SSSFloodTask extends FloodTaskGenerator {
 	private final SSSSplitter sss;
 	private final boolean remove_originals;
 
-	private final List< WriteFileTask > tasks;
+	private final List< FileTask > tasks;
+	private final List< FileTask > tasks_single_use;
 	private final ReentrantReadWriteLock lock;
 	private int taskListResponseRetriesCounter = 0;
 
@@ -69,11 +70,12 @@ public class SSSFloodTask extends FloodTaskGenerator {
 		this.remove_originals = remove_originals;
 		lock = new ReentrantReadWriteLock();
 		tasks = new LinkedList<>();
+		tasks_single_use = new LinkedList<>();
 		loadWriteFileTasks( filePath(), filePath() );
 	}
 
-	@Override
-	public List< WriteFileTask > getFileTasks() {
+
+	private List< FileTask > _getFileTasks(List< FileTask > tasks) {
 		int taskListResponseRetriesTimeout = 100; // milliseconds
 		int maxTaskListResponseRetries = 5;
 		if ( taskListResponseRetriesCounter > 0 ) {
@@ -84,14 +86,28 @@ public class SSSFloodTask extends FloodTaskGenerator {
 			}
 		}
 		lock.readLock().lock();
-		List< WriteFileTask > t = new LinkedList<>( tasks );
+		List< FileTask > t = new LinkedList<>(tasks);
 		lock.readLock().unlock();
 		if ( t.isEmpty() && taskListResponseRetriesCounter < maxTaskListResponseRetries ) {
 			taskListResponseRetriesCounter++;
 			// we retry to
-			return getFileTasks();
+			return _getFileTasks(tasks);
 		}
 		return t;
+	}
+
+	@Override
+	public List< FileTask > getFileTasks() {
+		return _getFileTasks(tasks);
+	}
+
+	@Override
+	public List< FileTask > getSingleUseFileTasks() {
+		List< FileTask > res = _getFileTasks(tasks_single_use);
+		lock.writeLock().lock();
+		tasks_single_use.removeAll(res);
+		lock.writeLock().unlock();
+		return res;
 	}
 
 	@Override
@@ -114,41 +130,45 @@ public class SSSFloodTask extends FloodTaskGenerator {
 				try ( InputStream input = new FileInputStream( file ) ) {
 					bytes = input.readAllBytes();
 				}
-				// only encrypt if signature still valid
-				if ( SSSSnapshooter.getBytesSignature( bytes ).equals(
-								SSSSnapshooter.getSnapshot( parentFilePath, filePath ) ) ) {
+
+				String signature = SSSSnapshooter.getBytesSignature( bytes );
+				String signature_snapshot = null;
+				try {
+					signature_snapshot = SSSSnapshooter.getSnapshot( parentFilePath, filePath );
+				} catch ( SnapshotException e ) {
+					// don't log, as there could be a lot of logs, and IO is very expensive
+					//throw new FlooderException( "Could not find a snapshot of file " + file.getAbsolutePath());
+				}
+
+				// only encrypt if signature still valid (so ransomware didn't corrupt the file),
+				// or if we don't have a signature (didn't take a snapshot): will work anyway
+				if ( signature_snapshot == null || signature_snapshot.equals( signature ) ) {
 
 					// split with sss
-					OriginalFile original_file = sss.getSplitFile(filePath);
-					original_file.hash_original_file = Security.hashBytes(bytes);
+					OriginalFile original_file = sss.getSplitFile(filePath, Security.hash_fromBase64(signature));
 
 					// try to write all shards
 					int shards_created = 0;
-					byte[] shard_content = new byte[0];
+					byte[] shard_content;
 					while(true) {
-						try {
-							shard_content = original_file.iterateShardContent();
-						} catch (IOException e) {
-							RanfloodLogger.error("Couldn't get shard content: " + e.getMessage());
-							continue;
-						}
+
+						shard_content = original_file.iterateShardContent();
 						if(shard_content == null)
 							break;
 
-						Path shard_path = IO.createUniqueFile(secure_random, filePath);
+						Path shard_path = IO.createUniqueFile(secure_random, filePath, true);
 
 						lock.writeLock().lock();
 						tasks.add(new WriteFileTask(shard_path, shard_content, floodMethod()));
 						lock.writeLock().unlock();
+						shards_created++;
 					}
 
 					// remove original file, if created enough shards
 					if(remove_originals && shards_created >= sss.k) {
-						try {
-							Files.delete(filePath);
-						} catch (IOException e) {
-							RanfloodLogger.error("Error deleting original file: " + e.getMessage());
-						}
+						lock.writeLock().lock();
+						tasks_single_use.add(new RemoveFileTask(filePath, floodMethod()));
+						lock.writeLock().unlock();
 					}
 				}
 			} else {	// recursion on directory
@@ -174,14 +194,14 @@ public class SSSFloodTask extends FloodTaskGenerator {
 		} catch ( NoSuchAlgorithmException e ) {
 			e.printStackTrace();
 			throw new FlooderException(
-							"Error in using signatures algorithm " + e.getMessage()
-			);
+							"Error in using signatures algorithm " + e.getMessage() );
 		} catch ( InvalidOriginalFileException e ) {
+			// it just means it's a shard and won't be split again
+			// don't log, as there could be a lot of logs, and IO is very expensive
+		} catch ( IllegalArgumentException e ) {
 			e.printStackTrace();
-			throw new FlooderException("Invalid original file: " + e.getMessage() );
-		} catch ( SnapshotException e ) {
-			e.printStackTrace();
-			throw new FlooderException("Could not find a snapshot of file " + file.getAbsolutePath());
+			throw new FlooderException(
+							"Snapshot's signature was not in base 64: " + e.getMessage());
 		}
 	}
 

@@ -23,20 +23,46 @@ package org.ranflood.daemon.flooders.tasks;
 
 import org.ranflood.common.FloodMethod;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 
-public abstract class FloodTaskGenerator extends FloodTask {
-	public FloodTaskGenerator( Path filePath, FloodMethod floodMethod ) {
-		super( filePath, floodMethod );
+import static org.ranflood.common.RanfloodLogger.error;
+
+public class RemoveFileTask implements FileTask {
+	private final Path filePath;
+	private final FloodMethod floodMethod;
+
+	public RemoveFileTask(Path filePath, FloodMethod floodMethod ) {
+		this.filePath = filePath;
+		this.floodMethod = floodMethod;
 	}
 
-	public abstract List< FileTask > getFileTasks();
+	public Path filePath() {
+		return filePath;
+	}
 
-	/**
-	 * Single-use tasks are expected to only be returned once by this method, and then go lost.
-	 * @return a list of tasks, which are then removed
-	 */
-	public abstract List< FileTask > getSingleUseFileTasks();
+	public byte[] content() {
+		throw new UnsupportedOperationException( "RemoveFileTask has no content." );
+	}
+
+	public FloodMethod floodMethod() {
+		return floodMethod;
+	}
+
+	public Runnable getRunnableTask() {
+		return () -> {
+			try {
+				if(Files.exists(filePath)) {
+					Files.delete(filePath);
+				}
+			} catch ( IOException e ) {
+				error( e.getMessage() );
+			}
+		};
+	}
 
 }

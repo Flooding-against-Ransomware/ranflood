@@ -76,21 +76,25 @@ public class Restore {
 		LoggerResult stats = sss.getStats();
 
 		/* write original files */
-		LinkedList<Pair<Path, Path>> original_files_changed_path = new LinkedList<>();	// old/new path
-		int shards_tot						= 0,
-			shards_error_delete				= 0,
-			original_files_error_io			= 0;
+		LinkedList<Pair<Path, Path>>	files_path_conflict	= new LinkedList<>(),	// old/new path
+										files_wrong_snapshot	= new LinkedList<>();
+		LinkedList<Path>				files_error_io			= new LinkedList<>(),
+										shards_error_delete				= new LinkedList<>();
+		int shards_tot					= 0,
+			original_files_error_get	= 0;
 		int iterator_percentage = 0;
 
-		Pair<OriginalFile, byte[]> original_file = new Pair<>(null, null);
+		Pair<OriginalFile, byte[]> original_file;
 		while(true) {
 			try {
-				original_file = sss.iterateOriginalFile();
+				original_file = sss.iterateOriginalFile();	// also checks with original hash (saved in shards)
 			} catch (InvalidOriginalFileException | UnrecoverableOriginalFileException e) {
 				RanfloodLogger.error(e.getMessage());
+				continue;
 			} catch (NoSuchAlgorithmException e) {
 				RanfloodLogger.error(e.getMessage());
-				original_files_error_io++;
+				original_files_error_get++;
+				continue;
 			}
 			if(original_file == null)
 				break;
@@ -102,35 +106,42 @@ public class Restore {
 			}
 
             Path file_path = original_file.left().path.toAbsolutePath();
-			String checksum_snapshot = checksum_map.get(file_path.toString());
+			String signature_snapshot = checksum_map.get(file_path.toString());
+			String signature_found = null;
 
-			// if snapshot doesn't contain the checksum, just continue writing the file
-			// if checksum doesn't match with snapshot, use another name
-			if ( (checksum_snapshot != null && !checksum_snapshot.equals(original_file.left().getHashBase64())) ) {
-				file_path = IO.createUniqueFile(secure_random, file_path);
-				original_files_changed_path.add(new Pair<>(original_file.left().path.toAbsolutePath(), file_path));
-			}
 			// if a file with the same name already exists: if it has the same checksum skip, otherwise write with a new name
-			else if(Files.exists(file_path)) {
-				String signature = null;
+			boolean file_exists = Files.exists(file_path);
+			if(file_exists) {
 				try {
-					signature = Utils.getFileSignature(file_path);
-				} catch (NoSuchAlgorithmException | Utils.OutOfMemoryException ignored) { }
-
-                if( signature == null || !signature.equals(original_file.left().getHashBase64()) ) {
-					 file_path = IO.createUniqueFile(secure_random, file_path);
-					original_files_changed_path.add(new Pair<>(original_file.left().path.toAbsolutePath(), file_path));
-				 } else {
-					 continue;
-				 }
+					signature_found = Utils.getFileSignature(file_path);
+				} catch (NoSuchAlgorithmException | Utils.OutOfMemoryException e) {
+					System.err.println(e.getMessage());
+				}
 			}
 
-			// write
-			try {
-				Files.write( file_path, original_file.right() );
-			} catch (IOException e) {
-				original_files_error_io++;
-				continue;
+			if( signature_found == null || !signature_found.equals(original_file.left().getHashBase64()) ) {
+				// change name if path or snapshot conflict
+
+				/*	if snapshot doesn't contain the checksum, just continue writing the file (shards contain original hash);
+					if snapshot doesn't match with checksum, use another name (since we already checked with shard's hash,
+					snapshot was not up-to-date)
+				 */
+				if ( (signature_snapshot != null && !signature_snapshot.equals(original_file.left().getHashBase64())) ) {
+					file_path = IO.createUniqueFile(secure_random, file_path, false);	// also avoid other name conflicts for already existing files
+					files_wrong_snapshot.add(new Pair<>(original_file.left().path.toAbsolutePath(), file_path));
+				} else if( file_exists ) {
+					file_path = IO.createUniqueFile(secure_random, file_path, false);
+					files_path_conflict.add(new Pair<>(original_file.left().path.toAbsolutePath(), file_path));
+				}
+
+				// don't write only if file with same checksum was found
+				try {
+					Files.write( file_path, original_file.right() );
+				} catch (IOException e) {
+					files_error_io.add(original_file.left().path.toAbsolutePath());
+					// don't delete shards if original file is missing and couldn't be written
+					continue;
+				}
 			}
 
 			if(remove_shards) {
@@ -139,7 +150,7 @@ public class Restore {
 					try {
 						Files.delete(shard_path);
 					} catch (IOException e) {
-						shards_error_delete++;
+						shards_error_delete.add(shard_path);
 					}
 				}
 			}
@@ -147,37 +158,52 @@ public class Restore {
 
 		/* collect and report logs */
 
-		Json.Object files_recovered = new Json.Object();
+		Json.Object json_files_recovered = new Json.Object();
 		stats.files_recovered.forEach( (file_info) ->
-				files_recovered.put(file_info.getAbsolutePath(), file_info.getInfo())
+				json_files_recovered.put(file_info.getAbsolutePath(), file_info.getInfo())
 		);
-		Json.Object files_changed_path = new Json.Object();
-		original_files_changed_path.forEach( (file_info) ->
-				files_changed_path.put(file_info.right().toString(), "Original path was: " + file_info.right())
+		Json.Object json_files_path_conflict = new Json.Object();
+		files_path_conflict.forEach( (file_info) ->
+				json_files_path_conflict.put(file_info.right().toString(), "Original path was: " + file_info.right())
 		);
-		Json.Object files_error_checksum = new Json.Object();
+		Json.Object json_files_wrong_snapshot = new Json.Object();
+		files_wrong_snapshot.forEach( (file_info) ->
+				json_files_wrong_snapshot.put(file_info.right().toString(), "Original path was: " + file_info.right())
+		);
+		Json.Object json_files_error_checksum = new Json.Object();
 		stats.files_error_checksum.forEach( (file_info) ->
-				files_error_checksum.put(file_info.getAbsolutePath(), file_info.getInfo())
+				json_files_error_checksum.put(file_info.getAbsolutePath(), file_info.getInfo())
 		);
-		Json.Object files_error_insufficient = new Json.Object();
+		Json.Object json_files_error_io = new Json.Object();
+		files_error_io.forEach( (path) ->
+				json_files_error_io.put(path.toString(), "Couldn't write")
+		);
+		Json.Object json_shards_error_delete = new Json.Object();
+		shards_error_delete.forEach( (path) ->
+				json_shards_error_delete.put(path.toString(), "Couldn't delete")
+		);
+		Json.Object json_files_error_insufficient = new Json.Object();
 		stats.files_error_insufficient.forEach( (file_info) ->
-				files_error_insufficient.put(file_info.getAbsolutePath(), file_info.getInfo())
+				json_files_error_insufficient.put(file_info.getAbsolutePath(), file_info.getInfo())
 		);
-		Json.Object files_error_other = new Json.Object();
+		Json.Object json_files_error_other = new Json.Object();
 		stats.files_error_other.forEach( (file_info) ->
-				files_error_other.put(file_info.getAbsolutePath(), file_info.getInfo())
+				json_files_error_other.put(file_info.getAbsolutePath(), file_info.getInfo())
 		);
-		files_error_other.put("Shards total", shards_tot);
-		files_error_other.put("Shards deleted", shards_tot - shards_error_delete);
-		files_error_other.put("Restored files not written for IO errors", original_files_error_io);
+		json_files_error_other.put("Shards total", shards_tot);
+		json_files_error_other.put("Shards deleted", shards_tot - shards_error_delete.size());
+		json_files_error_other.put("Restored files not written for other errors", original_files_error_get);
 
 		Json.Object report_content = new Json.Object();
-		report_content.put("Recovered", files_recovered);
-		report_content.put("Recovered, but changed name due to checksum or path conflicts", files_changed_path);
-		report_content.put("Error checksum", files_error_checksum);
-		report_content.put("Error insufficient shards", files_error_insufficient);
-		report_content.put("Error other", files_error_other);
-		report_content.put("Stats", files_error_other);
+		report_content.put("Recovered", json_files_recovered);
+		report_content.put("Recovered, but changed name because a different file with the same name was found", json_files_path_conflict);
+		report_content.put("Recovered, but changed name because snapshot has a different checksum", json_files_wrong_snapshot);
+		report_content.put("Couldn't write these files, retry.", json_files_error_io);
+		report_content.put("Couldn't delete these shards, but they can be removed safely as they were already recovered", json_shards_error_delete);
+		report_content.put("Error checksum", json_files_error_checksum);
+		report_content.put("Error insufficient shards", json_files_error_insufficient);
+		report_content.put("Error other", json_files_error_other);
+		report_content.put("Stats", json_files_error_other);
 
 		Files.writeString( report.toPath(), report_content.toString() );
 

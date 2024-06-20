@@ -41,12 +41,13 @@ public class SSSSplitter {
 	/**
 	 *
 	 * @param path file path
+	 * @param checksum sha1 checksum of the original file - can be read with {@link OriginalFile}.readHash()
 	 * @return the OriginalFile object
 	 * @throws IOException while reading file content
 	 * @throws InvalidOriginalFileException if the file is a shard
 	 */
 	public OriginalFile getSplitFile(
-			Path path
+			Path path, byte[] checksum
 	) throws IOException, InvalidOriginalFileException {
 
 		if(ShardFile.isValid(path)) {
@@ -59,7 +60,7 @@ public class SSSSplitter {
 		}
 
 		Map<Integer, byte[]> parts = scheme.split(secret);
-		return new OriginalFile(path, parts, n, k, generation);
+		return new OriginalFile(path, checksum, parts, n, k, generation);
 	}
 
 

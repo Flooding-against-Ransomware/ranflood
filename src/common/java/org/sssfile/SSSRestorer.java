@@ -126,8 +126,6 @@ public class SSSRestorer {
 		OriginalFile original_file = iterator.next();
 		iterator_count++;
 
-		RanfloodLogger.log("it " + (original_file==null));
-
 		if(original_file.parts.size() < original_file.k) {
 			logger.fileErrorUnrecoverable(original_file.path, original_file.k, original_file.parts.size());
 			throw new UnrecoverableOriginalFileException(
@@ -145,7 +143,7 @@ public class SSSRestorer {
 			throw new InvalidOriginalFileException(
 					"Restored checksum doesn't match (got " + original_file.getHashBase64() + " , found " + hash_found + " ): " + original_file.path);
 		}
-RanfloodLogger.log("returning" + original_file.path);
+
 		logger.fileRestored(original_file.path);
 		return new Pair<>(original_file, recovered);
 
@@ -155,7 +153,7 @@ RanfloodLogger.log("returning" + original_file.path);
 	public int getIteratorPercentage() {
 		return (shard_groups.isEmpty()) ?
 				100
-				: iterator_count / shard_groups.size();
+				: iterator_count * 100 / shard_groups.size();
 	}
 
 	public LoggerResult getStats() {

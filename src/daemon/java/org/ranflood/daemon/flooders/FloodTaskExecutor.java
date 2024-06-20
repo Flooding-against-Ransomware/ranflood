@@ -62,6 +62,7 @@ public class FloodTaskExecutor {
 		public FileTask getNextTask() throws TaskStateException {
 			if ( tasks.isEmpty() ) {
 				tasks.addAll( main.floodTask().getFileTasks() );
+				tasks.addAll( main.floodTask().getSingleUseFileTasks() );
 			}
 			if( tasks.isEmpty() ){
 				throw new TaskStateException( "Cannot load new tasks" );

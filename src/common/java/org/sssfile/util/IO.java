@@ -48,10 +48,13 @@ public class IO {
 	 * (or at the end if there isn't any `.`),
 	 * for the first number N available, starting from a random number.
 	 * @param path -
+	 * @param allow_original if true, use the given path if it's available
 	 * @return -
 	 * @throws IOException -
 	 */
-	public static Path createUniqueFile(SecureRandom random_generator, Path path) throws IOException {
+	public static Path createUniqueFile(
+			SecureRandom random_generator, Path path, boolean allow_original
+	) throws IOException {
 		Path parent	= path.getParent();
 		String filename	= path.getFileName().toString();
 		String name, ext;
@@ -64,6 +67,10 @@ public class IO {
 		}
 
 		long i = random_generator.nextLong();
+		if(!allow_original) {
+			filename = name + "(" + i + ")" + ext;
+			i++;
+		}
 		while(Files.exists(parent.resolve(filename))) {
 			filename = name + "(" + i + ")" + ext;
 			i++;

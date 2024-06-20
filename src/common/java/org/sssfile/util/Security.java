@@ -41,6 +41,15 @@ public class Security {
 				digest.update(ByteBuffer.allocate(Integer.BYTES).putInt(key).array());
 				digest.update(secret);
         return digest.digest();
-	}	
+	}
+
+	/**
+	 *
+	 * @param base64 hash string in base 64
+	 * @throws IllegalArgumentException if src is not in valid Base64 scheme
+	 */
+	public static byte[] hash_fromBase64(String base64) throws IllegalArgumentException {
+		return Base64.getDecoder().decode( base64 );
+	}
 	
 }

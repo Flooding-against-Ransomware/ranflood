@@ -13,7 +13,7 @@ public class OriginalFile {
 	public final Path path;
 	public final LinkedHashMap<Integer, byte[]> parts;
 	private LinkedList<Path> shards_paths = null;
-	public byte[] hash_original_file;
+	private byte[] hash_original_file;
 
 	public final int	n,
 						k;
@@ -24,12 +24,12 @@ public class OriginalFile {
 	
 
 	public OriginalFile(
-			Path path, Map<Integer, byte[]> parts,
+			Path path, byte[] hash_original_file, Map<Integer, byte[]> parts,
 			int n, int k, long generation
 	) {
 		this.path	= path;
 		this.parts	= new LinkedHashMap<>(parts);
-		hash_original_file = null;
+		this.hash_original_file = hash_original_file;
 		this.n = n;
 		this.k = k;
 		this.generation = generation;
@@ -68,10 +68,9 @@ public class OriginalFile {
 	 * Used to iteratively return the content of a shard to write.
 	 * If the hash is not given, it's calculated.
 	 * @return the content of the next shard, or null if got all
-	 * @throws IOException on reading content to compute hash (if was not already given)
 	 * @throws NoSuchAlgorithmException on computing hashes
 	 */
-	public byte[] iterateShardContent() throws IOException, NoSuchAlgorithmException {
+	public byte[] iterateShardContent() throws NoSuchAlgorithmException {
 
 		if(iterator == null)
 			iterator = parts.entrySet().iterator();
@@ -84,10 +83,6 @@ public class OriginalFile {
 
 		FileNamesGenerator file_names_generator = new FileNamesGenerator(path);
 
-		if(hash_original_file == null) {
-			readHash();
-		}
-
 		ShardFile shard = new ShardFile(
 			Path.of( file_names_generator.generateShardPath() ), path, hash_original_file,
 			n, k, generation,
@@ -97,18 +92,9 @@ public class OriginalFile {
 		return shard.getContent();
 	}
 
-	/**
-	 * Read this path's content, then calculate and save the hash.
-	 * @throws IOException -
-	 * @throws NoSuchAlgorithmException -
-	 */
-	private void readHash() throws IOException, NoSuchAlgorithmException {
-		hash_original_file = Security.hashFileContent(path);
-	}
-
 
 	/*
-	 * Get
+	 * Get/Set
 	 */
 
 	public String getHashBase64() {
@@ -116,6 +102,16 @@ public class OriginalFile {
 	}
 	public boolean isValid(byte[] content) throws NoSuchAlgorithmException {
 		return Arrays.equals(hash_original_file, Security.hashBytes(content));
+	}
+
+
+	/**
+	 * Read this path's content, then calculate and save the hash.
+	 * @throws IOException -
+	 * @throws NoSuchAlgorithmException -
+	 */
+	public static byte[] readHash(Path path) throws IOException, NoSuchAlgorithmException {
+		return Security.hashFileContent(path);
 	}
 
 
