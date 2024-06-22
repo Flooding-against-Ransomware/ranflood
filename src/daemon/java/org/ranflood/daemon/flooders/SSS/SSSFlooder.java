@@ -63,7 +63,6 @@ public class SSSFlooder extends AbstractSnapshotFlooder {
 
 
 	private final FloodMethod METHOD;
-	private final Path snapshotDBPath;
 	private final Set< String > exclusionList;
 
 	private long generation;
@@ -72,10 +71,9 @@ public class SSSFlooder extends AbstractSnapshotFlooder {
 
 
 	public SSSFlooder(
-			Path snapshotDBPath, Set< String > exclusionList, FloodMethod mode, Parameters params
+			Set< String > exclusionList, FloodMethod mode, Parameters params
 	) {
 		this.METHOD = mode;
-		this.snapshotDBPath = snapshotDBPath;
 		this.exclusionList = exclusionList;
 
 		if(mode == FloodMethod.SSS_RANSOMWARE)
@@ -99,7 +97,7 @@ public class SSSFlooder extends AbstractSnapshotFlooder {
 		this.generation = System.currentTimeMillis();	// unique for each flood (for this instance)
 		SSSSplitter sss = new SSSSplitter(parameters.n, parameters.k, generation);
 
-		SSSFloodTask t = new SSSFloodTask( targetFolder, METHOD, sss, parameters.remove_originals );
+		SSSFloodTask t = new SSSFloodTask( exclusionList, targetFolder, METHOD, sss, parameters.remove_originals );
 		UUID id = UUID.randomUUID();
 		LabeledFloodTask lft = new LabeledFloodTask( id, t );
 		addRunningTask( lft );
@@ -127,11 +125,4 @@ public class SSSFlooder extends AbstractSnapshotFlooder {
 		SSSSnapshooter.shutdown();
 	}
 
-	public Path snapshotDBPath() {
-		return snapshotDBPath;
-	}
-
-	public Set< String > exclusionList() {
-		return exclusionList;
-	}
 }

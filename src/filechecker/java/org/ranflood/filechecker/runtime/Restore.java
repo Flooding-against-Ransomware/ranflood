@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -38,8 +37,8 @@ import org.ranflood.common.utils.Pair;
 import org.sssfile.SSSRestorer;
 import org.sssfile.exceptions.InvalidOriginalFileException;
 import org.sssfile.exceptions.UnrecoverableOriginalFileException;
+import org.sssfile.files.FileNamesGenerator;
 import org.sssfile.files.OriginalFile;
-import org.sssfile.util.IO;
 import org.sssfile.util.LoggerResult;
 
 
@@ -49,8 +48,6 @@ public class Restore {
 							Boolean remove_shards,
 							File log, Boolean debug
 	) throws IOException {
-
-		SecureRandom secure_random = new SecureRandom();
 
 		/* check params */
 		if ( !Files.exists( checksum.toPath().toAbsolutePath().getParent() ) )
@@ -127,10 +124,10 @@ public class Restore {
 					snapshot was not up-to-date)
 				 */
 				if ( (signature_snapshot != null && !signature_snapshot.equals(original_file.left().getHashBase64())) ) {
-					file_path = IO.createUniqueFile(secure_random, file_path, false);	// also avoid other name conflicts for already existing files
+					file_path = FileNamesGenerator.getUniquePath(file_path.toString());	// also avoid other name conflicts for already existing files
 					files_wrong_snapshot.add(new Pair<>(original_file.left().path.toAbsolutePath(), file_path));
 				} else if( file_exists ) {
-					file_path = IO.createUniqueFile(secure_random, file_path, false);
+					file_path = FileNamesGenerator.getUniquePath(file_path.toString());
 					files_path_conflict.add(new Pair<>(original_file.left().path.toAbsolutePath(), file_path));
 				}
 

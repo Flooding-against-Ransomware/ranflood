@@ -36,7 +36,7 @@ public class IO {
 
 		long i = 1;
 		while(Files.exists(parent.resolve(filename))) {
-			filename = name + "(" + i + ")" + ext;
+			filename = name + "_" + i + ext;
 			i++;
 		}
 		return Files.createFile( parent.resolve(filename) );
@@ -68,11 +68,11 @@ public class IO {
 
 		long i = random_generator.nextLong();
 		if(!allow_original) {
-			filename = name + "(" + i + ")" + ext;
+			filename = name + "_" + i + ext;
 			i++;
 		}
 		while(Files.exists(parent.resolve(filename))) {
-			filename = name + "(" + i + ")" + ext;
+			filename = name + "_" + i + ext;
 			i++;
 		}
 		return Files.createFile( parent.resolve(filename) );

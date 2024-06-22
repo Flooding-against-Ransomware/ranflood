@@ -28,11 +28,11 @@ import org.ranflood.daemon.flooders.tasks.FileTask;
 import org.ranflood.daemon.flooders.tasks.RemoveFileTask;
 import org.sssfile.SSSSplitter;
 import org.sssfile.exceptions.InvalidOriginalFileException;
+import org.sssfile.files.FileNamesGenerator;
 import org.sssfile.files.OriginalFile;
 import org.ranflood.daemon.flooders.SnapshotException;
 import org.ranflood.daemon.flooders.tasks.FloodTaskGenerator;
 import org.ranflood.daemon.flooders.tasks.WriteFileTask;
-import org.sssfile.util.IO;
 import org.sssfile.util.Security;
 
 import java.io.File;
@@ -42,10 +42,7 @@ import java.io.InputStream;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static org.ranflood.common.RanfloodLogger.error;
@@ -56,6 +53,7 @@ public class SSSFloodTask extends FloodTaskGenerator {
 
 	private final SSSSplitter sss;
 	private final boolean remove_originals;
+	private final Set< String > exclusionList;	// also required here, as SSS can work without snapshooter
 
 	private final List< FileTask > tasks;
 	private final List< FileTask > tasks_single_use;
@@ -63,11 +61,13 @@ public class SSSFloodTask extends FloodTaskGenerator {
 	private int taskListResponseRetriesCounter = 0;
 
 	public SSSFloodTask(
+			Set< String > exclusionList,
 			Path filePath, FloodMethod floodMethod, SSSSplitter sss, boolean remove_originals
 	) throws FlooderException {
 		super( filePath, floodMethod );
 		this.sss = sss;
 		this.remove_originals = remove_originals;
+		this.exclusionList = exclusionList;
 		lock = new ReentrantReadWriteLock();
 		tasks = new LinkedList<>();
 		tasks_single_use = new LinkedList<>();
@@ -156,7 +156,7 @@ public class SSSFloodTask extends FloodTaskGenerator {
 						if(shard_content == null)
 							break;
 
-						Path shard_path = IO.createUniqueFile(secure_random, filePath, true);
+						Path shard_path = FileNamesGenerator.getUniquePathIfExists(filePath);
 
 						lock.writeLock().lock();
 						tasks.add(new WriteFileTask(shard_path, shard_content, floodMethod()));
@@ -171,7 +171,7 @@ public class SSSFloodTask extends FloodTaskGenerator {
 						lock.writeLock().unlock();
 					}
 				}
-			} else {	// recursion on directory
+			} else if( !exclusionList.contains( file.getName() ) ) {	// recursion on directory
 				Arrays.stream( Objects.requireNonNull( file.listFiles() ) )
 								.forEach( f ->
 												Ranflood.daemon().executeCommand( () -> {

@@ -81,10 +81,8 @@ public class OriginalFile {
 		}
 		Map.Entry<Integer, byte[]> entry = iterator.next();
 
-		FileNamesGenerator file_names_generator = new FileNamesGenerator(path);
-
 		ShardFile shard = new ShardFile(
-			Path.of( file_names_generator.generateShardPath() ), path, hash_original_file,
+			path, path, hash_original_file,
 			n, k, generation,
 			entry.getKey(), entry.getValue()
 		);
