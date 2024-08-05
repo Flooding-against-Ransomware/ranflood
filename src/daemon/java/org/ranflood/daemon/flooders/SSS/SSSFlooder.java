@@ -41,12 +41,12 @@ public class SSSFlooder extends AbstractSnapshotFlooder {
 
 	public static final class Parameters {
 
-		private static final int	DFLT_RANSOMWARE_N = 100,
+		private static final int	DFLT_RANSOMWARE_N = 200,
 									DFLT_RANSOMWARE_K = 2;
 		private static final boolean DFLT_RANSOMWARE_REMOVE_ORIGINALS = false;
 
-		private static final int	DFLT_EXFILTRATION_N = 50,
-									DFLT_EXFILTRATION_K = 45;
+		private static final int	DFLT_EXFILTRATION_N = 150,
+									DFLT_EXFILTRATION_K = 6;
 		private static final boolean DFLT_EXFILTRATION_REMOVE_ORIGINALS = true;
 
 		public Integer  n,
@@ -65,11 +65,15 @@ public class SSSFlooder extends AbstractSnapshotFlooder {
 	private final FloodMethod METHOD;
 	private final Set< String > exclusionList;
 
-	private long generation;
 	private final Parameters parameters;
 
 
-
+	/**
+	 *
+	 * @param exclusionList excluded dirs
+	 * @param mode -
+	 * @param params take k as percentage on n
+	 */
 	public SSSFlooder(
 			Set< String > exclusionList, FloodMethod mode, Parameters params
 	) {
@@ -88,14 +92,17 @@ public class SSSFlooder extends AbstractSnapshotFlooder {
 					(params.k != null) ? params.k : Parameters.DFLT_EXFILTRATION_K,
 					(params.remove_originals != null) ? params.remove_originals : Parameters.DFLT_EXFILTRATION_REMOVE_ORIGINALS
 			);
+		this.parameters.n = Math.max(this.parameters.n, 2);
+		this.parameters.n = Math.min(this.parameters.n, 255);
+		this.parameters.k = Math.max(this.parameters.k, 2);
+		this.parameters.k = Math.min(this.parameters.k, this.parameters.n);
 	}
 
 
 	@Override
 	public UUID flood( Path targetFolder ) throws FlooderException {
 
-		this.generation = System.currentTimeMillis();	// unique for each flood (for this instance)
-		SSSSplitter sss = new SSSSplitter(parameters.n, parameters.k, generation);
+		SSSSplitter sss = new SSSSplitter(parameters.n, parameters.k);
 
 		SSSFloodTask t = new SSSFloodTask( exclusionList, targetFolder, METHOD, sss, parameters.remove_originals );
 		UUID id = UUID.randomUUID();

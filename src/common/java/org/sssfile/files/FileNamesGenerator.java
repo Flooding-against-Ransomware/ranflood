@@ -30,7 +30,9 @@ public class FileNamesGenerator {
 		ext_idx = (ext_idx != -1) ? ext_idx : base_path.length();
 		String	name	= base_path.substring(0, ext_idx),
 				ext		= base_path.substring(ext_idx);
-		INSTANCE.counter++;
+		do {
+			INSTANCE.counter++;
+		} while( Files.exists(Path.of(name + (INSTANCE.counter - 1) + ext)) );
 		return Path.of(name + (INSTANCE.counter - 1) + ext);
 	}
 

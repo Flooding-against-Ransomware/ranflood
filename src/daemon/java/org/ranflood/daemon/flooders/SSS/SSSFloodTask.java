@@ -24,16 +24,9 @@ package org.ranflood.daemon.flooders.SSS;
 import org.ranflood.common.FloodMethod;
 import org.ranflood.daemon.Ranflood;
 import org.ranflood.daemon.flooders.FlooderException;
-import org.ranflood.daemon.flooders.tasks.FileTask;
-import org.ranflood.daemon.flooders.tasks.RemoveFileTask;
+import org.ranflood.daemon.flooders.tasks.*;
 import org.sssfile.SSSSplitter;
-import org.sssfile.exceptions.InvalidOriginalFileException;
-import org.sssfile.files.FileNamesGenerator;
-import org.sssfile.files.OriginalFile;
 import org.ranflood.daemon.flooders.SnapshotException;
-import org.ranflood.daemon.flooders.tasks.FloodTaskGenerator;
-import org.ranflood.daemon.flooders.tasks.WriteFileTask;
-import org.sssfile.util.Security;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,7 +34,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -121,7 +113,6 @@ public class SSSFloodTask extends FloodTaskGenerator {
 
 	private void loadWriteFileTasks( Path parentFilePath, Path filePath ) throws FlooderException {
 
-		SecureRandom secure_random = new SecureRandom();
 		File file = filePath.toFile();
 
 		try {
@@ -144,28 +135,13 @@ public class SSSFloodTask extends FloodTaskGenerator {
 				// or if we don't have a signature (didn't take a snapshot): will work anyway
 				if ( signature_snapshot == null || signature_snapshot.equals( signature ) ) {
 
-					// split with sss
-					OriginalFile original_file = sss.getSplitFile(filePath, Security.hash_fromBase64(signature));
+					lock.writeLock().lock();
+System.out.println("Added task for " + file + ", size is " + bytes.length);
+					tasks.add(new WriteSSSFileTask( filePath, bytes, floodMethod(), sss, signature ));
+					lock.writeLock().unlock();
 
-					// try to write all shards
-					int shards_created = 0;
-					byte[] shard_content;
-					while(true) {
-
-						shard_content = original_file.iterateShardContent();
-						if(shard_content == null)
-							break;
-
-						Path shard_path = FileNamesGenerator.getUniquePathIfExists(filePath);
-
-						lock.writeLock().lock();
-						tasks.add(new WriteFileTask(shard_path, shard_content, floodMethod()));
-						lock.writeLock().unlock();
-						shards_created++;
-					}
-
-					// remove original file, if created enough shards
-					if(remove_originals && shards_created >= sss.k) {
+					// remove original file
+					if (remove_originals) {
 						lock.writeLock().lock();
 						tasks_single_use.add(new RemoveFileTask(filePath, floodMethod()));
 						lock.writeLock().unlock();
@@ -195,9 +171,6 @@ public class SSSFloodTask extends FloodTaskGenerator {
 			e.printStackTrace();
 			throw new FlooderException(
 							"Error in using signatures algorithm " + e.getMessage() );
-		} catch ( InvalidOriginalFileException e ) {
-			// it just means it's a shard and won't be split again
-			// don't log, as there could be a lot of logs, and IO is very expensive
 		} catch ( IllegalArgumentException e ) {
 			e.printStackTrace();
 			throw new FlooderException(

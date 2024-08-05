@@ -9,7 +9,6 @@ import java.nio.file.StandardOpenOption;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
-import org.ranflood.common.RanfloodLogger;
 import org.sssfile.exceptions.InvalidShardException;
 import org.sssfile.util.IO;
 import org.sssfile.util.Security;
@@ -20,10 +19,10 @@ import org.sssfile.util.Security;
  * - the header signature,
  * - n, k, generation number, key (padded to int size)
  * - the hash of the original file (sha1, 160 bits)
- * - the hash of the key and secret (sha1, 160 bits)
+ * - the hash of the key and shard (sha1, 160 bits)
  * - the size (length) of the original file path (bytes)
  * - the original file path
- * - the secret
+ * - the shard
  */
 public class ShardFile {
 
@@ -53,11 +52,11 @@ public class ShardFile {
 		public static final int OFFSET_GENERATION			= OFFSET_K					+ LEN_K;
 		public static final int OFFSET_KEY					= OFFSET_GENERATION			+ LEN_GENERATION;
 		public static final int OFFSET_HASH_ORIGINAL_FILE	= OFFSET_KEY				+ LEN_KEY;
-		public static final int OFFSET_HASH_SECRET			= OFFSET_HASH_ORIGINAL_FILE	+ LEN_HASH;
-		public static final int OFFSET_ORIGINAL_PATH_LEN	= OFFSET_HASH_SECRET		+ LEN_HASH;
+		public static final int OFFSET_HASH_SHARD			= OFFSET_HASH_ORIGINAL_FILE	+ LEN_HASH;
+		public static final int OFFSET_ORIGINAL_PATH_LEN	= OFFSET_HASH_SHARD			+ LEN_HASH;
 		public static final int OFFSET_ORIGINAL_PATH		= OFFSET_ORIGINAL_PATH_LEN	+ LEN_ORIGINAL_PATH_LEN;
 
-		public static int OFFSET_SECRET(int original_path_len) {
+		public static int OFFSET_SHARD(int original_path_len) {
 			return OFFSET_ORIGINAL_PATH + original_path_len;
 		}
 
@@ -70,7 +69,7 @@ public class ShardFile {
 						k,
 						key;
 	public final long 	generation;
-	public final byte[] secret;
+	public final byte[] shard;
 
 	private final byte[]	hash_original_file;
 	public final Path		original_file;
@@ -80,7 +79,7 @@ public class ShardFile {
 	public ShardFile(
 		Path path, Path original_file, byte[] hash_original_file,
 		int n, int k, long generation,
-		int key, byte[] secret
+		int key, byte[] shard
 	) {
 		this.path	= path;
 		this.hash_original_file	= hash_original_file;
@@ -91,7 +90,7 @@ public class ShardFile {
 		this.generation = generation;
 
 		this.key	= key;
-		this.secret	= secret;
+		this.shard	= shard;
 	}
 
 
@@ -121,9 +120,9 @@ public class ShardFile {
 		long	generation;
 		byte[]	header,
 				hash_original_file,
-				hash_secret,
+				hash_shard,
 				original_path,
-				secret;
+				shard;
 
 		try (FileChannel channel = FileChannel.open(path, StandardOpenOption.READ)) {
 
@@ -137,29 +136,29 @@ public class ShardFile {
 			generation				= IO.readChannel( channel, Sections.LEN_GENERATION	).flip().getLong();
 			key						= IO.readChannel( channel, Sections.LEN_KEY			).flip().getInt();
 			hash_original_file		= IO.readChannel( channel, Sections.LEN_HASH ).array();
-			hash_secret				= IO.readChannel( channel, Sections.LEN_HASH ).array();
+			hash_shard				= IO.readChannel( channel, Sections.LEN_HASH ).array();
 			original_path_len		= IO.readChannel( channel, Sections.LEN_ORIGINAL_PATH_LEN ).flip().getInt();
 			original_path			= IO.readChannel( channel, original_path_len ).array();
-			secret	= IO.readChannel( channel,
-					(int) path.toFile().length() - Sections.OFFSET_SECRET(original_path_len)
+			shard	= IO.readChannel( channel,
+					(int) path.toFile().length() - Sections.OFFSET_SHARD(original_path_len)
 			).array();
 		}
 
 		/* save shard fields */
 		try {
-			byte[] hash_secret_test = Security.hashSecret(key, secret);
+			byte[] hash_shard_test = Security.hashShard(key, shard);
 
-			if (!Arrays.equals(hash_secret, hash_secret_test)) {
-				throw new InvalidShardException("Secret hash doesn't match: " + path);
+			if (!Arrays.equals(hash_shard, hash_shard_test)) {
+				throw new InvalidShardException("Shard hash doesn't match: " + path);
 			} else {
 				return new ShardFile( path, Path.of(new String(original_path, StandardCharsets.UTF_8)), hash_original_file,
 						n, k, generation,
-						key, secret
+						key, shard
 				);
 			}
 
 		} catch (NoSuchAlgorithmException e) {
-			throw new InvalidShardException("Error in calculating secret's hash, couldn't verify: " + path +
+			throw new InvalidShardException("Error in calculating shard's hash, couldn't verify: " + path +
 					"\n\t" + e.getMessage()
 			);
 		}
@@ -170,14 +169,14 @@ public class ShardFile {
 	/**
 	 * Get the content to write in this shard's file.
 	 * The content is made of the header signature, the key (padded to int size)
-	 * and the secret.
+	 * and the shard.
 	 */
 	public byte[] getContent() throws NoSuchAlgorithmException {
 
 		ByteBuffer buffer = ByteBuffer.allocate(getContentLength());
-		byte[] hash_secret;
+		byte[] hash_shard;
 
-		hash_secret = Security.hashSecret(key, secret);
+		hash_shard = Security.hashShard(key, shard);
 
 		buffer.put(ByteBuffer.wrap( Sections.HEADER_SIGNATURE));						// header
 		buffer.put(ByteBuffer.allocate(Sections.LEN_N			).putInt(n				).flip());		// padded to int size
@@ -185,11 +184,11 @@ public class ShardFile {
 		buffer.put(ByteBuffer.allocate(Sections.LEN_GENERATION	).putLong(generation	).flip());
 		buffer.put(ByteBuffer.allocate(Sections.LEN_KEY			).putInt(key			).flip());
 		buffer.put(ByteBuffer.wrap(hash_original_file));						// hash of the original file
-		buffer.put(ByteBuffer.wrap(hash_secret));								// hash of the key and secret
+		buffer.put(ByteBuffer.wrap(hash_shard));								// hash of the key and shard
 		buffer.put(ByteBuffer.allocate(Sections.LEN_ORIGINAL_PATH_LEN)
 				.putInt(original_file.toString().length()).flip());				// original file path length
 		buffer.put(ByteBuffer.wrap(original_file.toString().getBytes()));		// original file path
-		buffer.put(ByteBuffer.wrap(secret));									// secret
+		buffer.put(ByteBuffer.wrap(shard));										// shard
 
 		buffer.rewind();
 		byte[] array = new byte[buffer.remaining()];
@@ -204,10 +203,10 @@ public class ShardFile {
 				+ Sections.LEN_GENERATION
 				+ Sections.LEN_KEY
 				+ Sections.LEN_HASH					// hash original file
-				+ Sections.LEN_HASH					// hash secret
+				+ Sections.LEN_HASH					// hash shard
 				+ Sections.LEN_ORIGINAL_PATH_LEN	// original path length
 				+ original_file.toString().length()	// original path
-				+ secret.length						// secret
+				+ shard.length						// shard
 		;
 	}
 
@@ -224,6 +223,13 @@ public class ShardFile {
 	public static Boolean isValid(Path path) throws IOException {
 		return Arrays.equals(
 				IO.readBytes(path, Sections.HEADER_SIGNATURE.length, 0),
+				Sections.HEADER_SIGNATURE
+		);
+	}
+
+	public static Boolean isValid(byte[] content) throws IOException {
+		return Arrays.equals(
+				Arrays.copyOfRange(content, 0, Sections.HEADER_SIGNATURE.length),
 				Sections.HEADER_SIGNATURE
 		);
 	}

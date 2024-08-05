@@ -103,7 +103,7 @@ public class RanfloodDaemon {
 						Arrays.stream( shadow_copy_opt_exclude_folder_names.orElse( "" ).split( "," ) ).map( String::trim ).collect( Collectors.toSet() )
 		);
 		Optional< String > sss_opt_exfiltration_exclude_folder_names = settings.getValue( "SSSExfiltration", "ExcludeFolderNames" );
-		Optional< Integer > sss_opt_exfiltration_n = settings.getValue( "SSSExfiltration", "ExfiltrationShardsCreated" ).map(
+		Optional< Integer > sss_opt_exfiltration_n = settings.getValue( "SSSExfiltration", "ShardsCreated" ).map(
 				(value) -> {
 					try {
 						return Integer.parseInt(value);
@@ -112,7 +112,7 @@ public class RanfloodDaemon {
 					}
 				}
 		);
-		Optional< Integer > sss_opt_exfiltration_k = settings.getValue( "SSSExfiltration", "ExfiltrationShardsNeededPercentage" ).map(
+		Optional< Integer > sss_opt_exfiltration_k = settings.getValue( "SSSExfiltration", "ShardsNeededP" ).map(
 				(value) -> {
 					try {
 						return Integer.parseInt(value);
@@ -134,7 +134,7 @@ public class RanfloodDaemon {
 				)
 		);
 		Optional< String > sss_opt_ransomware_exclude_folder_names = settings.getValue( "SSSExfiltration", "ExcludeFolderNames" );
-		Optional< Integer > sss_opt_ransomware_n = settings.getValue( "SSSRansomware", "ExfiltrationShardsCreated" ).map(
+		Optional< Integer > sss_opt_ransomware_n = settings.getValue( "SSSRansomware", "ShardsCreated" ).map(
 				(value) -> {
 					try {
 						return Integer.parseInt(value);
@@ -143,7 +143,7 @@ public class RanfloodDaemon {
 					}
 				}
 		);
-		Optional< Integer > sss_opt_ransomware_k = settings.getValue( "SSSRansomware", "ExfiltrationShardsNeededPercentage" ).map(
+		Optional< Integer > sss_opt_ransomware_k = settings.getValue( "SSSRansomware", "ShardsNeeded" ).map(
 				(value) -> {
 					try {
 						return Integer.parseInt(value);

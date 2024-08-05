@@ -35,7 +35,7 @@ public class Security {
 		return hashBytes(path.toString().getBytes());
 	}	
 
-	public static byte[] hashSecret(int key, byte[] secret) throws NoSuchAlgorithmException {
+	public static byte[] hashShard(int key, byte[] secret) throws NoSuchAlgorithmException {
 
 		MessageDigest digest = MessageDigest.getInstance(ALGORITHM);
 				digest.update(ByteBuffer.allocate(Integer.BYTES).putInt(key).array());

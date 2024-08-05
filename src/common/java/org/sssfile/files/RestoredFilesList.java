@@ -14,7 +14,7 @@ public class RestoredFilesList extends LinkedHashMap<Integer, OriginalFile> {
 			put(shard.hashCode(), original_file);
 		}
 		
-		original_file.addPart(shard.key, shard.secret);
+		original_file.addPart(shard.key, shard.shard);
 		original_file.addShardPath(shard.path);
 
 	}

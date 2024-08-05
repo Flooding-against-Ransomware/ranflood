@@ -29,39 +29,34 @@ public class SSSSplitter {
 	 * @param n number of shards created
 	 * @param k minimum number of shards required to rebuild the original file (0<=k<=n)
 	 */
-	public SSSSplitter(int n, int k, long generation) {
+	public SSSSplitter(int n, int k) {
         SecureRandom random_generator = new SecureRandom();
 		scheme = new Scheme(random_generator, n, k);
 		this.n = n;
 		this.k = k;
-		this.generation = generation;
+		this.generation = System.nanoTime();	// unique for each flood (for this instance)
 	}
 
 
 	/**
 	 *
 	 * @param path file path
+	 * @param content file content
 	 * @param checksum sha1 checksum of the original file - can be read with {@link OriginalFile}.readHash()
 	 * @return the OriginalFile object
 	 * @throws IOException while reading file content
 	 * @throws InvalidOriginalFileException if the file is a shard
 	 */
 	public OriginalFile getSplitFile(
-			Path path, byte[] checksum
+			Path path, byte[] content, byte[] checksum
 	) throws IOException, InvalidOriginalFileException {
 
-		if(ShardFile.isValid(path)) {
+		if(ShardFile.isValid(content)) {
 			throw new InvalidOriginalFileException("Can't split a shard again.");
 		}
 
-		byte[] secret;
-		try ( InputStream input = new FileInputStream( path.toFile() ) ) {
-			secret = input.readAllBytes();
-		}
-
-		Map<Integer, byte[]> parts = scheme.split(secret);
+		Map<Integer, byte[]> parts = scheme.split(content);
 		return new OriginalFile(path, checksum, parts, n, k, generation);
 	}
-
 
 }
