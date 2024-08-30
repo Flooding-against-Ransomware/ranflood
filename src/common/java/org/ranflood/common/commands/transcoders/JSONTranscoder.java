@@ -22,11 +22,10 @@
 package org.ranflood.common.commands.transcoders;
 
 import com.republicate.json.Json;
-import org.ranflood.common.commands.Command;
-import org.ranflood.common.commands.FloodCommand;
+import org.ranflood.common.commands.*;
 import org.ranflood.common.commands.types.RanfloodType;
-import org.ranflood.common.commands.SnapshotCommand;
 import org.ranflood.common.FloodMethod;
+import org.ranflood.common.commands.types.RequestStatus;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -36,6 +35,20 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class JSONTranscoder {
+
+	public static String requestStatusToJson(RequestStatus requestStatus) {
+		Json.Object jsonObject = new Json.Object();
+
+		Json.Object command = commandToJson(requestStatus.getCommand());
+		jsonObject.putAll(command);
+
+		jsonObject.put("status", requestStatus.getStatus());
+		jsonObject.put("id", requestStatus.getId().toString());
+		jsonObject.put("errorMsg", requestStatus.getErrorMsg());
+		jsonObject.put("timestamp", requestStatus.getTimestamp().toString());
+
+		return jsonObject.toString();
+	}
 
 	public static String wrapListRanfloodType( List< ? extends RanfloodType > l ) {
 		Json.Object o = new Json.Object();
@@ -137,6 +150,10 @@ public class JSONTranscoder {
 					return parseSnapshotCommand( jsonObject, subcommand );
 				case "flood":
 					return parseFloodCommand( jsonObject, subcommand );
+				case "version":
+					return parseVersionCommand( jsonObject, subcommand );
+				case "buffer":
+					return parseBufferCommand( jsonObject, subcommand );
 				default:
 					throw new ParseException( "Unrecognised command '" + command + "'." );
 			}
@@ -153,6 +170,24 @@ public class JSONTranscoder {
 				return new SnapshotCommand.Remove( parseRanfloodType( getJsonObject( jsonObject, "parameters" ) ) );
 			case "list":
 				return new SnapshotCommand.List();
+			default:
+				throw new ParseException( "Unrecognized subcommand '" + subcommand + "'" );
+		}
+	}
+
+	private Command< ? > parseVersionCommand( Json.Object jsonObject, String subcommand ) throws ParseException {
+		switch ( subcommand ) {
+			case "get":
+				return new VersionCommand.Get();
+			default:
+				throw new ParseException( "Unrecognized subcommand '" + subcommand + "'" );
+		}
+	}
+
+	private Command< ? > parseBufferCommand( Json.Object jsonObject, String subcommand ) throws ParseException {
+		switch ( subcommand ) {
+			case "get":
+				return new BufferCommand.Get(getString( getJsonObject( jsonObject, "parameters" ), "id" ) );
 			default:
 				throw new ParseException( "Unrecognized subcommand '" + subcommand + "'" );
 		}

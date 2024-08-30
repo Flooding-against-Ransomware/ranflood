@@ -40,7 +40,7 @@ public class AbstractFlooder {
 		runningTasks = new ConcurrentHashMap<>();
 	}
 
-	public UUID flood( Path targetFolder ) throws FlooderException {
+	public void flood( Path targetFolder, UUID id ) throws FlooderException {
 		throw new UnsupportedOperationException( "Flooders should override this method" );
 	}
 

@@ -46,13 +46,11 @@ public class OnTheFlyFlooder extends AbstractSnapshotFlooder {
 	}
 
 	@Override
-	public UUID flood( Path targetFolder ) throws FlooderException {
+	public void flood( Path targetFolder, UUID id ) throws FlooderException {
 		OnTheFlyFloodTask t = new OnTheFlyFloodTask( targetFolder, METHOD );
-		UUID id = UUID.randomUUID();
 		LabeledFloodTask lft = new LabeledFloodTask( id, t );
 		addRunningTask( lft );
 		Ranflood.daemon().floodTaskExecutor().addTask( lft );
-		return id;
 	}
 
 	@Override

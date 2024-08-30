@@ -36,6 +36,7 @@ import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.ranflood.common.RanfloodLogger.error;
 import static org.ranflood.common.RanfloodLogger.log;
@@ -57,13 +58,16 @@ public class ZMQ_JSON_Server {
 			while ( !context.isClosed() ) {
 				try {
 					String request = new String( socket.recv(), ZMQ.CHARSET );
+					UUID id = UUID.randomUUID();
+
 					Ranflood.daemon().executeCommand( () -> {
 						log( "Server received [" + request + "]" );
 						try {
 							Command< ? > command = bindToImpl( JSONTranscoder.fromJson( request ) );
+
 							if ( command.isAsync() ) {
 								Ranflood.daemon().executeCommand( () -> {
-									Object result = command.execute();
+									Object result = command.execute(id);
 									if ( result instanceof CommandResult.Successful ) {
 										log( ( ( CommandResult.Successful ) result ).message() );
 									} else {
@@ -74,8 +78,8 @@ public class ZMQ_JSON_Server {
 							} else {
 								List< ? extends RanfloodType > l =
 												( command instanceof SnapshotCommand.List ) ?
-																( ( SnapshotCommandImpl.List ) command ).execute()
-																: ( ( FloodCommandImpl.List ) command ).execute();
+																( ( SnapshotCommandImpl.List ) command ).execute(id)
+																: ( ( FloodCommandImpl.List ) command ).execute(id);
 								socket.send( JSONTranscoder.wrapListRanfloodType( l ) );
 							}
 						} catch ( ParseException e ) {

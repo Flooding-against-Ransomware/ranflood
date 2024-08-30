@@ -29,6 +29,7 @@ import org.ranflood.daemon.Ranflood;
 import org.ranflood.daemon.flooders.SnapshotException;
 
 import java.util.LinkedList;
+import java.util.UUID;
 
 public class SnapshotCommandImpl {
 
@@ -42,7 +43,7 @@ public class SnapshotCommandImpl {
 		}
 
 		@Override
-		public CommandResult execute() {
+		public CommandResult execute(UUID id) {
 			switch ( this.type().method() ) {
 				case RANDOM:
 					return new CommandResult.Failed( "Cannot create a snapshot for the random flooder" );
@@ -74,7 +75,7 @@ public class SnapshotCommandImpl {
 		}
 
 		@Override
-		public CommandResult execute() {
+		public CommandResult execute(UUID id) {
 			switch ( this.type().method() ) {
 				case RANDOM:
 					return new CommandResult.Failed( "Cannot delete a snapshot for the random flooder (there are none)" );
@@ -94,7 +95,7 @@ public class SnapshotCommandImpl {
 	public static class List extends SnapshotCommand.List {
 
 		@Override
-		public java.util.List< RanfloodType > execute() {
+		public java.util.List< RanfloodType > execute(UUID id) {
 			LinkedList< RanfloodType > l = new LinkedList<>();
 			Ranflood.daemon().onTheFlyFlooder().listSnapshots()
 							.forEach( p -> l.add( new RanfloodType( FloodMethod.ON_THE_FLY, p ) ) );

@@ -23,7 +23,17 @@ package org.ranflood.daemon;
 
 import io.reactivex.rxjava3.core.*;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import org.ranflood.common.commands.*;
+import org.ranflood.common.commands.transcoders.JSONTranscoder;
+import org.ranflood.common.commands.transcoders.ParseException;
+import org.ranflood.common.commands.types.CommandResult;
+import org.ranflood.common.commands.types.RanfloodType;
+import org.ranflood.common.commands.types.RequestStatus;
 import org.ranflood.daemon.binders.ZMQ_JSON_Server;
+import org.ranflood.daemon.commands.BufferCommandImpl;
+import org.ranflood.daemon.commands.FloodCommandImpl;
+import org.ranflood.daemon.commands.SnapshotCommandImpl;
+import org.ranflood.daemon.commands.VersionCommandImpl;
 import org.ranflood.daemon.flooders.FloodTaskExecutor;
 import org.ranflood.daemon.flooders.onTheFly.OnTheFlyFlooder;
 import org.ranflood.daemon.flooders.random.RandomFlooder;
@@ -32,16 +42,27 @@ import org.ranflood.daemon.flooders.shadowCopy.ShadowCopyFlooder;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.ranflood.common.RanfloodLogger.error;
 import static org.ranflood.common.RanfloodLogger.log;
+
+import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpExchange;
 
 public class RanfloodDaemon {
 
@@ -53,6 +74,10 @@ public class RanfloodDaemon {
 	private final OnTheFlyFlooder ON_THE_FLY_FLOODER;
 	private final ShadowCopyFlooder SHADOW_COPY_FLOODER;
 	static private Emitter< Runnable > emitter;
+
+	private static final ScheduledExecutorService bufferScheduler = Executors.newScheduledThreadPool(1);
+
+	private HttpServer httpServer;
 
 	static {
 		Observable.< Runnable >create( e -> emitter = e )
@@ -129,6 +154,157 @@ public class RanfloodDaemon {
 		return SHADOW_COPY_FLOODER;
 	}
 
+	public void startHttpServer(int port) throws IOException {
+		httpServer = HttpServer.create(new InetSocketAddress(port), 0);
+		httpServer.createContext("/status", new StatusHandler());
+		httpServer.createContext("/command", new CommandHandler());
+		httpServer.setExecutor(Executors.newFixedThreadPool(2)); // or use another ExecutorService
+		httpServer.start();
+		log("HTTP server started on port " + port);
+	}
+
+	static class StatusHandler implements HttpHandler {
+		@Override
+		public void handle(HttpExchange exchange) throws IOException {
+			String response = "Server is running";
+			exchange.sendResponseHeaders(200, response.getBytes().length);
+			try (OutputStream os = exchange.getResponseBody()) {
+				os.write(response.getBytes());
+			}
+		}
+	}
+
+	static class CommandHandler implements HttpHandler {
+
+		public CommandHandler() {
+			long expirationTimeInSeconds = 3600;
+			long cleanupInterval = 10;
+
+			bufferScheduler.scheduleAtFixedRate(() -> {
+				RequestsLogBuffer.cleanUpExpiredRequests(expirationTimeInSeconds);
+				log("Cleaned up expired requests from buffer");
+			}, cleanupInterval, cleanupInterval, TimeUnit.MINUTES);
+		}
+
+		@Override
+		public void handle(HttpExchange exchange) throws IOException {
+			if ("OPTIONS".equals(exchange.getRequestMethod())) {
+				handleCors(exchange);
+			} else if ("POST".equals(exchange.getRequestMethod())) {
+				String request = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+				UUID id = UUID.randomUUID();
+
+				Ranflood.daemon().executeCommand(() -> {
+					log("HTTP server received [" + request + "]");
+					try {
+						Command< ? > command = bindToImpl( JSONTranscoder.fromJson( request ) );
+
+						if ( command.isAsync() ) {
+							RequestsLogBuffer.addRequest(id, command); //aggiungiamo al buffer solo le richieste async, le richieste sincrone contengon l'esito nella risposta
+							Ranflood.daemon().executeCommand( () -> {
+								Object result = command.execute(id);
+								if ( result instanceof CommandResult.Successful ) {
+									log( ( ( CommandResult.Successful ) result ).message());
+									RequestsLogBuffer.updateStatus(id, "success");
+								} else {
+									error( ( ( CommandResult.Failed ) result ).message());
+									RequestsLogBuffer.updateStatus(id, "error");
+									RequestsLogBuffer.setErrorMsg(id, ( ( CommandResult.Failed ) result ).message());
+								}
+							} );
+							sendResponse( exchange, 200, "{\"id\": \"" + id.toString() + "\"}");
+						} else {
+							if ( command instanceof  VersionCommand.Get) {
+								String version = ( ( VersionCommandImpl.Get ) command ).execute(id);
+								sendResponse( exchange, 200, version);
+							}
+							else if ( command instanceof  BufferCommand.Get){
+								RequestStatus status = ( ( BufferCommand.Get ) command ).execute(id);
+								if (status == null) {
+									sendResponse(exchange, 400, "Request not found");
+								}
+								else {
+
+									sendResponse(exchange, 200, JSONTranscoder.requestStatusToJson(status));
+								}
+							}
+							else {
+								List< ? extends RanfloodType> l =
+										( command instanceof SnapshotCommand.List ) ?
+												( ( SnapshotCommandImpl.List ) command ).execute(id)
+												: ( ( FloodCommandImpl.List ) command ).execute(id);
+								sendResponse( exchange, 200, JSONTranscoder.wrapListRanfloodType( l ));
+							}
+						}
+					} catch (ParseException e) {
+						error(e.getMessage());
+                        try {
+                            sendResponse(exchange, 400, JSONTranscoder.wrapError(e.getMessage()));
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    } catch (Exception e) {
+						error(e.getMessage());
+                        try {
+                            sendResponse(exchange, 500, e.getMessage());
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    }
+				});
+			} else {
+				sendResponse(exchange, 405, "Method Not Allowed");
+			}
+		}
+
+		private void handleCors(HttpExchange exchange) throws IOException {
+			exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+			exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+			exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type, Authorization");
+			exchange.sendResponseHeaders(204, -1);
+		}
+
+		private void sendResponse(HttpExchange exchange, int statusCode, String response) throws IOException {
+			exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+			exchange.sendResponseHeaders(statusCode, response.getBytes(StandardCharsets.UTF_8).length);
+			try (OutputStream os = exchange.getResponseBody()) {
+				os.write(response.getBytes(StandardCharsets.UTF_8));
+			}
+		}
+	}
+
+	private static Command< ? > bindToImpl(Command< ? > command ) {
+		if ( command instanceof SnapshotCommand.Add ) {
+			return new SnapshotCommandImpl.Add( ( ( SnapshotCommand.Add ) command ).type() );
+		}
+		if ( command instanceof SnapshotCommand.Remove ) {
+			return new SnapshotCommandImpl.Remove( ( ( SnapshotCommand.Remove ) command ).type() );
+		}
+		if ( command instanceof SnapshotCommand.List ) {
+			return new SnapshotCommandImpl.List();
+		}
+		if ( command instanceof FloodCommand.Start ) {
+			return new FloodCommandImpl.Start( ( ( FloodCommand.Start ) command ).type() );
+		}
+		if ( command instanceof FloodCommand.Stop ) {
+			return new FloodCommandImpl.Stop(
+					( ( FloodCommand.Stop ) command ).method(),
+					( ( FloodCommand.Stop ) command ).id()
+			);
+		}
+		if ( command instanceof FloodCommand.List ) {
+			return new FloodCommandImpl.List();
+		}
+		if ( command instanceof VersionCommand.Get ) {
+			return new VersionCommandImpl.Get();
+		}
+		if ( command instanceof BufferCommand.Get ) {
+			return new BufferCommandImpl.Get(( ( BufferCommand.Get ) command ).id());
+		}
+		throw new UnsupportedOperationException( "" );
+	}
+
+
 	public void shutdown() {
 		ZMQ_JSON_Server.shutdown();
 		floodTaskExecutor.shutdown();
@@ -137,11 +313,34 @@ public class RanfloodDaemon {
 		commandExecutor.shutdown();
 		scheduler.shutdown();
 		ON_THE_FLY_FLOODER.shutdown();
+
+		bufferScheduler.shutdown();
+		try {
+			if (!bufferScheduler.awaitTermination(1, TimeUnit.MINUTES)) {
+				bufferScheduler.shutdownNow();
+			}
+		} catch (InterruptedException e) {
+			bufferScheduler.shutdownNow();
+		}
+
+
+		if (httpServer != null) {
+			httpServer.stop(0);
+			log("HTTP server stopped.");
+		}
+
 		System.exit( 0 );
 	}
 
 	public void start() {
-		ZMQ_JSON_Server.start( settings.getValue( "ZMQ_JSON_Server", "address" ).orElse( "" ) );
-	}
+		// Start the ZMQ_JSON_Server
+		ZMQ_JSON_Server.start(settings.getValue("ZMQ_JSON_Server", "address").orElse(""));
 
+		// Start the HTTP server
+		try {
+			startHttpServer(8080);
+		} catch (IOException e) {
+			error("Failed to start HTTP server: " + e.getMessage());
+		}
+	}
 }

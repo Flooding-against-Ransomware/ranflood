@@ -44,23 +44,22 @@ public class FloodCommandImpl {
 		}
 
 		@Override
-		public CommandResult execute() {
-			String id;
+		public CommandResult execute(UUID id) {
 			switch ( this.type().method() ) {
 				case RANDOM:
-					id = Ranflood.daemon().randomFlooder().flood( this.type().path() ).toString();
-					return new CommandResult.Successful( "Launched " + this.type().method() + " flood, ID: " + id );
+					Ranflood.daemon().randomFlooder().flood( this.type().path(), id);
+					return new CommandResult.Successful( "Launched " + this.type().method() + " flood, ID: " + id.toString() );
 				case ON_THE_FLY:
 					try {
-						id = Ranflood.daemon().onTheFlyFlooder().flood( this.type().path() ).toString();
-						return new CommandResult.Successful( "Launched " + this.type().method() + " flood, ID: " + id );
+						Ranflood.daemon().onTheFlyFlooder().flood( this.type().path(), id);
+						return new CommandResult.Successful( "Launched " + this.type().method() + " flood, ID: " + id.toString() );
 					} catch ( FlooderException e ) {
 						return new CommandResult.Failed( "Error in launching " + this.type().method() + " flood: " + e.getMessage() );
 					}
 				case SHADOW_COPY:
 					try {
-						id = Ranflood.daemon().shadowCopyFlooder().flood( this.type().path() ).toString();
-						return new CommandResult.Successful( "Launched " + this.type().method() + " flood, ID: " + id );
+						Ranflood.daemon().shadowCopyFlooder().flood( this.type().path(), id);
+						return new CommandResult.Successful( "Launched " + this.type().method() + " flood, ID: " + id.toString() );
 					} catch ( FlooderException e ) {
 						return new CommandResult.Failed( "Error in launching " + this.type().method() + " flood: " + e.getMessage() );
 					}
@@ -78,7 +77,7 @@ public class FloodCommandImpl {
 		}
 
 		@Override
-		public CommandResult execute() {
+		public CommandResult execute(UUID id) {
 			switch ( this.method() ) {
 				case RANDOM:
 					try {
@@ -115,7 +114,7 @@ public class FloodCommandImpl {
 	public static class List extends FloodCommand.List {
 
 		@Override
-		public java.util.List< RanfloodType.Tagged > execute() {
+		public java.util.List< RanfloodType.Tagged > execute(UUID id) {
 			return Stream.concat( Stream.concat(
 											Ranflood.daemon().randomFlooder()
 															.currentRunningTasksSnapshotList().stream(),

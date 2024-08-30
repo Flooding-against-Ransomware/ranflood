@@ -21,9 +21,11 @@
 
 package org.ranflood.common.commands;
 
+import java.util.UUID;
+
 public interface Command< T > {
 
-	T execute();
+	T execute(UUID id);
 
 	String name();
 
