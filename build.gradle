@@ -173,48 +173,6 @@ task filecheckerJar ( type: Jar ) {
     }
 }
 
-task testCompareJar ( type: Jar ) {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    manifest {
-        attributes "Implementation-Title": "TestCompare",
-                "Implementation-Version": "0.1",
-                'Main-Class': 'playground.compare.TestCompare'
-    }
-    archiveBaseName.set( "testCompare" )
-    from sourceSets.tests.output
-    from {
-        sourceSets.tests.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    }
-}
-
-task testSSSJar ( type: Jar ) {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    manifest {
-        attributes "Implementation-Title": "TestCompare",
-                "Implementation-Version": "0.1",
-                'Main-Class': 'playground.TestSSS'
-    }
-    archiveBaseName.set( "testSSS" )
-    from sourceSets.tests.output
-    from {
-        sourceSets.tests.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    }
-}
-
-task testSSS_AESJar ( type: Jar ) {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    manifest {
-        attributes "Implementation-Title": "TestCompare",
-                "Implementation-Version": "0.1",
-                'Main-Class': 'playground.TestSSS_AES'
-    }
-    archiveBaseName.set( "testSSS_AES" )
-    from sourceSets.tests.output
-    from {
-        sourceSets.tests.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
-    }
-}
-
 jar {
     enabled = false // this avoids creating an empty "project" jar file
     finalizedBy clientJar
