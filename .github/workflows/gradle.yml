@@ -31,6 +31,7 @@ on:
 
 jobs:
   create_release:
+    permissions: write-all
     name: create_release
     runs-on: [ubuntu-latest]
     outputs:
