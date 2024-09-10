@@ -50,7 +50,7 @@ dependencies {
 
     _clientAnnotationProcessor 'info.picocli:picocli-codegen:4.6.3'
     client 'info.picocli:picocli:4.6.2'
-//    client 'info.picocli:picocli-codegen:4.6.1'
+//    client 'info.picocli:picocli-codegen:4.6.2'
 
     daemon 'io.reactivex.rxjava3:rxjava:3.1.4'
     daemon 'com.oblac:nomen-est-omen:2.1.0'
@@ -85,7 +85,7 @@ sourceSets {
     }
     filechecker {
         java.srcDir 'src/filechecker/java'
-        runtimeClasspath += compileClasspath += configurations.client
+        runtimeClasspath += compileClasspath += configurations.client + sourceSets.common.output
     }
 }
 

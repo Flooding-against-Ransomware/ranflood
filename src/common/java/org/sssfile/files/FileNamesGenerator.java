@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright 2021 (C) by Saverio Giallorenzo <saverio.giallorenzo@gmail.com>  *
+ * Copyright 2024 (C) by Daniele D'Ugo <danieledugo1@gmail.com>               *
  *                                                                            *
  * This program is free software; you can redistribute it and/or modify       *
  * it under the terms of the GNU Library General Public License as            *
@@ -19,33 +19,53 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.common;
+ package org.sssfile.files;
 
-import org.ranflood.common.commands.transcoders.ParseException;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.stream.IntStream;
 
-public enum FloodMethod {
 
-	RANDOM,
-	ON_THE_FLY,
-	SHADOW_COPY,
-	SSS_RANSOMWARE,
-	SSS_EXFILTRATION;
+public class FileNamesGenerator {
 
-	public static FloodMethod getMethod( String method ) throws ParseException {
-		switch ( method ) {
-			case "RANDOM":
-				return FloodMethod.RANDOM;
-			case "ON_THE_FLY":
-				return FloodMethod.ON_THE_FLY;
-			case "SHADOW_COPY":
-				return FloodMethod.SHADOW_COPY;
-			case "SSS_RANSOMWARE":
-				return FloodMethod.SSS_RANSOMWARE;
-			case "SSS_EXFILTRATION":
-				return FloodMethod.SSS_EXFILTRATION;
-			default:
-				throw new ParseException( "Unrecognized method " + method );
-		}
+	private long counter;
+	private static final FileNamesGenerator INSTANCE = new FileNamesGenerator();
+
+	private FileNamesGenerator() {
+		counter = 0;
+	}
+
+
+	/**
+	 * Get a path "unique" relatively to FileNamesGenerator (using a counter).
+	 * The new path is obtained from `base_path` inserting _COUNTER before the extension (last dot),
+	 * or at the end if there's no extension.
+	 * @param base_path -
+	 * @return the filename
+	 */
+	public static Path getUniquePath(String base_path) {
+
+		int ext_idx = base_path.indexOf('.');
+		ext_idx = (ext_idx != -1) ? ext_idx : base_path.length();
+		String	name	= base_path.substring(0, ext_idx),
+				ext		= base_path.substring(ext_idx);
+		do {
+			INSTANCE.counter++;
+		} while( Files.exists(Path.of(name + (INSTANCE.counter - 1) + ext)) );
+		return Path.of(name + (INSTANCE.counter - 1) + ext);
+	}
+
+	/**
+	 *
+	 * @param base_path -
+	 * @return base_path if such file doesn't exist, else getUniquePath(base_path)
+	 */
+	public static Path getUniquePathIfExists(Path base_path) {
+
+		if(Files.exists(base_path)) return getUniquePath(base_path.toString());
+		return base_path;
 	}
 
 }

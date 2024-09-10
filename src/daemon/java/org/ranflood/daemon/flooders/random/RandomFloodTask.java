@@ -24,6 +24,7 @@ package org.ranflood.daemon.flooders.random;
 import com.oblac.nomen.Nomen;
 import org.ranflood.common.utils.Pair;
 import org.ranflood.common.FloodMethod;
+import org.ranflood.daemon.flooders.tasks.FileTask;
 import org.ranflood.daemon.flooders.tasks.FloodTaskGenerator;
 import org.ranflood.daemon.flooders.tasks.WriteFileTask;
 
@@ -48,12 +49,17 @@ public class RandomFloodTask extends FloodTaskGenerator {
 	}
 
 	@Override
-	public List< WriteFileTask > getFileTasks() {
+	public List< FileTask > getFileTasks() {
 		return IntStream.range( 0, 100 ).mapToObj( i -> {
 			String extension = FILE_EXTESIONS.get( rng.nextInt( FILE_EXTESIONS.size() ) );
 			Path filePath = Path.of( this.filePath().toAbsolutePath() + File.separator + Nomen.randomName() + extension );
 			return new WriteFileTask( filePath, getCachedRandomBytes( extension ), this.floodMethod() );
 		} ).collect( Collectors.toList() );
+	}
+
+	@Override
+	public List<FileTask> getSingleUseFileTasks() {
+		return List.of();
 	}
 
 	private static final Random rng = new Random();

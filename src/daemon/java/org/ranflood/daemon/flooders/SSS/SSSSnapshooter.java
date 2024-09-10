@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright 2021 (C) by Saverio Giallorenzo <saverio.giallorenzo@gmail.com>  *
+ * Copyright 2024 (C) by Daniele D'Ugo <danieledugo1@gmail.com>               *
  *                                                                            *
  * This program is free software; you can redistribute it and/or modify       *
  * it under the terms of the GNU Library General Public License as            *
@@ -19,33 +19,40 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.common;
+package org.ranflood.daemon.flooders.SSS;
 
-import org.ranflood.common.commands.transcoders.ParseException;
+import org.ranflood.daemon.flooders.Snapshooter;
+import org.ranflood.daemon.flooders.SnapshotException;
+import org.ranflood.daemon.flooders.onTheFly.OnTheFlySnapshooter;
 
-public enum FloodMethod {
+import java.nio.file.Path;
+import java.util.*;
 
-	RANDOM,
-	ON_THE_FLY,
-	SHADOW_COPY,
-	SSS_RANSOMWARE,
-	SSS_EXFILTRATION;
+public class SSSSnapshooter extends Snapshooter {
 
-	public static FloodMethod getMethod( String method ) throws ParseException {
-		switch ( method ) {
-			case "RANDOM":
-				return FloodMethod.RANDOM;
-			case "ON_THE_FLY":
-				return FloodMethod.ON_THE_FLY;
-			case "SHADOW_COPY":
-				return FloodMethod.SHADOW_COPY;
-			case "SSS_RANSOMWARE":
-				return FloodMethod.SSS_RANSOMWARE;
-			case "SSS_EXFILTRATION":
-				return FloodMethod.SSS_EXFILTRATION;
-			default:
-				throw new ParseException( "Unrecognized method " + method );
-		}
+
+	private SSSSnapshooter() {
+
+	}
+
+	static void takeSnapshot( Path filePath ) throws SnapshotException {
+		OnTheFlySnapshooter.takeSnapshot(filePath);
+	}
+
+	static void removeSnapshot( Path filePath ) {
+		OnTheFlySnapshooter.removeSnapshot(filePath);
+	}
+
+	static List< Path > listSnapshots() {
+		return OnTheFlySnapshooter.listSnapshots();
+	}
+
+	static String getSnapshot( Path snapshotParent, Path filepath ) throws SnapshotException {
+		return OnTheFlySnapshooter.getSnapshot( snapshotParent, filepath );
+	}
+
+	public static void shutdown() {
+		OnTheFlySnapshooter.shutdown();
 	}
 
 }

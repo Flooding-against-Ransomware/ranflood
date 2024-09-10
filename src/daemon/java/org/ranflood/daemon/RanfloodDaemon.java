@@ -1,5 +1,6 @@
 /******************************************************************************
  * Copyright 2021 (C) by Saverio Giallorenzo <saverio.giallorenzo@gmail.com>  *
+ * modified in 2024 by Daniele D'Ugo <danieledugo1@gmail.com>                 *
  *                                                                            *
  * This program is free software; you can redistribute it and/or modify       *
  * it under the terms of the GNU Library General Public License as            *
@@ -23,8 +24,10 @@ package org.ranflood.daemon;
 
 import io.reactivex.rxjava3.core.*;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import org.ranflood.common.FloodMethod;
 import org.ranflood.daemon.binders.ZMQ_JSON_Server;
 import org.ranflood.daemon.flooders.FloodTaskExecutor;
+import org.ranflood.daemon.flooders.SSS.SSSFlooder;
 import org.ranflood.daemon.flooders.onTheFly.OnTheFlyFlooder;
 import org.ranflood.daemon.flooders.random.RandomFlooder;
 import org.ranflood.common.utils.IniParser;
@@ -51,6 +54,8 @@ public class RanfloodDaemon {
 	private static final ExecutorService scheduler = Executors.newFixedThreadPool( 2 * Runtime.getRuntime().availableProcessors() );
 	private final RandomFlooder RANDOM_FLOODER;
 	private final OnTheFlyFlooder ON_THE_FLY_FLOODER;
+	private final SSSFlooder SSS_RANSOMWARE_FLOODER;
+	private final SSSFlooder SSS_EXFILTRATION_FLOODER;
 	private final ShadowCopyFlooder SHADOW_COPY_FLOODER;
 	static private Emitter< Runnable > emitter;
 
@@ -68,7 +73,7 @@ public class RanfloodDaemon {
 		try {
 			settings = new IniParser( settingsFilePath.toAbsolutePath().toString() );
 		} catch ( IOException e ) {
-			throw new IOException( "Cloud not find setting file at: " + settingsFilePath.toAbsolutePath() );
+			throw new IOException( "Could not find setting file at: " + settingsFilePath.toAbsolutePath() );
 		}
 		Optional< String > random_opt_max_size = settings.getValue( "RandomFlooder", "MaxFileSize" );
 		RANDOM_FLOODER = random_opt_max_size.isEmpty() ? new RandomFlooder() : new RandomFlooder( random_opt_max_size.get() );
@@ -97,6 +102,68 @@ public class RanfloodDaemon {
 							return archiveRoot;
 						} ) ),
 						Arrays.stream( shadow_copy_opt_exclude_folder_names.orElse( "" ).split( "," ) ).map( String::trim ).collect( Collectors.toSet() )
+		);
+		Optional< String > sss_opt_exfiltration_exclude_folder_names = settings.getValue( "SSSExfiltration", "ExcludeFolderNames" );
+		Optional< Integer > sss_opt_exfiltration_n = settings.getValue( "SSSExfiltration", "ShardsCreated" ).map(
+				(value) -> {
+					try {
+						return Integer.parseInt(value);
+					} catch (NumberFormatException e) {
+						return null;
+					}
+				}
+		);
+		Optional< Integer > sss_opt_exfiltration_k = settings.getValue( "SSSExfiltration", "ShardsNeededP" ).map(
+				(value) -> {
+					try {
+						return Integer.parseInt(value);
+					} catch (NumberFormatException e) {
+						return null;
+					}
+				}
+		);
+		Optional< Boolean > sss_opt_exfiltration_remove_originals = settings.getValue( "SSSExfiltration", "RemoveOriginals" ).map(
+                Boolean::parseBoolean
+		);
+		SSS_EXFILTRATION_FLOODER = new SSSFlooder(
+				Arrays.stream(sss_opt_exfiltration_exclude_folder_names.orElse("").split(",")).map(String::trim).collect(Collectors.toSet()),
+				FloodMethod.SSS_EXFILTRATION,
+				new SSSFlooder.Parameters(
+						sss_opt_exfiltration_n.orElse(null),
+						sss_opt_exfiltration_k.orElse(null),
+						sss_opt_exfiltration_remove_originals.orElse(null)
+				)
+		);
+		Optional< String > sss_opt_ransomware_exclude_folder_names = settings.getValue( "SSSExfiltration", "ExcludeFolderNames" );
+		Optional< Integer > sss_opt_ransomware_n = settings.getValue( "SSSRansomware", "ShardsCreated" ).map(
+				(value) -> {
+					try {
+						return Integer.parseInt(value);
+					} catch (NumberFormatException e) {
+						return null;
+					}
+				}
+		);
+		Optional< Integer > sss_opt_ransomware_k = settings.getValue( "SSSRansomware", "ShardsNeeded" ).map(
+				(value) -> {
+					try {
+						return Integer.parseInt(value);
+					} catch (NumberFormatException e) {
+						return null;
+					}
+				}
+		);
+		Optional< Boolean > sss_opt_ransomware_remove_originals = settings.getValue( "SSSRansomware", "RemoveOriginals" ).map(
+                Boolean::parseBoolean
+		);
+		SSS_RANSOMWARE_FLOODER = new SSSFlooder(
+				Arrays.stream(sss_opt_ransomware_exclude_folder_names.orElse("").split(",")).map(String::trim).collect(Collectors.toSet()),
+				FloodMethod.SSS_RANSOMWARE,
+				new SSSFlooder.Parameters(
+						sss_opt_ransomware_n.orElse(null),
+						sss_opt_ransomware_k.orElse(null),
+						sss_opt_ransomware_remove_originals.orElse(null)
+				)
 		);
 		log( "Ranflood Daemon (ranfloodd) version " + Ranflood.version() + " started." );
 	}
@@ -129,6 +196,14 @@ public class RanfloodDaemon {
 		return SHADOW_COPY_FLOODER;
 	}
 
+	public SSSFlooder SSSRansomwareFlooder() {
+		return SSS_RANSOMWARE_FLOODER;
+	}
+
+	public SSSFlooder SSSExfiltrationFlooder() {
+		return SSS_EXFILTRATION_FLOODER;
+	}
+
 	public void shutdown() {
 		ZMQ_JSON_Server.shutdown();
 		floodTaskExecutor.shutdown();
@@ -137,6 +212,7 @@ public class RanfloodDaemon {
 		commandExecutor.shutdown();
 		scheduler.shutdown();
 		ON_THE_FLY_FLOODER.shutdown();
+		SSS_RANSOMWARE_FLOODER.shutdown();
 		System.exit( 0 );
 	}
 

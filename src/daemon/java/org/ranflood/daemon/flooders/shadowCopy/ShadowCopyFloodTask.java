@@ -26,6 +26,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.utils.IOUtils;
 import org.ranflood.common.FloodMethod;
 import org.ranflood.daemon.Ranflood;
+import org.ranflood.daemon.flooders.tasks.FileTask;
 import org.ranflood.daemon.flooders.tasks.FloodTaskGenerator;
 import org.ranflood.daemon.flooders.tasks.WriteCopyFileTask;
 import org.ranflood.daemon.flooders.tasks.WriteFileTask;
@@ -86,7 +87,7 @@ public class ShadowCopyFloodTask extends FloodTaskGenerator {
 	}
 
 	@Override
-	public List< WriteFileTask > getFileTasks() {
+	public List< FileTask > getFileTasks() {
 		int taskListResponseRetriesTimeout = 100; // milliseconds
 		int maxTaskListResponseRetries = 5;
 		if ( taskListResponseRetriesCounter > 0 ) {
@@ -97,7 +98,7 @@ public class ShadowCopyFloodTask extends FloodTaskGenerator {
 			}
 		}
 		lock.readLock().lock();
-		List< WriteFileTask > t = new LinkedList<>( tasks );
+		List< FileTask > t = new LinkedList<>( tasks );
 		lock.readLock().unlock();
 		if ( t.isEmpty() && taskListResponseRetriesCounter < maxTaskListResponseRetries ) {
 			taskListResponseRetriesCounter++;
@@ -106,4 +107,10 @@ public class ShadowCopyFloodTask extends FloodTaskGenerator {
 		}
 		return t;
 	}
+
+	@Override
+	public List<FileTask> getSingleUseFileTasks() {
+		return List.of();
+	}
+
 }

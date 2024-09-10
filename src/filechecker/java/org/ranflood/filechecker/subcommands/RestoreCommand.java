@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright 2021 (C) by Saverio Giallorenzo <saverio.giallorenzo@gmail.com>  *
+ * Copyright 2024 (C) by Daniele D'Ugo <danieledugo1@gmail.com>               *
  *                                                                            *
  * This program is free software; you can redistribute it and/or modify       *
  * it under the terms of the GNU Library General Public License as            *
@@ -19,52 +19,69 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.filechecker;
+package org.ranflood.filechecker.subcommands;
 
-import org.ranflood.filechecker.subcommands.RestoreCommand;
+import org.ranflood.filechecker.runtime.Restore;
 import picocli.CommandLine;
-import org.ranflood.filechecker.subcommands.CheckCommand;
-import org.ranflood.filechecker.subcommands.SaveCommand;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.concurrent.Callable;
 
 @CommandLine.Command(
-				name = "filechecker",
+				name = "restore",
 				mixinStandardHelpOptions = true,
-				versionProvider = FileChecker.VersionProvider.class,
-				description = { "Filechecker" },
-				subcommands = {
-								SaveCommand.class,
-								CheckCommand.class,
-								RestoreCommand.class
-				}
+				description = { "Restore the original files after a flooding (specifically for SSS)." }
 )
-public class FileChecker implements Callable< Integer > {
+public class RestoreCommand implements Callable< Integer > {
 
-	public static final String version = "0.3";
+	@CommandLine.Parameters(
+			index = "0",
+			description = "the path to the checksum file"
+	)
+	private File checksumFile;
 
-	public static void main( String[] args ) {
-		System.exit( run( args ) );
-	}
+	@CommandLine.Parameters(
+					index = "1",
+					description = "the path to the report file"
+	)
+	private File report_file;
 
-	public static int run( String[] args ) {
-		CommandLine c = new CommandLine( new FileChecker() );
-		c.setCaseInsensitiveEnumValuesAllowed( true );
-		return c.execute( args );
-	}
+	@CommandLine.Parameters(
+					index = "2",
+					description = "the path to the root folder of the files to check"
+	)
+	private File folder;
+
+	@CommandLine.Option(
+					names = { "--debug" },
+					description = "If also specified --logfile, print more debugging logs."
+	)
+	private Boolean debug = false;
+
+	@CommandLine.Option(
+					names = { "--delete" },
+					description = "Also remove files created during flooding"
+	)
+	private Boolean delete = false;
+
+	@CommandLine.Option(
+					names = { "-l", "--logfile" },
+					description = "Enable more logs and specify the log file where to print them."
+	)
+	private File log_file = null;
+
 
 	@Override
 	public Integer call() {
-		new CommandLine( this ).usage( System.err );
-		return 1;
-	}
-
-	static class VersionProvider implements CommandLine.IVersionProvider {
-
-		@Override
-		public String[] getVersion() throws Exception {
-			return new String[]{ "Filechecker version " + version };
+		try {
+			Restore.run( checksumFile, folder, report_file, delete, log_file, debug );
+			System.out.println( "Report of the check of folder " + folder + " saved in file " + report_file.getAbsolutePath() );
+		} catch ( IOException e ) {
+			e.printStackTrace();
+			System.err.println( "Problem writing the report, " + e.getMessage() );
 		}
+		return 0;
 	}
 
 }
