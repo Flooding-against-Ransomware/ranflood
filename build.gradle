@@ -1,7 +1,3 @@
-import org.graalvm.buildtools.gradle.dsl.NativeImageCompileOptions
-import org.graalvm.buildtools.gradle.dsl.NativeImageOptions
-import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask
-
 /*********************************************************************************
  * Copyright 2021-2024 (C) by Saverio Giallorenzo <saverio.giallorenzo@gmail.com>*
  *                                                                               *
@@ -22,6 +18,10 @@ import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask
  *                                                                               *
  * For details about the authors of this software, see the AUTHORS file.         *
  *********************************************************************************/
+
+import org.graalvm.buildtools.gradle.dsl.NativeImageCompileOptions
+import org.graalvm.buildtools.gradle.dsl.NativeImageOptions
+import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask
 
 plugins {
     id 'java'
@@ -154,7 +154,7 @@ task daemonJar ( type: Jar ) {
 task filecheckerJar ( type: Jar ) {
     manifest {
         attributes "Implementation-Title": "Filechecker",
-                "Implementation-Version": "0.2",
+                "Implementation-Version": "0.3",
                 'Main-Class': 'org.ranflood.filechecker.FileChecker'
     }
     archiveBaseName.set( "filechecker" )

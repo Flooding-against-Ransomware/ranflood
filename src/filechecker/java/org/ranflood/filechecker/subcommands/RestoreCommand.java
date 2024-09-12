@@ -29,59 +29,59 @@ import java.io.IOException;
 import java.util.concurrent.Callable;
 
 @CommandLine.Command(
-				name = "restore",
-				mixinStandardHelpOptions = true,
-				description = { "Restore the original files after a flooding (specifically for SSS)." }
+    name = "restore",
+    mixinStandardHelpOptions = true,
+    description = { "Restore the original files after a flooding (specifically for SSS)." }
 )
 public class RestoreCommand implements Callable< Integer > {
 
-	@CommandLine.Parameters(
-			index = "0",
-			description = "the path to the checksum file"
-	)
-	private File checksumFile;
+  @CommandLine.Parameters(
+      index = "0",
+      description = "the path to the checksum file"
+  )
+  private File checksumFile;
 
-	@CommandLine.Parameters(
-					index = "1",
-					description = "the path to the report file"
-	)
-	private File report_file;
+  @CommandLine.Parameters(
+      index = "1",
+      description = "the path to the report file"
+  )
+  private File report_file;
 
-	@CommandLine.Parameters(
-					index = "2",
-					description = "the path to the root folder of the files to check"
-	)
-	private File folder;
+  @CommandLine.Parameters(
+      index = "2",
+      description = "the path to the root folder of the files to check"
+  )
+  private File folder;
 
-	@CommandLine.Option(
-					names = { "--debug" },
-					description = "If also specified --logfile, print more debugging logs."
-	)
-	private Boolean debug = false;
+  @CommandLine.Option(
+      names = { "--debug" },
+      description = "If also specified --logfile, print more debugging logs."
+  )
+  private Boolean debug = false;
 
-	@CommandLine.Option(
-					names = { "--delete" },
-					description = "Also remove files created during flooding"
-	)
-	private Boolean delete = false;
+  @CommandLine.Option(
+      names = { "--delete" },
+      description = "Also remove files created during flooding"
+  )
+  private Boolean delete = false;
 
-	@CommandLine.Option(
-					names = { "-l", "--logfile" },
-					description = "Enable more logs and specify the log file where to print them."
-	)
-	private File log_file = null;
+  @CommandLine.Option(
+      names = { "-l", "--logfile" },
+      description = "Enable more logs and specify the log file where to print them."
+  )
+  private File log_file = null;
 
 
-	@Override
-	public Integer call() {
-		try {
-			Restore.run( checksumFile, folder, report_file, delete, log_file, debug );
-			System.out.println( "Report of the check of folder " + folder + " saved in file " + report_file.getAbsolutePath() );
-		} catch ( IOException e ) {
-			e.printStackTrace();
-			System.err.println( "Problem writing the report, " + e.getMessage() );
-		}
-		return 0;
-	}
+  @Override
+  public Integer call() {
+    try {
+      Restore.run( checksumFile, folder, report_file, delete, log_file, debug );
+      System.out.println( "Report of the check of folder " + folder + " saved in file " + report_file.getAbsolutePath() );
+    } catch ( IOException e ) {
+      e.printStackTrace();
+      System.err.println( "Problem writing the report, " + e.getMessage() );
+    }
+    return 0;
+  }
 
 }
