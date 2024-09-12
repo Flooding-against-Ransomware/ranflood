@@ -1,36 +1,32 @@
-/******************************************************************************
- * Copyright 2021 (C) by Saverio Giallorenzo <saverio.giallorenzo@gmail.com>  *
- *                                                                            *
- * This program is free software; you can redistribute it and/or modify       *
- * it under the terms of the GNU Library General Public License as            *
- * published by the Free Software Foundation; either version 2 of the         *
- * License, or (at your option) any later version.                            *
- *                                                                            *
- * This program is distributed in the hope that it will be useful,            *
- * but WITHOUT ANY WARRANTY; without even the implied warranty of             *
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              *
- * GNU General Public License for more details.                               *
- *                                                                            *
- * You should have received a copy of the GNU Library General Public          *
- * License along with this program; if not, write to the                      *
- * Free Software Foundation, Inc.,                                            *
- * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                  *
- *                                                                            *
- * For details about the authors of this software, see the AUTHORS file.      *
- ******************************************************************************/
+/*********************************************************************************
+ * Copyright 2021-2024 (C) by Saverio Giallorenzo <saverio.giallorenzo@gmail.com>*
+ *                                                                               *
+ * This program is free software; you can redistribute it and/or modify          *
+ * it under the terms of the GNU Library General Public License as               *
+ * published by the Free Software Foundation; either version 2 of the            *
+ * License, or (at your option) any later version.                               *
+ *                                                                               *
+ * This program is distributed in the hope that it will be useful,               *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of                *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                 *
+ * GNU General Public License for more details.                                  *
+ *                                                                               *
+ * You should have received a copy of the GNU Library General Public             *
+ * License along with this program; if not, write to the                         *
+ * Free Software Foundation, Inc.,                                               *
+ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.                     *
+ *                                                                               *
+ * For details about the authors of this software, see the AUTHORS file.         *
+ *********************************************************************************/
 
 plugins {
     id 'java'
-//    id 'com.palantir.graal' version "0.7.2"
-    id 'com.palantir.graal' version "0.10.0"
+    id 'org.graalvm.buildtools.native' version '0.10.3'
 }
-
-//sourceCompatibility = 11
-//targetCompatibility = 11
 
 group 'org.ranflood'
 
-def version = '0.5.9-BETA'
+def version = '0.6-BETA'
 
 repositories {
     mavenCentral()
@@ -44,20 +40,20 @@ configurations {
 }
 
 dependencies {
-    common 'com.republicate:essential-json:2.6.4'
-    common 'org.slf4j:slf4j-simple:1.7.36'
-    common  'org.zeromq:jeromq:0.5.2'
+    common 'com.republicate:essential-json:2.7'
+    common 'org.slf4j:slf4j-simple:2.0.13'
+    common 'org.zeromq:jeromq:0.6.0'
 
-    _clientAnnotationProcessor 'info.picocli:picocli-codegen:4.6.3'
-    client 'info.picocli:picocli:4.6.2'
+    _clientAnnotationProcessor 'info.picocli:picocli-codegen:4.7.6'
+    client 'info.picocli:picocli:4.7.6'
 //    client 'info.picocli:picocli-codegen:4.6.2'
 
-    daemon 'io.reactivex.rxjava3:rxjava:3.1.4'
-    daemon 'com.oblac:nomen-est-omen:2.1.0'
-    daemon 'org.jetbrains.xodus:xodus-openAPI:1.3.232'
-    daemon 'org.jetbrains.xodus:xodus-environment:1.3.232'
-    daemon 'org.apache.commons:commons-compress:1.21'
-    daemon 'commons-io:commons-io:2.11.0'
+    daemon 'io.reactivex.rxjava3:rxjava:3.1.8'
+    daemon 'com.oblac:nomen-est-omen:2.2.1'
+    daemon 'org.jetbrains.xodus:xodus-openAPI:2.0.1'
+    daemon 'org.jetbrains.xodus:xodus-environment:2.0.1'
+    daemon 'org.apache.commons:commons-compress:1.26.1'
+    daemon 'commons-io:commons-io:2.16.1'
 }
 
 //tasks.withType(JavaCompile) {
@@ -101,18 +97,9 @@ tasks.withType( JavaCompile ) {
     // To enable argument names in reporting and debugging
     options.compilerArgs += "-parameters"
     // To enable picocli's annotation processor for GraalVM configurations
-//    options.compilerArgs += [ "-Aproject=org.ranflood/Ranflood" ]
-//    println options.compilerArgs
+    //    options.compilerArgs += [ "-Aproject=org.ranflood/Ranflood" ]
+    //    println options.compilerArgs
 }
-
-//test {
-//    useJUnitPlatform {
-//        includeEngines 'jqwik'
-//    }
-//    include '**/*Properties*'
-//    include '**/*Test*'
-//    include '**/*Tests*'
-//}
 
 build {
     doFirst {
@@ -138,7 +125,7 @@ task clientJar ( type: Jar ) {
     from {
         sourceSets.client.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
-	duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 task daemonJar ( type: Jar ) {
@@ -156,7 +143,7 @@ task daemonJar ( type: Jar ) {
     from {
         sourceSets.daemon.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
-	duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
 
@@ -179,50 +166,22 @@ jar {
     finalizedBy daemonJar
 }
 
-task daemonNativeImage {
-    dependsOn( daemonJar )
-    doFirst {
-//      nativeImage.jarFile.set( daemonJar.archiveFile.get().asFile );
-        nativeImage.setJarFile project.provider( () -> daemonJar.archiveFile.get().asFile ) as Provider< File >
-        graal {
-            mainClass "org.ranflood.daemon.Ranflood"
-//            graalVersion "21.0.0.2"
-//            javaVersion "11"
-			graalVersion "22.0.0.2"
-            javaVersion "17"
-			outputName "ranfloodd"
-            option '--no-fallback'
-            option "-H:IncludeResources=.*/*.properties"
-            option "-cp"
-            option sourceSets.daemon.output.join(File.pathSeparator) + File.pathSeparator +
-                    sourceSets.common.output.join(File.pathSeparator) + File.pathSeparator +
-                    configurations.daemon.join(File.pathSeparator)
-            windowsVsVarsPath "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat"
-        }
-    }
-    finalizedBy nativeImage
+def genCompileOptions( String imageName, String mainClass, FileCollection classPath ){
+    def defaultTask = tasks.withType(org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask).findByName('nativeCompile')
+    def options = ( org.graalvm.buildtools.gradle.dsl.NativeImageCompileOptions ) defaultTask.options.get()
+    options.setImageName( imageName )
+    options.setMainClass(  mainClass )
+    options.setClasspath( classPath )
+    options.buildArgs.add( "-H:IncludeResources=.*/*.properties" )
+//  windowsVsVarsPath "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat"
+//  option '--no-fallback'
+    return options
 }
 
-task clientNativeImage {
-    dependsOn( clientJar )
-    doFirst {
-//        nativeImage.jarFile.set( clientJar.archiveFile.get().asFile );
-        nativeImage.setJarFile project.provider( () -> clientJar.archiveFile.get().asFile ) as Provider< File >
-        graal {
-            mainClass "org.ranflood.client.Ranflood"
-            //graalVersion "21.0.0.2"
-            //javaVersion "11"
-            graalVersion "22.0.0.2"
-			javaVersion "17"
-			outputName "ranflood"
-            option '--no-fallback'
-            option "-H:IncludeResources=.*/*.properties"
-            option "-cp"
-            option sourceSets.client.output.join(File.pathSeparator) + File.pathSeparator +
-                    sourceSets.common.output.join(File.pathSeparator) + File.pathSeparator +
-                    configurations.client.join(File.pathSeparator)
-            windowsVsVarsPath "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat"
-        }
-    }
-    finalizedBy nativeImage
+tasks.register( "daemonNativeImage", org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask ){
+    options.set( genCompileOptions( "ranfloodd",  "org.ranflood.daemon.Ranflood", sourceSets.daemon.runtimeClasspath ) )
+}
+
+tasks.register( "clientNativeImage", org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask ){
+    options.set( genCompileOptions( "ranflood",  "org.ranflood.client.Ranflood", sourceSets.client.runtimeClasspath ) )
 }
