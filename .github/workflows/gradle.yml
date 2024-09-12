@@ -54,6 +54,7 @@ jobs:
           prerelease: false
 
   build_and_upload:
+    permissions: write-all
     needs: [create_release]
     name: build and upload
     
