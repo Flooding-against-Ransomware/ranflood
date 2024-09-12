@@ -93,6 +93,7 @@ build {
     dependsOn compileCommonJava
     dependsOn compileClientJava
     dependsOn compileDaemonJava
+    dependsOn compileFilecheckerJava
 }
 
 gradle.startParameter.showStacktrace = ShowStacktrace.ALWAYS
@@ -152,6 +153,7 @@ task daemonJar ( type: Jar ) {
 
 
 task filecheckerJar ( type: Jar ) {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
         attributes "Implementation-Title": "Filechecker",
                 "Implementation-Version": "0.3",
@@ -177,8 +179,6 @@ def genCompileOptions( String imageName, String mainClass, FileCollection classP
     options.setMainClass( mainClass )
     options.setClasspath( classPath )
     options.buildArgs.add( "-H:IncludeResources=.*/*.properties" )
-//  windowsVsVarsPath "C:\\Program Files (x86)\\Microsoft Visual Studio\\2017\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat"
-//  option '--no-fallback'
     return options
 }
 

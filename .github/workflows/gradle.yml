@@ -76,12 +76,6 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
         
-      # - name: Add SDK when building under Windows
-      #   if: runner.os == 'Windows'
-      #   run: |
-      #     choco install visualstudio2017-workload-vctools
-      #   shell: cmd
-    
       - name: Build jars (Linux only)
         if: runner.os == 'Linux'
         run: |
