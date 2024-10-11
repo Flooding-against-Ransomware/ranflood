@@ -179,7 +179,7 @@ def genCompileOptions( String imageName, String mainClass, FileCollection classP
 tasks.register('generatePicocliAnnotations', Exec) {
     group = "build"
     description = "Generate picocli configuration file for native image"
-    commandLine 'java', '-cp', sourceSets.client.runtimeClasspath.toList().join(":"), 'picocli.codegen.aot.graalvm.ReflectionConfigGenerator', 'org.ranflood.client.Ranflood'
+    commandLine 'java', '-cp', sourceSets.client.runtimeClasspath.toList().join( File.pathSeparator ), 'picocli.codegen.aot.graalvm.ReflectionConfigGenerator', 'org.ranflood.client.Ranflood'
     standardOutput = new ByteArrayOutputStream()
     doLast {
         def outputFile = new File( "build/config/reflection.json" )
