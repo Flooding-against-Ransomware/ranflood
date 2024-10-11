@@ -40,7 +40,6 @@ configurations {
     common
     client.extendsFrom common
     daemon.extendsFrom common
-    _clientAnnotationProcessor
 }
 
 dependencies {
@@ -48,9 +47,8 @@ dependencies {
     common 'org.slf4j:slf4j-simple:2.0.13'
     common 'org.zeromq:jeromq:0.6.0'
 
-    _clientAnnotationProcessor 'info.picocli:picocli-codegen:4.7.6'
     client 'info.picocli:picocli:4.7.6'
-//    client 'info.picocli:picocli-codegen:4.6.2'
+    client 'info.picocli:picocli-codegen:4.7.6'
 
     daemon 'io.reactivex.rxjava3:rxjava:3.1.8'
     daemon 'com.oblac:nomen-est-omen:2.2.1'
@@ -73,7 +71,7 @@ sourceSets {
     }
     client {
         java.srcDir 'src/client/java/'
-        runtimeClasspath += compileClasspath += configurations.client + configurations._clientAnnotationProcessor + sourceSets.common.output
+        runtimeClasspath += compileClasspath += configurations.client + sourceSets.common.output
     }
     daemon {
         java.srcDir 'src/daemon/java'
@@ -101,9 +99,6 @@ gradle.startParameter.showStacktrace = ShowStacktrace.ALWAYS
 tasks.withType( JavaCompile ) {
     // To enable argument names in reporting and debugging
     options.compilerArgs += "-parameters"
-    // To enable picocli's annotation processor for GraalVM configurations
-    //    options.compilerArgs += [ "-Aproject=org.ranflood/Ranflood" ]
-    //    println options.compilerArgs
 }
 
 build {
@@ -122,8 +117,8 @@ task clientJar ( type: Jar ) {
     }
     manifest {
         attributes "Implementation-Title": "Ranflood Client Jar Package",
-                "Implementation-Version": version,
-                'Main-Class': 'org.ranflood.client.Ranflood'
+                   "Implementation-Version": version,
+                   'Main-Class': 'org.ranflood.client.Ranflood'
     }
     archiveBaseName.set( "ranflood" )
     from sourceSets.client.output
@@ -151,13 +146,12 @@ task daemonJar ( type: Jar ) {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
-
 task filecheckerJar ( type: Jar ) {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
         attributes "Implementation-Title": "Filechecker",
-                "Implementation-Version": "0.3",
-                'Main-Class': 'org.ranflood.filechecker.FileChecker'
+                   "Implementation-Version": "0.3",
+                   'Main-Class': 'org.ranflood.filechecker.FileChecker'
     }
     archiveBaseName.set( "filechecker" )
     from sourceSets.filechecker.output
@@ -172,22 +166,46 @@ jar {
     finalizedBy daemonJar
 }
 
-def genCompileOptions( String imageName, String mainClass, FileCollection classPath ){
+def genCompileOptions( String imageName, String mainClass, FileCollection classPath, Set<String> buildArgs ){
     def defaultTask = tasks.withType( BuildNativeImageTask ).findByName( 'nativeCompile' )
     def options = defaultTask.options.get() as NativeImageCompileOptions
     options.setImageName( imageName )
     options.setMainClass( mainClass )
     options.setClasspath( classPath )
-    options.buildArgs.add( "-H:IncludeResources=.*/*.properties" )
+    buildArgs.forEach { a -> options.buildArgs.add( a ) }
     return options
+}
+
+tasks.register('generatePicocliAnnotations', Exec) {
+    group = "build"
+    description = "Generate picocli configuration file for native image"
+    commandLine 'java', '-cp', sourceSets.client.runtimeClasspath.toList().join(":"), 'picocli.codegen.aot.graalvm.ReflectionConfigGenerator', 'org.ranflood.client.Ranflood'
+    standardOutput = new ByteArrayOutputStream()
+    doLast {
+        def outputFile = new File( "build/config/reflection.json" )
+        outputFile.parentFile.mkdirs()
+        outputFile.text = standardOutput.toString()
+    }
 }
 
 tasks.register( "daemonNativeImage", BuildNativeImageTask ){
     outputDirectory.set( new File( rootProject.layout.buildDirectory.asFile.get(), 'graal' ) )
-    options.set( genCompileOptions( "ranfloodd",  "org.ranflood.daemon.Ranflood", sourceSets.daemon.runtimeClasspath ) as NativeImageOptions )
+    options.set( genCompileOptions(
+            "ranfloodd",
+            "org.ranflood.daemon.Ranflood",
+            sourceSets.daemon.runtimeClasspath,
+            Set.of( "-H:IncludeResources=.*/*.properties" )
+    ) as NativeImageOptions )
 }
 
 tasks.register( "clientNativeImage", BuildNativeImageTask ){
+    dependsOn tasks.named( "generatePicocliAnnotations" )
     outputDirectory.set( new File( rootProject.layout.buildDirectory.asFile.get(), 'graal' ) )
-    options.set( genCompileOptions( "ranflood",  "org.ranflood.client.Ranflood", sourceSets.client.runtimeClasspath ) as NativeImageOptions )
+    options.set( genCompileOptions(
+            "ranflood",
+            "org.ranflood.client.Ranflood",
+            sourceSets.client.runtimeClasspath,
+            Set.of( "-H:IncludeResources=.*/*.properties",
+                    "-H:ReflectionConfigurationFiles=" + rootProject.layout.buildDirectory.file( "config/reflection.json" ).get() )
+    ) as NativeImageOptions )
 }
