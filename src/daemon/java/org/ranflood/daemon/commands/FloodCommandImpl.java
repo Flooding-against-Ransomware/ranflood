@@ -65,15 +65,15 @@ public class FloodCommandImpl {
 					}
 				case SSS_RANSOMWARE:
 					try {
-						id = Ranflood.daemon().SSSRansomwareFlooder().flood( this.type().path() ).toString();
-						return new CommandResult.Successful( "Launched " + this.type().method() + " flood, ID: " + id );
+						id = Ranflood.daemon().SSSRansomwareFlooder().flood( this.type().path() );
+						return new CommandResult.Successful( "Launched " + this.type().method() + " flood, ID: " + id.toString() );
 					} catch ( FlooderException e ) {
 						return new CommandResult.Failed( "Error in launching " + this.type().method() + " flood: " + e.getMessage() );
 					}
 				case SSS_EXFILTRATION:
 					try {
-						id = Ranflood.daemon().SSSExfiltrationFlooder().flood( this.type().path() ).toString();
-						return new CommandResult.Successful( "Launched " + this.type().method() + " flood, ID: " + id );
+						id = Ranflood.daemon().SSSExfiltrationFlooder().flood( this.type().path() );
+						return new CommandResult.Successful( "Launched " + this.type().method() + " flood, ID: " + id.toString() );
 					} catch ( FlooderException e ) {
 						return new CommandResult.Failed( "Error in launching " + this.type().method() + " flood: " + e.getMessage() );
 					}

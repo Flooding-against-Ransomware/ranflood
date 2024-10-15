@@ -228,12 +228,13 @@ public class RanfloodDaemon {
 			serverContainer.setDefaultMaxSessionIdleTimeout(600000); // 10 minute
 		});
 
-		try{
+		try {
 			webSocketServer.start();
 			webSocketServer.join();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
 	public SSSFlooder SSSRansomwareFlooder() {
 		return SSS_RANSOMWARE_FLOODER;
 	}
