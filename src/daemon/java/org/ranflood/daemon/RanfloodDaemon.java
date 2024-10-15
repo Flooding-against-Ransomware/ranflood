@@ -1,5 +1,6 @@
 /******************************************************************************
  * Copyright 2021 (C) by Saverio Giallorenzo <saverio.giallorenzo@gmail.com>  *
+ * modified in 2024 by Daniele D'Ugo <danieledugo1@gmail.com>                 *
  *                                                                            *
  * This program is free software; you can redistribute it and/or modify       *
  * it under the terms of the GNU Library General Public License as            *
@@ -27,8 +28,10 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.websocket.jakarta.server.config.JakartaWebSocketServletContainerInitializer;
 import org.ranflood.daemon.binders.WebSocketServer;
+import org.ranflood.common.FloodMethod;
 import org.ranflood.daemon.binders.ZMQ_JSON_Server;
 import org.ranflood.daemon.flooders.FloodTaskExecutor;
+import org.ranflood.daemon.flooders.SSS.SSSFlooder;
 import org.ranflood.daemon.flooders.onTheFly.OnTheFlyFlooder;
 import org.ranflood.daemon.flooders.random.RandomFlooder;
 import org.ranflood.common.utils.IniParser;
@@ -46,6 +49,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import static java.lang.Integer.parseInt;
 import static org.ranflood.common.RanfloodLogger.error;
 import static org.ranflood.common.RanfloodLogger.log;
 
@@ -59,6 +63,8 @@ public class RanfloodDaemon {
 	private static final ExecutorService scheduler = Executors.newFixedThreadPool( 2 * Runtime.getRuntime().availableProcessors() );
 	private final RandomFlooder RANDOM_FLOODER;
 	private final OnTheFlyFlooder ON_THE_FLY_FLOODER;
+	private final SSSFlooder SSS_RANSOMWARE_FLOODER;
+	private final SSSFlooder SSS_EXFILTRATION_FLOODER;
 	private final ShadowCopyFlooder SHADOW_COPY_FLOODER;
 	static private Emitter< Runnable > emitter;
 
@@ -79,7 +85,7 @@ public class RanfloodDaemon {
 		try {
 			settings = new IniParser( settingsFilePath.toAbsolutePath().toString() );
 		} catch ( IOException e ) {
-			throw new IOException( "Cloud not find setting file at: " + settingsFilePath.toAbsolutePath() );
+			throw new IOException( "Could not find setting file at: " + settingsFilePath.toAbsolutePath() );
 		}
 		Optional< String > random_opt_max_size = settings.getValue( "RandomFlooder", "MaxFileSize" );
 		RANDOM_FLOODER = random_opt_max_size.isEmpty() ? new RandomFlooder() : new RandomFlooder( random_opt_max_size.get() );
@@ -108,6 +114,68 @@ public class RanfloodDaemon {
 							return archiveRoot;
 						} ) ),
 						Arrays.stream( shadow_copy_opt_exclude_folder_names.orElse( "" ).split( "," ) ).map( String::trim ).collect( Collectors.toSet() )
+		);
+		Optional< String > sss_opt_exfiltration_exclude_folder_names = settings.getValue( "SSSExfiltration", "ExcludeFolderNames" );
+		Optional< Integer > sss_opt_exfiltration_n = settings.getValue( "SSSExfiltration", "ShardsCreated" ).map(
+				(value) -> {
+					try {
+						return parseInt(value);
+					} catch (NumberFormatException e) {
+						return null;
+					}
+				}
+		);
+		Optional< Integer > sss_opt_exfiltration_k = settings.getValue( "SSSExfiltration", "ShardsNeededP" ).map(
+				(value) -> {
+					try {
+						return parseInt(value);
+					} catch (NumberFormatException e) {
+						return null;
+					}
+				}
+		);
+		Optional< Boolean > sss_opt_exfiltration_remove_originals = settings.getValue( "SSSExfiltration", "RemoveOriginals" ).map(
+                Boolean::parseBoolean
+		);
+		SSS_EXFILTRATION_FLOODER = new SSSFlooder(
+				Arrays.stream(sss_opt_exfiltration_exclude_folder_names.orElse("").split(",")).map(String::trim).collect(Collectors.toSet()),
+				FloodMethod.SSS_EXFILTRATION,
+				new SSSFlooder.Parameters(
+						sss_opt_exfiltration_n.orElse(null),
+						sss_opt_exfiltration_k.orElse(null),
+						sss_opt_exfiltration_remove_originals.orElse(null)
+				)
+		);
+		Optional< String > sss_opt_ransomware_exclude_folder_names = settings.getValue( "SSSExfiltration", "ExcludeFolderNames" );
+		Optional< Integer > sss_opt_ransomware_n = settings.getValue( "SSSRansomware", "ShardsCreated" ).map(
+				(value) -> {
+					try {
+						return parseInt(value);
+					} catch (NumberFormatException e) {
+						return null;
+					}
+				}
+		);
+		Optional< Integer > sss_opt_ransomware_k = settings.getValue( "SSSRansomware", "ShardsNeeded" ).map(
+				(value) -> {
+					try {
+						return parseInt(value);
+					} catch (NumberFormatException e) {
+						return null;
+					}
+				}
+		);
+		Optional< Boolean > sss_opt_ransomware_remove_originals = settings.getValue( "SSSRansomware", "RemoveOriginals" ).map(
+                Boolean::parseBoolean
+		);
+		SSS_RANSOMWARE_FLOODER = new SSSFlooder(
+				Arrays.stream(sss_opt_ransomware_exclude_folder_names.orElse("").split(",")).map(String::trim).collect(Collectors.toSet()),
+				FloodMethod.SSS_RANSOMWARE,
+				new SSSFlooder.Parameters(
+						sss_opt_ransomware_n.orElse(null),
+						sss_opt_ransomware_k.orElse(null),
+						sss_opt_ransomware_remove_originals.orElse(null)
+				)
 		);
 		log( "Ranflood Daemon (ranfloodd) version " + Ranflood.version() + " started." );
 	}
@@ -161,12 +229,19 @@ public class RanfloodDaemon {
 			serverContainer.setDefaultMaxSessionIdleTimeout(600000); // 10 minute
 		});
 
-		try{
+		try {
 			webSocketServer.start();
 			webSocketServer.join();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+	public SSSFlooder SSSRansomwareFlooder() {
+		return SSS_RANSOMWARE_FLOODER;
+	}
+
+	public SSSFlooder SSSExfiltrationFlooder() {
+		return SSS_EXFILTRATION_FLOODER;
 	}
 
 	public void shutdown() {
@@ -191,6 +266,7 @@ public class RanfloodDaemon {
 			}
 		}
 
+		SSS_RANSOMWARE_FLOODER.shutdown();
 		System.exit( 0 );
 	}
 
@@ -200,14 +276,14 @@ public class RanfloodDaemon {
 
 		// Start the HTTP server
 		try {
-			startHttpServer(8081);
+			startHttpServer( parseInt(settings.getValue("HTTP_Server", "port").orElse("8081")));
 		} catch (IOException e) {
 			error("Failed to start HTTP server: " + e.getMessage());
 		}
 
 		// Start WebSocket server
 		try {
-			startWebsocketServer(8080);
+			startWebsocketServer( parseInt(settings.getValue("WEBSOCKET_Server", "port").orElse("8080")));
 		} catch (IOException e) {
 			error("Failed to start websocket server: " + e.getMessage());
 		}

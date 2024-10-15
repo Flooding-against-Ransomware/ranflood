@@ -21,6 +21,7 @@
 
 package org.ranflood.filechecker;
 
+import org.ranflood.filechecker.subcommands.RestoreCommand;
 import picocli.CommandLine;
 import org.ranflood.filechecker.subcommands.CheckCommand;
 import org.ranflood.filechecker.subcommands.SaveCommand;
@@ -34,7 +35,8 @@ import java.util.concurrent.Callable;
 				description = { "Filechecker" },
 				subcommands = {
 								SaveCommand.class,
-								CheckCommand.class
+								CheckCommand.class,
+								RestoreCommand.class
 				}
 )
 public class FileChecker implements Callable< Integer > {

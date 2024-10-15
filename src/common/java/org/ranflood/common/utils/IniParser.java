@@ -68,7 +68,7 @@ public class IniParser {
 		if ( kv == null || kv.isEmpty() ) {
 			return Optional.empty();
 		}
-		return Optional.of( kv.get( key ) );
+		return Optional.ofNullable( kv.get( key ) );
 	}
 
 }

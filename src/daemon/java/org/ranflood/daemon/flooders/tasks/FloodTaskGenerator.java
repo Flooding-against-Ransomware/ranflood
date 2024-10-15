@@ -31,6 +31,12 @@ public abstract class FloodTaskGenerator extends FloodTask {
 		super( filePath, floodMethod );
 	}
 
-	public abstract List< WriteFileTask > getFileTasks();
+	public abstract List< FileTask > getFileTasks();
+
+	/**
+	 * Single-use tasks are expected to only be returned once by this method, and then go lost.
+	 * @return a list of tasks, which are then removed
+	 */
+	public abstract List< FileTask > getSingleUseFileTasks();
 
 }

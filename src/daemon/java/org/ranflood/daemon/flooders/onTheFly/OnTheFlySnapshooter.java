@@ -51,7 +51,7 @@ public class OnTheFlySnapshooter extends Snapshooter {
 		exclusionList = Ranflood.daemon().onTheFlyFlooder().exclusionList();
 	}
 
-	static void takeSnapshot( Path filePath ) throws SnapshotException {
+	public static void takeSnapshot(Path filePath) throws SnapshotException {
 		log( "Taking ON_THE_FLY snapshot " + filePath );
 		File file = filePath.toFile();
 		if ( file.exists() && file.isDirectory() && !Files.isSymbolicLink( filePath ) ) {
@@ -66,14 +66,14 @@ public class OnTheFlySnapshooter extends Snapshooter {
 		}
 	}
 
-	static void removeSnapshot( Path filePath ) {
+	public static void removeSnapshot(Path filePath) {
 		String key = filePath.toAbsolutePath().toString();
 		INSTANCE.signaturesDatabase.executeInExclusiveTransaction( t ->
 						INSTANCE.signaturesDatabase.removeStore( key, t )
 		);
 	}
 
-	static List< Path > listSnapshots() {
+	public static List< Path > listSnapshots() {
 		final LinkedList< Path > l = new LinkedList<>();
 		INSTANCE.signaturesDatabase.executeInExclusiveTransaction( t ->
 						INSTANCE.signaturesDatabase.getAllStoreNames( t ).forEach( s -> l.add( Path.of( s ) ) )
@@ -114,7 +114,7 @@ public class OnTheFlySnapshooter extends Snapshooter {
 
 	}
 
-	static String getSnapshot( Path snapshotParent, Path filepath ) throws SnapshotException {
+	public static String getSnapshot( Path snapshotParent, Path filepath ) throws SnapshotException {
 		if ( filepath.toFile().isDirectory() ) {
 			throw new SnapshotException( "Snapshots correspond only to files, passed directory " + filepath.toAbsolutePath() );
 		} else {
