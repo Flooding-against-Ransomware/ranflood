@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -44,7 +45,7 @@ public class JSONTranscoder {
 
 		jsonObject.put("status", requestStatus.getStatus());
 		jsonObject.put("id", requestStatus.getId().toString());
-		jsonObject.put("errorMsg", requestStatus.getErrorMsg());
+		jsonObject.put("data", requestStatus.getData());
 		jsonObject.put("timestamp", requestStatus.getTimestamp().toString());
 
 		return jsonObject.toString();
@@ -106,6 +107,9 @@ public class JSONTranscoder {
 		} else if ( c instanceof FloodCommand.List ) {
 			obj.put( "command", "flood" );
 			obj.put( "subcommand", "list" );
+		} else if ( c instanceof VersionCommand.Get) {
+			obj.put( "command", "version" );
+			obj.put( "subcommand", "get" );
 		}
 		return obj;
 	}
@@ -136,6 +140,20 @@ public class JSONTranscoder {
 		this.m = m;
 	}
 
+	public static UUID extractIdFromJson(String m ) throws ParseException {
+		try{
+			Json.Object jsonObject = Json.parse( m ).asObject();
+			String id = jsonObject.getString("id");
+			if (id == null || id.isEmpty()) {
+				return UUID.randomUUID();
+			} else {
+				return UUID.fromString(id);
+			}
+		} catch ( IOException e ) {
+			throw new ParseException( e.getMessage() );
+		}
+	}
+
 	public static Command< ? > fromJson( String m ) throws ParseException {
 		return new JSONTranscoder( m ).fromJson();
 	}
@@ -152,8 +170,6 @@ public class JSONTranscoder {
 					return parseFloodCommand( jsonObject, subcommand );
 				case "version":
 					return parseVersionCommand( jsonObject, subcommand );
-				case "buffer":
-					return parseBufferCommand( jsonObject, subcommand );
 				default:
 					throw new ParseException( "Unrecognised command '" + command + "'." );
 			}
@@ -179,15 +195,6 @@ public class JSONTranscoder {
 		switch ( subcommand ) {
 			case "get":
 				return new VersionCommand.Get();
-			default:
-				throw new ParseException( "Unrecognized subcommand '" + subcommand + "'" );
-		}
-	}
-
-	private Command< ? > parseBufferCommand( Json.Object jsonObject, String subcommand ) throws ParseException {
-		switch ( subcommand ) {
-			case "get":
-				return new BufferCommand.Get(getString( getJsonObject( jsonObject, "parameters" ), "id" ) );
 			default:
 				throw new ParseException( "Unrecognized subcommand '" + subcommand + "'" );
 		}

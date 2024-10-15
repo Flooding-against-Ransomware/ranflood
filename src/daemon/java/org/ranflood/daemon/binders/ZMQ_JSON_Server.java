@@ -22,7 +22,6 @@
 package org.ranflood.daemon.binders;
 
 import org.ranflood.common.commands.Command;
-import org.ranflood.common.commands.FloodCommand;
 import org.ranflood.common.commands.SnapshotCommand;
 import org.ranflood.daemon.Ranflood;
 import org.ranflood.common.commands.transcoders.JSONTranscoder;
@@ -40,6 +39,7 @@ import java.util.UUID;
 
 import static org.ranflood.common.RanfloodLogger.error;
 import static org.ranflood.common.RanfloodLogger.log;
+import static org.ranflood.daemon.utils.BindCmdToImpl.bindToImpl;
 
 public class ZMQ_JSON_Server {
 
@@ -100,32 +100,6 @@ public class ZMQ_JSON_Server {
 			}
 		} );
 	}
-
-	private static Command< ? > bindToImpl( Command< ? > command ) {
-		if ( command instanceof SnapshotCommand.Add ) {
-			return new SnapshotCommandImpl.Add( ( ( SnapshotCommand.Add ) command ).type() );
-		}
-		if ( command instanceof SnapshotCommand.Remove ) {
-			return new SnapshotCommandImpl.Remove( ( ( SnapshotCommand.Remove ) command ).type() );
-		}
-		if ( command instanceof SnapshotCommand.List ) {
-			return new SnapshotCommandImpl.List();
-		}
-		if ( command instanceof FloodCommand.Start ) {
-			return new FloodCommandImpl.Start( ( ( FloodCommand.Start ) command ).type() );
-		}
-		if ( command instanceof FloodCommand.Stop ) {
-			return new FloodCommandImpl.Stop(
-							( ( FloodCommand.Stop ) command ).method(),
-							( ( FloodCommand.Stop ) command ).id()
-			);
-		}
-		if ( command instanceof FloodCommand.List ) {
-			return new FloodCommandImpl.List();
-		}
-		throw new UnsupportedOperationException( "" );
-	}
-
 	public static void shutdown() {
 		log( "Shutting down ZMQ_JSON_Server" );
 		context.close();

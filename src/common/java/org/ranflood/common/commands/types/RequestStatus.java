@@ -10,7 +10,7 @@ public class RequestStatus {
     private final UUID id;
     private String status;
     private Instant timestamp;
-    private String  errorMsg;
+    private String  data;
 
     public RequestStatus(Command< ? > command, String status, UUID id) {
         this.command = command;
@@ -43,9 +43,9 @@ public class RequestStatus {
         this.timestamp = Instant.now();
     }
 
-    public void setErrorMsg(String errorMsg) {
-        this.errorMsg = errorMsg;
+    public void setData(String data) {
+        this.data = data;
     }
 
-    public String getErrorMsg() { return this.errorMsg; }
+    public String getData() { return this.data; }
 }

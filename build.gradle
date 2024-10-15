@@ -45,7 +45,9 @@ configurations {
 
 dependencies {
     common 'com.republicate:essential-json:2.6.4'
-    common 'org.slf4j:slf4j-simple:1.7.36'
+//    common 'org.slf4j:slf4j-simple:1.7.36'
+    common 'org.slf4j:slf4j-api:2.0.7'
+    common 'org.slf4j:slf4j-simple:2.0.7'
     common  'org.zeromq:jeromq:0.5.2'
 
     _clientAnnotationProcessor 'info.picocli:picocli-codegen:4.6.3'
@@ -58,6 +60,11 @@ dependencies {
     daemon 'org.jetbrains.xodus:xodus-environment:1.3.232'
     daemon 'org.apache.commons:commons-compress:1.21'
     daemon 'commons-io:commons-io:2.11.0'
+
+    daemon 'org.eclipse.jetty:jetty-server:11.0.15'
+    daemon 'org.eclipse.jetty:jetty-servlet:11.0.15'
+    daemon 'org.eclipse.jetty.websocket:websocket-jakarta-server:11.0.15'
+    daemon 'jakarta.websocket:jakarta.websocket-api:2.0.0'
 }
 
 //tasks.withType(JavaCompile) {
