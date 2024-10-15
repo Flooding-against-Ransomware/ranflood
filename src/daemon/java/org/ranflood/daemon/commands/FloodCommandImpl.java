@@ -63,6 +63,20 @@ public class FloodCommandImpl {
 					} catch ( FlooderException e ) {
 						return new CommandResult.Failed( "Error in launching " + this.type().method() + " flood: " + e.getMessage() );
 					}
+				case SSS_RANSOMWARE:
+					try {
+						id = Ranflood.daemon().SSSRansomwareFlooder().flood( this.type().path() ).toString();
+						return new CommandResult.Successful( "Launched " + this.type().method() + " flood, ID: " + id );
+					} catch ( FlooderException e ) {
+						return new CommandResult.Failed( "Error in launching " + this.type().method() + " flood: " + e.getMessage() );
+					}
+				case SSS_EXFILTRATION:
+					try {
+						id = Ranflood.daemon().SSSExfiltrationFlooder().flood( this.type().path() ).toString();
+						return new CommandResult.Successful( "Launched " + this.type().method() + " flood, ID: " + id );
+					} catch ( FlooderException e ) {
+						return new CommandResult.Failed( "Error in launching " + this.type().method() + " flood: " + e.getMessage() );
+					}
 				default:
 					return new CommandResult.Failed( "Unrecognized method: " + this.type().method().name() );
 			}
@@ -100,6 +114,20 @@ public class FloodCommandImpl {
 					} catch ( FlooderException e ) {
 						return new CommandResult.Failed( "Error trying to stop " + this.method() + " flood, ID: " + this.id() );
 					}
+				case SSS_RANSOMWARE:
+					try {
+						Ranflood.daemon().SSSRansomwareFlooder().stopFlood( UUID.fromString( this.id() ) );
+						return new CommandResult.Successful( "Stopped " + this.method() + " flood, ID: " + this.id() );
+					} catch ( FlooderException e ) {
+						return new CommandResult.Failed( "Error trying to stop " + this.method() + " flood, ID: " + this.id() );
+					}
+				case SSS_EXFILTRATION:
+					try {
+						Ranflood.daemon().SSSExfiltrationFlooder().stopFlood( UUID.fromString( this.id() ) );
+						return new CommandResult.Successful( "Stopped " + this.method() + " flood, ID: " + this.id() );
+					} catch ( FlooderException e ) {
+						return new CommandResult.Failed( "Error trying to stop " + this.method() + " flood, ID: " + this.id() );
+					}
 				default:
 					return new CommandResult.Failed( "Unrecognized method: " + this.method().name() );
 			}
@@ -115,14 +143,20 @@ public class FloodCommandImpl {
 
 		@Override
 		public java.util.List< RanfloodType.Tagged > execute(UUID id) {
-			return Stream.concat( Stream.concat(
-											Ranflood.daemon().randomFlooder()
+			return Stream.concat( Stream.concat( Stream.concat( Stream.concat(
+											Ranflood.daemon().SSSRansomwareFlooder()
 															.currentRunningTasksSnapshotList().stream(),
-											Ranflood.daemon().onTheFlyFlooder()
+											Ranflood.daemon().SSSExfiltrationFlooder()
 															.currentRunningTasksSnapshotList().stream()
+									),
+									Ranflood.daemon().randomFlooder()
+													.currentRunningTasksSnapshotList().stream()
 							),
-							Ranflood.daemon().shadowCopyFlooder()
+							Ranflood.daemon().onTheFlyFlooder()
 											.currentRunningTasksSnapshotList().stream()
+					),
+					Ranflood.daemon().shadowCopyFlooder()
+									.currentRunningTasksSnapshotList().stream()
 			).map( t -> new RanfloodType.Tagged(
 											t.floodTask().floodMethod(),
 											t.floodTask().filePath().toAbsolutePath(),

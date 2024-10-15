@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright 2021 (C) by Saverio Giallorenzo <saverio.giallorenzo@gmail.com>  *
+ * Copyright 2024 (C) by Daniele D'Ugo <danieledugo1@gmail.com>               *
  *                                                                            *
  * This program is free software; you can redistribute it and/or modify       *
  * it under the terms of the GNU Library General Public License as            *
@@ -19,33 +19,50 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.common;
+package org.ranflood.daemon.flooders.tasks;
 
-import org.ranflood.common.commands.transcoders.ParseException;
+import org.ranflood.common.FloodMethod;
 
-public enum FloodMethod {
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-	RANDOM,
-	ON_THE_FLY,
-	SHADOW_COPY,
-	SSS_RANSOMWARE,
-	SSS_EXFILTRATION;
+import static org.ranflood.common.RanfloodLogger.error;
 
-	public static FloodMethod getMethod( String method ) throws ParseException {
-		switch ( method ) {
-			case "RANDOM":
-				return FloodMethod.RANDOM;
-			case "ON_THE_FLY":
-				return FloodMethod.ON_THE_FLY;
-			case "SHADOW_COPY":
-				return FloodMethod.SHADOW_COPY;
-			case "SSS_RANSOMWARE":
-				return FloodMethod.SSS_RANSOMWARE;
-			case "SSS_EXFILTRATION":
-				return FloodMethod.SSS_EXFILTRATION;
-			default:
-				throw new ParseException( "Unrecognized method " + method );
-		}
+public class RemoveFileTask implements FileTask {
+	private final Path filePath;
+	private final FloodMethod floodMethod;
+
+	public RemoveFileTask(Path filePath, FloodMethod floodMethod ) {
+		this.filePath = filePath;
+		this.floodMethod = floodMethod;
+	}
+
+	public Path filePath() {
+		return filePath;
+	}
+
+	public byte[] content() {
+		throw new UnsupportedOperationException( "RemoveFileTask has no content." );
+	}
+
+	public FloodMethod floodMethod() {
+		return floodMethod;
+	}
+
+	public Runnable getRunnableTask() {
+		return () -> {
+			try {
+				if(Files.exists(filePath)) {
+					Files.delete(filePath);
+				}
+			} catch ( IOException e ) {
+				error( e.getMessage() );
+			}
+		};
 	}
 
 }

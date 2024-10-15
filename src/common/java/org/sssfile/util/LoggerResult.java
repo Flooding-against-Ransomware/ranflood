@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright 2021 (C) by Saverio Giallorenzo <saverio.giallorenzo@gmail.com>  *
+ * Copyright 2024 (C) by Daniele D'Ugo <danieledugo1@gmail.com>               *
  *                                                                            *
  * This program is free software; you can redistribute it and/or modify       *
  * it under the terms of the GNU Library General Public License as            *
@@ -19,33 +19,49 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.common;
+ package org.sssfile.util;
 
-import org.ranflood.common.commands.transcoders.ParseException;
+import org.ranflood.common.utils.Pair;
 
-public enum FloodMethod {
+import java.util.LinkedList;
 
-	RANDOM,
-	ON_THE_FLY,
-	SHADOW_COPY,
-	SSS_RANSOMWARE,
-	SSS_EXFILTRATION;
 
-	public static FloodMethod getMethod( String method ) throws ParseException {
-		switch ( method ) {
-			case "RANDOM":
-				return FloodMethod.RANDOM;
-			case "ON_THE_FLY":
-				return FloodMethod.ON_THE_FLY;
-			case "SHADOW_COPY":
-				return FloodMethod.SHADOW_COPY;
-			case "SSS_RANSOMWARE":
-				return FloodMethod.SSS_RANSOMWARE;
-			case "SSS_EXFILTRATION":
-				return FloodMethod.SSS_EXFILTRATION;
-			default:
-				throw new ParseException( "Unrecognized method " + method );
-		}
+
+public class LoggerResult {
+
+	/* stats */
+	public int n_analyzed				= 0;
+	public int n_original_files		    = 0;
+	public int n_errors				    = 0;
+	public int n_files_bad_hash		    = 0;
+	public int n_files_restored		    = 0;
+	public int n_files_unrecoverable	= 0;
+	public int n_shards_deleted		    = 0;
+	public int n_shards_valid			= 0;
+
+	/* Restored files, for report */
+	public final FileInfoList files_recovered			= new FileInfoList();
+	public final FileInfoList files_error_insufficient	= new FileInfoList();
+	public final FileInfoList files_error_checksum		= new FileInfoList();
+	public final FileInfoList files_error_other		    = new FileInfoList();
+
+
+    public static class FileInfo extends Pair<String, String> {
+
+        public FileInfo(String absolute_path, String info) {
+            super(absolute_path, info);
+        }
+
+        public String getAbsolutePath() {
+            return this.left();
+        }
+        public String getInfo() {
+            return this.right();
+        }
+    }
+
+	public static class FileInfoList extends LinkedList<FileInfo> {
+
 	}
 
 }

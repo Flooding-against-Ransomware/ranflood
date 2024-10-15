@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright 2021 (C) by Saverio Giallorenzo <saverio.giallorenzo@gmail.com>  *
+ * Copyright 2024 (C) by Daniele D'Ugo <danieledugo1@gmail.com>               *
  *                                                                            *
  * This program is free software; you can redistribute it and/or modify       *
  * it under the terms of the GNU Library General Public License as            *
@@ -19,33 +19,26 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.common;
+ package org.sssfile.files;
 
-import org.ranflood.common.commands.transcoders.ParseException;
+import java.util.*;
 
-public enum FloodMethod {
 
-	RANDOM,
-	ON_THE_FLY,
-	SHADOW_COPY,
-	SSS_RANSOMWARE,
-	SSS_EXFILTRATION;
+public class RestoredFilesList extends LinkedHashMap<Integer, OriginalFile> {
 
-	public static FloodMethod getMethod( String method ) throws ParseException {
-		switch ( method ) {
-			case "RANDOM":
-				return FloodMethod.RANDOM;
-			case "ON_THE_FLY":
-				return FloodMethod.ON_THE_FLY;
-			case "SHADOW_COPY":
-				return FloodMethod.SHADOW_COPY;
-			case "SSS_RANSOMWARE":
-				return FloodMethod.SSS_RANSOMWARE;
-			case "SSS_EXFILTRATION":
-				return FloodMethod.SSS_EXFILTRATION;
-			default:
-				throw new ParseException( "Unrecognized method " + method );
+
+	public void addShard(ShardFile shard) {
+
+		OriginalFile original_file = get(shard.hashCode());
+		if(original_file == null) {
+			original_file = shard.getOriginalFile();
+			put(shard.hashCode(), original_file);
 		}
+		
+		original_file.addPart(shard.key, shard.shard);
+		original_file.addShardPath(shard.path);
+
 	}
+
 
 }

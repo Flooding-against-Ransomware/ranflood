@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright 2021 (C) by Saverio Giallorenzo <saverio.giallorenzo@gmail.com>  *
+ * Copyright 2024 (C) by Daniele D'Ugo <danieledugo1@gmail.com>               *
  *                                                                            *
  * This program is free software; you can redistribute it and/or modify       *
  * it under the terms of the GNU Library General Public License as            *
@@ -19,33 +19,94 @@
  * For details about the authors of this software, see the AUTHORS file.      *
  ******************************************************************************/
 
-package org.ranflood.common;
+ package org.sssfile.util;
 
-import org.ranflood.common.commands.transcoders.ParseException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.time.LocalDateTime;
 
-public enum FloodMethod {
 
-	RANDOM,
-	ON_THE_FLY,
-	SHADOW_COPY,
-	SSS_RANSOMWARE,
-	SSS_EXFILTRATION;
 
-	public static FloodMethod getMethod( String method ) throws ParseException {
-		switch ( method ) {
-			case "RANDOM":
-				return FloodMethod.RANDOM;
-			case "ON_THE_FLY":
-				return FloodMethod.ON_THE_FLY;
-			case "SHADOW_COPY":
-				return FloodMethod.SHADOW_COPY;
-			case "SSS_RANSOMWARE":
-				return FloodMethod.SSS_RANSOMWARE;
-			case "SSS_EXFILTRATION":
-				return FloodMethod.SSS_EXFILTRATION;
-			default:
-				throw new ParseException( "Unrecognized method " + method );
+public class Logger {
+
+	protected final int n;
+	protected final int k;
+	
+	// where to print all logs
+	protected final Path path_log;
+
+	/* logging levels */
+	protected final boolean debug_dev;
+
+	protected LocalDateTime time_start;
+
+
+
+	public Logger(int n, int k) {
+
+		this.n = n;
+		this.k = k;
+		
+		path_log = null;
+
+		debug_dev = false;
+	}
+
+	public Logger(int n, int k, Path log, boolean debug_dev) {
+		
+		this.n = n;
+		this.k = k;
+
+		if(log != null)
+			// create copy
+			path_log = log.toAbsolutePath();
+		else
+			path_log = null;
+
+		this.debug_dev = debug_dev;
+	}
+
+
+	
+	/**
+	 * Log, with a newline.
+	 * @param message
+	 */
+	public void logLine(String message) {
+		System.out.println(message);
+
+		if(path_log != null) {
+			try {
+				Files.writeString( path_log,
+					message + System.lineSeparator(),
+					StandardOpenOption.CREATE, StandardOpenOption.APPEND
+				);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
+
+	/**
+	 * Log at debug level.
+	 * @param message
+	 */
+	public void logDebug(String message) {
+		if(debug_dev)
+			logLine(message);
+	}
+
+
+
+	/* actions */
+
+	public void start() {
+		time_start = LocalDateTime.now();
+		logLine("Start - (n, k) = (" + n + ", " + k + ") - " + time_start);
+	}
+
+
 
 }
