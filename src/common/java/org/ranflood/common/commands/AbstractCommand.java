@@ -23,6 +23,8 @@ package org.ranflood.common.commands;
 
 import org.ranflood.common.commands.types.RanfloodType;
 
+import java.util.UUID;
+
 public abstract class AbstractCommand< T > implements Command< T > {
 
 	private final RanfloodType type;
@@ -43,7 +45,7 @@ public abstract class AbstractCommand< T > implements Command< T > {
 	}
 
 	@Override
-	public T execute() {
+	public T execute(UUID id) {
 		throw new UnsupportedOperationException( "Execution is not implemented by the AbstractCommand class" );
 	}
 }

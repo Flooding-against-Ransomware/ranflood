@@ -22,7 +22,6 @@
 package org.ranflood.daemon.binders;
 
 import org.ranflood.common.commands.Command;
-import org.ranflood.common.commands.FloodCommand;
 import org.ranflood.common.commands.SnapshotCommand;
 import org.ranflood.daemon.Ranflood;
 import org.ranflood.common.commands.transcoders.JSONTranscoder;
@@ -36,9 +35,11 @@ import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.ranflood.common.RanfloodLogger.error;
 import static org.ranflood.common.RanfloodLogger.log;
+import static org.ranflood.daemon.utils.BindCmdToImpl.bindToImpl;
 
 public class ZMQ_JSON_Server {
 
@@ -57,13 +58,16 @@ public class ZMQ_JSON_Server {
 			while ( !context.isClosed() ) {
 				try {
 					String request = new String( socket.recv(), ZMQ.CHARSET );
+					UUID id = UUID.randomUUID();
+
 					Ranflood.daemon().executeCommand( () -> {
 						log( "Server received [" + request + "]" );
 						try {
 							Command< ? > command = bindToImpl( JSONTranscoder.fromJson( request ) );
+
 							if ( command.isAsync() ) {
 								Ranflood.daemon().executeCommand( () -> {
-									Object result = command.execute();
+									Object result = command.execute(id);
 									if ( result instanceof CommandResult.Successful ) {
 										log( ( ( CommandResult.Successful ) result ).message() );
 									} else {
@@ -74,8 +78,8 @@ public class ZMQ_JSON_Server {
 							} else {
 								List< ? extends RanfloodType > l =
 												( command instanceof SnapshotCommand.List ) ?
-																( ( SnapshotCommandImpl.List ) command ).execute()
-																: ( ( FloodCommandImpl.List ) command ).execute();
+																( ( SnapshotCommandImpl.List ) command ).execute(id)
+																: ( ( FloodCommandImpl.List ) command ).execute(id);
 								socket.send( JSONTranscoder.wrapListRanfloodType( l ) );
 							}
 						} catch ( ParseException e ) {
@@ -96,32 +100,6 @@ public class ZMQ_JSON_Server {
 			}
 		} );
 	}
-
-	private static Command< ? > bindToImpl( Command< ? > command ) {
-		if ( command instanceof SnapshotCommand.Add ) {
-			return new SnapshotCommandImpl.Add( ( ( SnapshotCommand.Add ) command ).type() );
-		}
-		if ( command instanceof SnapshotCommand.Remove ) {
-			return new SnapshotCommandImpl.Remove( ( ( SnapshotCommand.Remove ) command ).type() );
-		}
-		if ( command instanceof SnapshotCommand.List ) {
-			return new SnapshotCommandImpl.List();
-		}
-		if ( command instanceof FloodCommand.Start ) {
-			return new FloodCommandImpl.Start( ( ( FloodCommand.Start ) command ).type() );
-		}
-		if ( command instanceof FloodCommand.Stop ) {
-			return new FloodCommandImpl.Stop(
-							( ( FloodCommand.Stop ) command ).method(),
-							( ( FloodCommand.Stop ) command ).id()
-			);
-		}
-		if ( command instanceof FloodCommand.List ) {
-			return new FloodCommandImpl.List();
-		}
-		throw new UnsupportedOperationException( "" );
-	}
-
 	public static void shutdown() {
 		log( "Shutting down ZMQ_JSON_Server" );
 		context.close();

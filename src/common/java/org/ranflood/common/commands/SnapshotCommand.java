@@ -24,6 +24,8 @@ package org.ranflood.common.commands;
 import org.ranflood.common.commands.types.RanfloodType;
 import org.ranflood.common.commands.types.CommandResult;
 
+import java.util.UUID;
+
 import static org.ranflood.common.RanfloodLogger.error;
 
 public class SnapshotCommand {
@@ -50,7 +52,7 @@ public class SnapshotCommand {
 	public static class List implements Command< java.util.List< RanfloodType > > {
 
 		@Override
-		public java.util.List< RanfloodType > execute() {
+		public java.util.List< RanfloodType > execute(UUID id) {
 			error( "Unsupported exception" );
 			throw new UnsupportedOperationException( "Execution is not implemented by the AbstractCommand class" );
 		}

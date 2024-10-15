@@ -25,6 +25,8 @@ import org.ranflood.common.commands.types.RanfloodType;
 import org.ranflood.common.commands.types.CommandResult;
 import org.ranflood.common.FloodMethod;
 
+import java.util.UUID;
+
 public class FloodCommand {
 
 	private FloodCommand() {
@@ -62,7 +64,7 @@ public class FloodCommand {
 		}
 
 		@Override
-		public CommandResult execute() {
+		public CommandResult execute(UUID id) {
 			throw new UnsupportedOperationException( "Execution is not implemented by the FloodCommand.Stop class" );
 		}
 
@@ -71,7 +73,7 @@ public class FloodCommand {
 	public static class List implements Command< java.util.List< RanfloodType.Tagged > > {
 
 		@Override
-		public java.util.List< RanfloodType.Tagged > execute() {
+		public java.util.List< RanfloodType.Tagged > execute(UUID id) {
 			throw new UnsupportedOperationException( "Execution is not implemented by the AbstractCommand class" );
 		}
 

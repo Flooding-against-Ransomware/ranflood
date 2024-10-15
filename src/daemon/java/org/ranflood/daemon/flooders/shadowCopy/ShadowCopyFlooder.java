@@ -47,16 +47,14 @@ public class ShadowCopyFlooder extends AbstractSnapshotFlooder {
 	}
 
 	@Override
-	public UUID flood( Path targetFolder ) throws FlooderException {
+	public void flood( Path targetFolder, UUID id ) throws FlooderException {
 		try {
 			ShadowCopyFloodTask t =
 							new ShadowCopyFloodTask( targetFolder, METHOD,
 											ShadowCopySnapshooter.getSnapshotArchivePath( targetFolder ) );
-			UUID id = UUID.randomUUID();
 			LabeledFloodTask lft = new LabeledFloodTask( id, t );
 			addRunningTask( lft );
 			Ranflood.daemon().floodTaskExecutor().addTask( lft );
-			return id;
 		} catch ( SnapshotException e ) {
 			throw new FlooderException( e.getMessage() );
 		}

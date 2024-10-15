@@ -40,6 +40,10 @@ ShardsNeeded = 2
 RemoveOriginals = false
 [ZMQ_JSON_Server]
 address = tcp://localhost:7890
+[HTTP_Server]
+port = 8081
+[WEBSOCKET_Server]
+port = 8080
 ```
 
 The playground folder in this repo includes an [illustrative setting.ini](https://github.com/thesave/ranflood/blob/master/src/tests/java/playground/settings.ini) file for Linux/macOS.

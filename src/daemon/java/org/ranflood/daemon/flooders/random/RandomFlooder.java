@@ -56,13 +56,11 @@ public class RandomFlooder extends AbstractFlooder {
 	}
 
 	@Override
-	public UUID flood( Path targetFolder ) {
+	public void flood( Path targetFolder, UUID id ) {
 		RandomFloodTask t = new RandomFloodTask( this, targetFolder, METHOD );
-		UUID id = UUID.randomUUID();
 		LabeledFloodTask lft = new LabeledFloodTask( id, t );
 		addRunningTask( lft );
 		Ranflood.daemon().floodTaskExecutor().addTask( lft );
-		return id;
 	}
 
 }
