@@ -49,6 +49,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import static java.lang.Integer.parseInt;
 import static org.ranflood.common.RanfloodLogger.error;
 import static org.ranflood.common.RanfloodLogger.log;
 
@@ -118,7 +119,7 @@ public class RanfloodDaemon {
 		Optional< Integer > sss_opt_exfiltration_n = settings.getValue( "SSSExfiltration", "ShardsCreated" ).map(
 				(value) -> {
 					try {
-						return Integer.parseInt(value);
+						return parseInt(value);
 					} catch (NumberFormatException e) {
 						return null;
 					}
@@ -127,7 +128,7 @@ public class RanfloodDaemon {
 		Optional< Integer > sss_opt_exfiltration_k = settings.getValue( "SSSExfiltration", "ShardsNeededP" ).map(
 				(value) -> {
 					try {
-						return Integer.parseInt(value);
+						return parseInt(value);
 					} catch (NumberFormatException e) {
 						return null;
 					}
@@ -149,7 +150,7 @@ public class RanfloodDaemon {
 		Optional< Integer > sss_opt_ransomware_n = settings.getValue( "SSSRansomware", "ShardsCreated" ).map(
 				(value) -> {
 					try {
-						return Integer.parseInt(value);
+						return parseInt(value);
 					} catch (NumberFormatException e) {
 						return null;
 					}
@@ -158,7 +159,7 @@ public class RanfloodDaemon {
 		Optional< Integer > sss_opt_ransomware_k = settings.getValue( "SSSRansomware", "ShardsNeeded" ).map(
 				(value) -> {
 					try {
-						return Integer.parseInt(value);
+						return parseInt(value);
 					} catch (NumberFormatException e) {
 						return null;
 					}
@@ -275,14 +276,14 @@ public class RanfloodDaemon {
 
 		// Start the HTTP server
 		try {
-			startHttpServer(8081);
+			startHttpServer( parseInt(settings.getValue("HTTP_Server", "port").orElse("8081")));
 		} catch (IOException e) {
 			error("Failed to start HTTP server: " + e.getMessage());
 		}
 
 		// Start WebSocket server
 		try {
-			startWebsocketServer(8080);
+			startWebsocketServer( parseInt(settings.getValue("WEBSOCKET_Server", "port").orElse("8080")));
 		} catch (IOException e) {
 			error("Failed to start websocket server: " + e.getMessage());
 		}
