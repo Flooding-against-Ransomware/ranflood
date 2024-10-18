@@ -203,6 +203,7 @@ tasks.register( "daemonNativeImage", BuildNativeImageTask ){
             "org.ranflood.daemon.Ranflood",
             sourceSets.daemon.runtimeClasspath,
             Set.of( "-H:IncludeResources=.*/*.properties",
+                    "-march=compatibility",
                     "-H:ReflectionConfigurationFiles=" +
                             [ "jni-config", "reflect-config" ]
                                     .collect{ e -> rootProject.layout.projectDirectory.file( "native-config/" + e + ".json" ) }
@@ -221,6 +222,7 @@ tasks.register( "clientNativeImage", BuildNativeImageTask ){
             "org.ranflood.client.Ranflood",
             sourceSets.client.runtimeClasspath,
             Set.of( "-H:IncludeResources=.*/*.properties",
+                    "-march=compatibility",
                     "-H:ReflectionConfigurationFiles=" + rootProject.layout.buildDirectory.file( "config/reflection.json" ).get() )
     ) as NativeImageOptions )
 }
