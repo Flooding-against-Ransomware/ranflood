@@ -44,12 +44,17 @@ configurations {
 
 dependencies {
     common 'com.republicate:essential-json:2.7'
+    common 'org.slf4j:slf4j-api:2.0.7'
     common 'org.slf4j:slf4j-simple:2.0.13'
     common 'org.zeromq:jeromq:0.6.0'
 
     client 'info.picocli:picocli:4.7.6'
     client 'info.picocli:picocli-codegen:4.7.6'
 
+    daemon 'org.eclipse.jetty:jetty-server:11.0.15'
+    daemon 'org.eclipse.jetty:jetty-servlet:11.0.15'
+    daemon 'org.eclipse.jetty.websocket:websocket-jakarta-server:11.0.15'
+    daemon 'jakarta.websocket:jakarta.websocket-api:2.0.0'
     daemon 'io.reactivex.rxjava3:rxjava:3.1.8'
     daemon 'com.oblac:nomen-est-omen:2.2.1'
     daemon 'org.jetbrains.xodus:xodus-openAPI:2.0.1'

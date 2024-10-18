@@ -24,6 +24,10 @@ package org.ranflood.daemon;
 
 import io.reactivex.rxjava3.core.*;
 import io.reactivex.rxjava3.schedulers.Schedulers;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.websocket.jakarta.server.config.JakartaWebSocketServletContainerInitializer;
+import org.ranflood.daemon.binders.WebSocketServer;
 import org.ranflood.common.FloodMethod;
 import org.ranflood.daemon.binders.ZMQ_JSON_Server;
 import org.ranflood.daemon.flooders.FloodTaskExecutor;
@@ -32,9 +36,11 @@ import org.ranflood.daemon.flooders.onTheFly.OnTheFlyFlooder;
 import org.ranflood.daemon.flooders.random.RandomFlooder;
 import org.ranflood.common.utils.IniParser;
 import org.ranflood.daemon.flooders.shadowCopy.ShadowCopyFlooder;
+import org.ranflood.daemon.binders.HttpServer.CommandHandler;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -43,8 +49,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import static java.lang.Integer.parseInt;
 import static org.ranflood.common.RanfloodLogger.error;
 import static org.ranflood.common.RanfloodLogger.log;
+
+import com.sun.net.httpserver.HttpServer;
 
 public class RanfloodDaemon {
 
@@ -58,6 +67,9 @@ public class RanfloodDaemon {
 	private final SSSFlooder SSS_EXFILTRATION_FLOODER;
 	private final ShadowCopyFlooder SHADOW_COPY_FLOODER;
 	static private Emitter< Runnable > emitter;
+
+	private HttpServer httpServer;
+	private Server webSocketServer;
 
 	static {
 		Observable.< Runnable >create( e -> emitter = e )
@@ -107,7 +119,7 @@ public class RanfloodDaemon {
 		Optional< Integer > sss_opt_exfiltration_n = settings.getValue( "SSSExfiltration", "ShardsCreated" ).map(
 				(value) -> {
 					try {
-						return Integer.parseInt(value);
+						return parseInt(value);
 					} catch (NumberFormatException e) {
 						return null;
 					}
@@ -116,7 +128,7 @@ public class RanfloodDaemon {
 		Optional< Integer > sss_opt_exfiltration_k = settings.getValue( "SSSExfiltration", "ShardsNeededP" ).map(
 				(value) -> {
 					try {
-						return Integer.parseInt(value);
+						return parseInt(value);
 					} catch (NumberFormatException e) {
 						return null;
 					}
@@ -138,7 +150,7 @@ public class RanfloodDaemon {
 		Optional< Integer > sss_opt_ransomware_n = settings.getValue( "SSSRansomware", "ShardsCreated" ).map(
 				(value) -> {
 					try {
-						return Integer.parseInt(value);
+						return parseInt(value);
 					} catch (NumberFormatException e) {
 						return null;
 					}
@@ -147,7 +159,7 @@ public class RanfloodDaemon {
 		Optional< Integer > sss_opt_ransomware_k = settings.getValue( "SSSRansomware", "ShardsNeeded" ).map(
 				(value) -> {
 					try {
-						return Integer.parseInt(value);
+						return parseInt(value);
 					} catch (NumberFormatException e) {
 						return null;
 					}
@@ -196,6 +208,34 @@ public class RanfloodDaemon {
 		return SHADOW_COPY_FLOODER;
 	}
 
+	public void startHttpServer(int port) throws IOException {
+		httpServer = HttpServer.create(new InetSocketAddress(port), 0);
+		httpServer.createContext("/command", new CommandHandler());
+		httpServer.setExecutor(Executors.newFixedThreadPool(2)); // or use another ExecutorService
+		httpServer.start();
+		log("HTTP server started on port " + port);
+	}
+
+	public void startWebsocketServer(int port) throws IOException {
+		webSocketServer = new Server(port);
+
+		ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+		context.setContextPath("/");
+		webSocketServer.setHandler(context);
+
+		JakartaWebSocketServletContainerInitializer.configure(context, (servletContext, serverContainer) -> {
+			serverContainer.addEndpoint(WebSocketServer.class);
+
+			serverContainer.setDefaultMaxSessionIdleTimeout(600000); // 10 minute
+		});
+
+		try {
+			webSocketServer.start();
+			webSocketServer.join();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 	public SSSFlooder SSSRansomwareFlooder() {
 		return SSS_RANSOMWARE_FLOODER;
 	}
@@ -212,12 +252,41 @@ public class RanfloodDaemon {
 		commandExecutor.shutdown();
 		scheduler.shutdown();
 		ON_THE_FLY_FLOODER.shutdown();
+
+		if (httpServer != null) {
+			httpServer.stop(0);
+			log("HTTP server stopped.");
+		}
+		if (webSocketServer != null) {
+			try{
+				webSocketServer.stop();
+				log("HTTP server stopped.");
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
+
 		SSS_RANSOMWARE_FLOODER.shutdown();
 		System.exit( 0 );
 	}
 
 	public void start() {
-		ZMQ_JSON_Server.start( settings.getValue( "ZMQ_JSON_Server", "address" ).orElse( "" ) );
-	}
+		// Start the ZMQ_JSON_Server
+		ZMQ_JSON_Server.start(settings.getValue("ZMQ_JSON_Server", "address").orElse(""));
 
+		// Start the HTTP server
+		try {
+			startHttpServer( parseInt(settings.getValue("HTTP_Server", "port").orElse("8081")));
+		} catch (IOException e) {
+			error("Failed to start HTTP server: " + e.getMessage());
+		}
+
+		// Start WebSocket server
+		try {
+			startWebsocketServer( parseInt(settings.getValue("WEBSOCKET_Server", "port").orElse("8080")));
+		} catch (IOException e) {
+			error("Failed to start websocket server: " + e.getMessage());
+		}
+
+	}
 }
