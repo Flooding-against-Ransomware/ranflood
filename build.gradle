@@ -30,7 +30,7 @@ plugins {
 
 group 'org.ranflood'
 
-def version = '0.6-BETA'
+def version = '0.7-BETA'
 
 repositories {
     mavenCentral()
@@ -176,7 +176,8 @@ def genCompileOptions( String imageName, String mainClass, FileCollection classP
     def options = defaultTask.options.get() as NativeImageCompileOptions
     options.setImageName( imageName )
     options.setMainClass( mainClass )
-    options.setClasspath( classPath )
+//    options.setClasspath( classPath )
+    options.setUseFatJar( true )
     buildArgs.forEach { a -> options.buildArgs.add( a ) }
     return options
 }
@@ -194,18 +195,27 @@ tasks.register('generatePicocliAnnotations', Exec) {
 }
 
 tasks.register( "daemonNativeImage", BuildNativeImageTask ){
+    dependsOn daemonJar
     outputDirectory.set( new File( rootProject.layout.buildDirectory.asFile.get(), 'graal' ) )
+    classpathJar = new File( "build/libs/ranfloodd.jar" )
     options.set( genCompileOptions(
             "ranfloodd",
             "org.ranflood.daemon.Ranflood",
             sourceSets.daemon.runtimeClasspath,
-            Set.of( "-H:IncludeResources=.*/*.properties" )
+            Set.of( "-H:IncludeResources=.*/*.properties",
+                    "-H:ReflectionConfigurationFiles=" +
+                            [ "jni-config", "reflect-config" ]
+                                    .collect{ e -> rootProject.layout.projectDirectory.file( "native-config/" + e + ".json" ) }
+                                    .join( "," )
+            )
     ) as NativeImageOptions )
 }
 
 tasks.register( "clientNativeImage", BuildNativeImageTask ){
+    dependsOn clientJar
     dependsOn tasks.named( "generatePicocliAnnotations" )
     outputDirectory.set( new File( rootProject.layout.buildDirectory.asFile.get(), 'graal' ) )
+    classpathJar = new File( "build/libs/ranflood.jar" )
     options.set( genCompileOptions(
             "ranflood",
             "org.ranflood.client.Ranflood",
